@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   LayoutDashboard, Briefcase, Users, Settings,
@@ -7,7 +7,7 @@ import {
   CheckCircle, Calendar, XCircle, Edit, Pause, AlertCircle,
   ArrowLeft, FileText, Phone, HelpCircle, ChevronDown,
   Sparkles, MessageSquare, ChevronUp, User, CreditCard,
-  Bell, Shield, RotateCcw, Bot,
+  Bell, Shield, RotateCcw, Bot, Send, Activity, PhoneCall,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -291,6 +291,231 @@ const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
   Rejected:    { bg: '#fef2f2', text: '#b91c1c' },
 };
 
+// ─── Agentic layer: command center, activity feed, notifications ────────────
+
+const AGENT_CSS = `
+@keyframes ggFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ggToastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes ggBlink{0%,100%{opacity:1}50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.gg-anim{animation:none!important}}
+`;
+
+interface Toast { id: number; title: string; body: string }
+
+const EXAMPLE_COMMANDS = [
+  'Call top 10 matched candidates and confirm availability',
+  'Find more Spanish-speaking warehouse workers',
+  'Reactivate qualified candidates from the last 30 days',
+  'Schedule interviews for qualified candidates',
+];
+
+const RUN_STEPS = [
+  'Thinking…',
+  'Finding candidates…',
+  'Calling workers…',
+  'Collecting availability…',
+  'Scheduling interviews…',
+  'Generating summary…',
+];
+
+const RUN_RESULTS = [
+  { summary: 'Availability confirmed for 8 candidates. 2 interviews scheduled.', toast: { title: 'Availability confirmed', body: '8 candidates confirmed availability for this week.' } },
+  { summary: '15 new workers found and added to your talent pool. 6 match this role.', toast: { title: 'New qualified candidates found', body: '6 new matches added to Warehouse Associate.' } },
+  { summary: '8 previous candidates reactivated. 3 already responded.', toast: { title: 'Workers reactivated', body: '8 qualified workers re-engaged via SMS and voice.' } },
+  { summary: 'Interviews scheduled with 2 qualified candidates for Thursday.', toast: { title: 'Interviews scheduled', body: 'Calendar invites sent for Thursday 10:00 and 14:30.' } },
+];
+
+function CommandCenter({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
+  const [command, setCommand] = useState('');
+  const [phase, setPhase] = useState<'idle' | 'running' | 'done'>('idle');
+  const [step, setStep] = useState(0);
+  const [result, setResult] = useState('');
+  const runIdx = useRef(0);
+
+  const run = (text: string) => {
+    if (!text.trim() || phase === 'running') return;
+    setCommand(text);
+    setPhase('running');
+    setStep(0);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tick = reduced ? 120 : 850;
+    let s = 0;
+    const t = setInterval(() => {
+      s += 1;
+      if (s < RUN_STEPS.length) { setStep(s); return; }
+      clearInterval(t);
+      const res = RUN_RESULTS[runIdx.current % RUN_RESULTS.length];
+      runIdx.current += 1;
+      setResult(res.summary);
+      setPhase('done');
+      onToast(res.toast);
+    }, tick);
+  };
+
+  return (
+    <div className="rounded-xl border border-[#a7f3d0] bg-gradient-to-br from-[#f0fdf4] to-white mb-5 overflow-hidden">
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-full bg-[#10b981] flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div>
+          <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>Tell Sarah what you need</span>
+          <span className="ml-auto flex items-center gap-1.5 text-xs text-[#059669]" style={{ fontWeight: 600 }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
+            On duty 24/7
+          </span>
+        </div>
+
+        <form
+          className="flex gap-2"
+          onSubmit={e => { e.preventDefault(); run(command); }}
+        >
+          <input
+            value={command}
+            onChange={e => setCommand(e.target.value)}
+            disabled={phase === 'running'}
+            placeholder='e.g. "Call top 10 matched candidates and confirm availability"'
+            className="flex-1 bg-white border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-[#10b981] transition-colors disabled:opacity-60"
+            style={{ fontFamily: 'inherit' }}
+          />
+          <button
+            type="submit"
+            disabled={phase === 'running' || !command.trim()}
+            className="flex items-center gap-1.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-40 text-white rounded-lg px-4 text-sm transition-colors"
+            style={{ fontWeight: 600 }}
+          >
+            <Send className="w-3.5 h-3.5" />
+            Run
+          </button>
+        </form>
+
+        {phase === 'idle' && (
+          <div className="flex gap-1.5 mt-2.5 flex-wrap">
+            {EXAMPLE_COMMANDS.map(c => (
+              <button
+                key={c}
+                onClick={() => run(c)}
+                className="text-xs text-gray-500 bg-white border border-gray-200 hover:border-[#10b981] hover:text-[#059669] rounded-full px-3 py-1 transition-colors"
+                style={{ fontWeight: 500 }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {phase === 'running' && (
+        <div className="px-5 py-3 border-t border-[#d1fae5] bg-white/60">
+          <div className="flex items-center gap-3">
+            <span className="w-4 h-4 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin shrink-0" />
+            <div className="flex-1">
+              <div key={step} className="text-sm text-gray-800 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>{RUN_STEPS[step]}</div>
+              <div className="flex gap-1 mt-1.5">
+                {RUN_STEPS.map((_, i) => (
+                  <span key={i} className="h-1 flex-1 rounded-full transition-colors" style={{ backgroundColor: i <= step ? '#10b981' : '#e5e7eb' }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {phase === 'done' && (
+        <div className="px-5 py-3 border-t border-[#d1fae5] bg-white/60 gg-anim" style={{ animation: 'ggFadeUp .3s both' }}>
+          <div className="flex items-start gap-2.5">
+            <CheckCircle className="w-4 h-4 text-[#10b981] shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span className="text-sm text-gray-800" style={{ fontWeight: 600 }}>{result}</span>
+              <div className="text-xs text-gray-400 mt-0.5">Sarah completed this task just now.</div>
+            </div>
+            <button
+              onClick={() => { setPhase('idle'); setCommand(''); }}
+              className="text-xs text-[#059669] hover:underline shrink-0"
+              style={{ fontWeight: 600 }}
+            >
+              New task
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const FEED_POOL: { icon: 'phone' | 'check' | 'calendar' | 'rotate' | 'users'; text: string }[] = [
+  { icon: 'phone',    text: 'Sarah called 12 candidates' },
+  { icon: 'check',    text: 'Sarah qualified 4 workers' },
+  { icon: 'calendar', text: 'Sarah scheduled 2 interviews' },
+  { icon: 'rotate',   text: 'Sarah reactivated 8 previous candidates' },
+  { icon: 'users',    text: 'Sarah found 15 new workers' },
+  { icon: 'phone',    text: 'SMS follow-ups sent to 23 workers' },
+];
+
+const FEED_ICONS = {
+  phone:    <PhoneCall className="w-3 h-3" />,
+  check:    <CheckCircle className="w-3 h-3" />,
+  calendar: <Calendar className="w-3 h-3" />,
+  rotate:   <RotateCcw className="w-3 h-3" />,
+  users:    <Users className="w-3 h-3" />,
+};
+
+let feedSeq = 3;
+
+function ActivityFeed() {
+  const [items, setItems] = useState(() =>
+    FEED_POOL.slice(0, 3).map((f, i) => ({ ...f, id: `seed-${i}`, time: ['just now', '4 min ago', '11 min ago'][i] })),
+  );
+
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = setInterval(() => {
+      const id = feedSeq++;
+      const next = FEED_POOL[id % FEED_POOL.length];
+      setItems(prev => [{ ...next, id: `f-${id}`, time: 'just now' }, ...prev.map(p => p.time === 'just now' ? { ...p, time: 'a moment ago' } : p)].slice(0, 6));
+    }, 7000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="px-5 py-4 border-b border-gray-100">
+      <div className="flex items-center gap-1.5 mb-3">
+        <Activity className="w-3.5 h-3.5 text-[#10b981]" />
+        <span className="text-xs text-gray-400 uppercase tracking-wide" style={{ fontWeight: 600 }}>Sarah's Activity</span>
+        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
+      </div>
+      <div className="space-y-2.5">
+        {items.map(item => (
+          <div key={item.id} className="flex items-start gap-2 gg-anim" style={{ animation: 'ggFadeUp .35s both' }}>
+            <span className="w-5 h-5 rounded-md bg-[#f0fdf4] text-[#10b981] border border-[#d1fae5] flex items-center justify-center shrink-0 mt-px">
+              {FEED_ICONS[item.icon]}
+            </span>
+            <div>
+              <div className="text-xs text-gray-600 leading-snug" style={{ fontWeight: 500 }}>{item.text}</div>
+              <div className="text-xs text-gray-300" style={{ fontSize: '0.65rem' }}>{item.time}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
+  return (
+    <div className="fixed bottom-5 right-5 z-50 space-y-2 w-80">
+      {toasts.map(t => (
+        <div key={t.id} className="bg-white border border-gray-200 shadow-lg rounded-xl px-4 py-3 flex items-start gap-2.5 gg-anim" style={{ animation: 'ggToastIn .3s both' }}>
+          <div className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center shrink-0"><Bot className="w-3.5 h-3.5 text-white" /></div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-900" style={{ fontWeight: 700 }}>{t.title}</div>
+            <div className="text-xs text-gray-500 mt-0.5">{t.body}</div>
+          </div>
+          <button onClick={() => onDismiss(t.id)} className="text-gray-300 hover:text-gray-500 shrink-0"><XCircle className="w-4 h-4" /></button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Root ────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -303,6 +528,23 @@ export default function DashboardPage() {
   const [search, setSearch]                   = useState('');
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [budgetDelta, setBudgetDelta]         = useState(0);
+  const [toasts, setToasts]                   = useState<Toast[]>([]);
+
+  const pushToast = (t: Omit<Toast, 'id'>) => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { ...t, id }]);
+    setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 6000);
+  };
+
+  // Sarah works in the background: surface a completed task shortly after load
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = setTimeout(() => pushToast({
+      title: 'New qualified candidate found',
+      body: 'Maria Santos — 87% match for Warehouse Associate.',
+    }), 12000);
+    return () => clearTimeout(t);
+  }, []);
 
   const selectedJob = jobs.find(j => j.id === selectedJobId) || jobs[0];
 
@@ -329,6 +571,8 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <style>{AGENT_CSS}</style>
+      <ToastStack toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
 
       {/* ── Left Sidebar ─────────────────────────────────────────────────── */}
       <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
@@ -343,14 +587,14 @@ export default function DashboardPage() {
             style={{ fontWeight: 600 }}
           >
             <Plus className="w-4 h-4" />
-            Post a Job
+            New Campaign
           </button>
         </div>
 
         <nav className="flex-1 px-2">
           {[
             { id: 'dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, label: 'Dashboard' },
-            { id: 'jobs',       icon: <Briefcase className="w-4 h-4" />,       label: 'Jobs' },
+            { id: 'jobs',       icon: <Briefcase className="w-4 h-4" />,       label: 'Campaigns' },
             { id: 'candidates', icon: <Users className="w-4 h-4" />,           label: 'Candidates' },
             { id: 'settings',   icon: <Settings className="w-4 h-4" />,        label: 'Settings' },
           ].map(item => {
@@ -396,6 +640,7 @@ export default function DashboardPage() {
             search={search} onSearch={setSearch}
             statusFilter={statusFilter} onStatusFilter={setStatusFilter}
             onOpenCandidate={openProfile}
+            onToast={pushToast}
           />
         )}
         {view === 'jobs' && (
@@ -430,7 +675,7 @@ export default function DashboardPage() {
         <aside className="w-56 shrink-0 bg-white border-l border-gray-100 flex flex-col h-full overflow-y-auto">
           {/* Job header */}
           <div className="px-5 pt-6 pb-4 border-b border-gray-100">
-            <div className="text-xs text-gray-400 mb-3 uppercase tracking-wide" style={{ fontWeight: 600 }}>Job Overview</div>
+            <div className="text-xs text-gray-400 mb-3 uppercase tracking-wide" style={{ fontWeight: 600 }}>Campaign Overview</div>
             <div className="text-gray-900 mb-0.5" style={{ fontSize: '0.95rem', fontWeight: 700 }}>{selectedJob.title}</div>
             <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
               <MapPin className="w-3 h-3" />{selectedJob.location}
@@ -453,6 +698,9 @@ export default function DashboardPage() {
             <RightStat icon={<TrendingUp className="w-3.5 h-3.5" />}  label="Total Spend"          value={`£${selectedJob.totalSpend} so far`} />
           </div>
 
+          {/* Live agent activity */}
+          <ActivityFeed />
+
           {/* Actions */}
           <div className="px-4 py-4 space-y-2 border-b border-gray-100">
             <button
@@ -469,7 +717,7 @@ export default function DashboardPage() {
               style={{ fontWeight: 600 }}
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
-              View Job
+              View Campaign
             </button>
             <button className="w-full flex items-center justify-center gap-1.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
               <Edit className="w-3.5 h-3.5" />
@@ -481,11 +729,11 @@ export default function DashboardPage() {
               style={{ fontWeight: 500 }}
             >
               <Pause className="w-3.5 h-3.5" />
-              {selectedJob.status === 'Active' ? 'Pause Job' : 'Resume Job'}
+              {selectedJob.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
             </button>
             <button className="w-full flex items-center justify-center gap-1.5 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
               <XCircle className="w-3.5 h-3.5" />
-              Close Job
+              End Campaign
             </button>
           </div>
 
@@ -545,7 +793,7 @@ export default function DashboardPage() {
 
 // ─── Dashboard view ──────────────────────────────────────────────────────────
 
-function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate }: {
+function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate, onToast }: {
   jobs: Job[];
   selectedJob: Job;
   onSelectJob: (id: string) => void;
@@ -553,14 +801,18 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
   search: string; onSearch: (s: string) => void;
   statusFilter: string; onStatusFilter: (s: string) => void;
   onOpenCandidate: (c: Candidate) => void;
+  onToast: (t: Omit<Toast, 'id'>) => void;
 }) {
   return (
     <div className="flex-1 px-8 py-7">
       {/* Greeting */}
       <div className="mb-5">
         <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
-        <p className="text-sm text-gray-400">Here's what's happening with your jobs.</p>
+        <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns. Here's what she's delivered.</p>
       </div>
+
+      {/* ── Agent Command Center ── */}
+      <CommandCenter onToast={onToast} />
 
       {/* ── Job Switcher ── */}
       <div className="mb-5">
@@ -991,8 +1243,8 @@ function JobsView({ jobs, onToggleStatus, onSelectJob }: {
   return (
     <div className="flex-1 px-8 py-7">
       <div className="mb-6">
-        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Jobs</h1>
-        <p className="text-sm text-gray-400">{jobs.length} job postings</p>
+        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Campaigns</h1>
+        <p className="text-sm text-gray-400">{jobs.length} hiring campaigns</p>
       </div>
       <div className="flex gap-2 mb-5">
         {['All', 'Active', 'Paused', 'Closed'].map(f => (

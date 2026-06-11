@@ -1,11 +1,11 @@
+# GigGrab — Employer App
 
-  # Employer Job Posting Flow
+GigGrab is a voice-first workforce acquisition platform. Employers launch hiring
+campaigns; Sarah, the AI hiring agent, acquires, screens and qualifies frontline
+workers 24/7 — no applications, no resumes.
 
-  This is a code bundle for Employer Job Posting Flow. The original project is available at https://www.figma.com/design/rMMzWAEyDKUKwc6rVNiknB/Employer-Job-Posting-Flow.
+## Running the app
 
-  ## Running the code
+Run `npm i` to install the dependencies.
 
-  Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
-  
+Run `npm run dev` to start the development server.

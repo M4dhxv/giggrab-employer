@@ -19,7 +19,7 @@ export default function ReviewLaunchPage() {
       <div className="flex-1 px-6 py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl mb-2">Ready to launch?</h1>
-          <p className="text-gray-600 mb-8">Review your job posting details before going live.</p>
+          <p className="text-gray-600 mb-8">One last look — then Sarah takes over the acquisition, screening and follow-up.</p>
 
           <div className="bg-white rounded-xl p-8 border border-gray-200 mb-8">
             <h2 className="text-2xl mb-6">Warehouse Associate</h2>
@@ -134,7 +134,7 @@ export default function ReviewLaunchPage() {
                 }
               }}
             >
-              Launch Job
+              Launch Campaign
             </Button>
           </div>
         </div>

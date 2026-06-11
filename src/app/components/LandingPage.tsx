@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  ArrowRight, Play, Check, HardHat, Package, Factory, Truck,
-  Heart, UtensilsCrossed, ShoppingBag, Link2, UserSearch, Cpu, Zap,
+  ArrowRight, Check, HardHat, Package, Factory, Truck,
+  Heart, UtensilsCrossed, ShoppingBag, Link2, Megaphone, PhoneCall,
+  ClipboardCheck, UserCheck, Bot, MessageSquare, Mic,
 } from 'lucide-react';
 
 /*
@@ -88,16 +89,69 @@ const CSS = `
   display:grid;place-items:center}
 .gg .ind-item span{font-size:.72rem;font-weight:500}
 
-/* how it works */
+/* product story */
 .gg .how{padding:76px 0}
-.gg .how h2{text-align:center;font-size:1.75rem;font-weight:700;margin-bottom:48px;letter-spacing:-.02em}
-.gg .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative}
-@media(max-width:760px){.gg .steps{grid-template-columns:1fr 1fr;gap:28px}}
-.gg .step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 18px}
-.gg .step .sbox{width:56px;height:56px;border-radius:16px;background:var(--em-tint);
-  border:1px solid var(--em-border);display:grid;place-items:center;margin-bottom:16px;color:var(--em)}
-.gg .step h3{font-size:.95rem;font-weight:600;margin-bottom:8px}
-.gg .step p{font-size:.85rem;color:var(--gray-500);line-height:1.5}
+.gg .how h2{text-align:center;font-size:1.75rem;font-weight:700;margin-bottom:10px;letter-spacing:-.02em}
+.gg .how .hsub{text-align:center;font-size:1rem;color:var(--gray-500);margin-bottom:44px}
+.gg .sgrid{display:grid;grid-template-columns:340px 1fr;gap:40px;align-items:stretch}
+@media(max-width:860px){.gg .sgrid{grid-template-columns:1fr}}
+.gg .stp{display:flex;gap:14px;padding:14px 16px;border-radius:14px;cursor:pointer;border:1px solid transparent;
+  background:none;font-family:inherit;text-align:left;width:100%;transition:.2s;position:relative;overflow:hidden}
+.gg .stp+.stp{margin-top:6px}
+.gg .stp:hover{background:#f9fafb}
+.gg .stp.on{background:#fff;border-color:var(--em-border);box-shadow:0 8px 24px -14px rgba(16,185,129,.35)}
+.gg .stp .sico{width:38px;height:38px;border-radius:11px;background:#f3f4f6;color:var(--gray-400);
+  display:grid;place-items:center;flex-shrink:0;transition:.2s}
+.gg .stp.on .sico{background:var(--em-tint);color:var(--em);border:1px solid var(--em-border)}
+.gg .stp h3{font-size:.9rem;font-weight:600;color:var(--gray-600)}
+.gg .stp.on h3{color:var(--gray-900)}
+.gg .stp p{font-size:.8rem;color:var(--gray-400);line-height:1.45;margin-top:3px}
+.gg .stp .sprog{position:absolute;left:0;bottom:0;height:2px;background:var(--em);width:0}
+.gg .stp.on .sprog{animation:ggprog var(--dur) linear forwards}
+@keyframes ggprog{from{width:0}to{width:100%}}
+
+/* demo viewport */
+.gg .demo{background:linear-gradient(180deg,#fafafa,#fff);border:1px solid var(--line);border-radius:20px;
+  padding:28px;min-height:340px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.gg .demo .dhead{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.gg .demo .dhead .sav{width:26px;height:26px;border-radius:50%;background:var(--em);display:grid;place-items:center;color:#fff}
+.gg .demo .dhead span{font-size:.8rem;font-weight:600;color:var(--gray-600)}
+.gg .demo .dhead .live{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:.7rem;
+  font-weight:700;color:var(--em-d);text-transform:uppercase;letter-spacing:.06em}
+.gg .demo .dhead .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--em);animation:ggblink 1.4s infinite}
+@keyframes ggblink{0%,100%{opacity:1}50%{opacity:.25}}
+.gg .dcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;
+  animation:ggrise .45s cubic-bezier(.22,1,.36,1) both}
+.gg .dcard+.dcard{margin-top:10px}
+@keyframes ggrise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ggpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.gg .durl{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--gray-600)}
+.gg .durl .dom{color:var(--gray-400);font-size:.78rem;overflow:hidden;white-space:nowrap}
+.gg .dok{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:600;color:var(--em-d)}
+.gg .dok .tick{width:18px;height:18px;border-radius:50%;background:var(--em);color:#fff;display:grid;place-items:center;animation:ggpop .3s both}
+.gg .drow{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--gray-600)}
+.gg .drow .ric{width:30px;height:30px;border-radius:9px;background:var(--em-tint);color:var(--em);
+  border:1px solid var(--em-border);display:grid;place-items:center;flex-shrink:0}
+.gg .drow b{font-weight:600;color:var(--gray-900)}
+.gg .drow .rok{margin-left:auto;color:var(--em-d);display:flex;animation:ggpop .3s both}
+.gg .avrow{display:flex;align-items:center;margin-top:14px}
+.gg .av{width:34px;height:34px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;
+  color:#fff;font-size:.72rem;font-weight:700;margin-left:-8px;animation:ggpop .35s both;flex-shrink:0}
+.gg .avrow .av:first-child{margin-left:0}
+.gg .avrow .more{margin-left:10px;font-size:.8rem;font-weight:600;color:var(--gray-500)}
+.gg .pulse-ic{position:relative}
+.gg .pulse-ic::after{content:"";position:absolute;inset:-4px;border-radius:12px;border:1.5px solid var(--em);animation:ggring 1.6s infinite}
+.gg .score{margin-top:8px}
+.gg .score .sl{display:flex;justify-content:space-between;font-size:.75rem;color:var(--gray-500);margin-bottom:5px}
+.gg .score .sl b{color:var(--em-d);font-weight:700}
+.gg .score .bar{height:7px;border-radius:99px;background:var(--line-2);overflow:hidden}
+.gg .score .fill{height:100%;border-radius:99px;background:var(--em);width:0;animation:ggfill 1.6s .3s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes ggfill{to{width:var(--w)}}
+.gg .bubble{font-size:.82rem;line-height:1.45;color:#374151;background:#f9fafb;border-radius:4px 14px 14px 14px;
+  padding:9px 13px;max-width:88%}
+.gg .bubble.me{background:var(--em-tint);border-radius:14px 4px 14px 14px;margin-left:auto}
+.gg .qbadge{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:#15803d;
+  background:var(--em-tint);border:1px solid var(--em-border);padding:3px 9px;border-radius:99px}
 
 /* bottom cta */
 .gg .band{padding:24px 0 56px}
@@ -214,12 +268,155 @@ const BOROUGHS = ['Newham','Barking','Croydon','Wembley','Hounslow','Stratford',
 const ROLES = ['forklift driver','warehouse operative','picker / packer','CSCS labourer','kitchen porter','care assistant','HGV Class 2 driver','cleaner','machine operator'];
 const pk = (a: string[]) => a[Math.floor(Math.random() * a.length)];
 
+/* ── ProductStory: auto-playing pipeline showing Sarah working ── */
+
+const STAGE_MS = 3600;
+
+const STAGES = [
+  { icon: <Link2 size={17} />, title: 'You paste a job', body: 'A link from Indeed, LinkedIn or your careers page is all Sarah needs.' },
+  { icon: <Megaphone size={17} />, title: 'Sarah builds the campaign', body: 'Voice, SMS and WhatsApp outreach goes live across our worker network.' },
+  { icon: <PhoneCall size={17} />, title: 'Workers engage', body: 'Workers call in or pick up. No applications, no forms — just conversations.' },
+  { icon: <ClipboardCheck size={17} />, title: 'Sarah screens & qualifies', body: 'Experience, availability, certifications — checked by phone in 32 languages.' },
+  { icon: <UserCheck size={17} />, title: 'Qualified workers delivered', body: 'Ready-to-interview candidates land in your dashboard. You review outcomes.' },
+];
+
+const AV = [
+  { i: 'JT', c: '#10b981' }, { i: 'MS', c: '#6366f1' }, { i: 'AK', c: '#f59e0b' },
+  { i: 'RO', c: '#14b8a6' }, { i: 'SM', c: '#8b5cf6' }, { i: 'JW', c: '#ec4899' },
+];
+
+function StoryDemo({ stage }: { stage: number }) {
+  const d = (n: number) => ({ animationDelay: `${n}ms` } as React.CSSProperties);
+  switch (stage) {
+    case 0: return (
+      <>
+        <div className="dcard">
+          <div className="durl">
+            <Link2 size={15} color="#9ca3af" />
+            <span className="dom">uk.indeed.com/viewjob?jk=88f2…</span>
+          </div>
+        </div>
+        <div className="dcard" style={d(700)}>
+          <div className="dok"><span className="tick" style={d(900)}><Check size={11} strokeWidth={3.5} /></span>
+            Job imported — Warehouse Associate, Manchester</div>
+        </div>
+        <div className="dcard" style={d(1500)}>
+          <div className="drow"><div className="ric"><Bot size={15} /></div>
+            <span><b>Sarah</b> is reading the role requirements…</span></div>
+        </div>
+      </>
+    );
+    case 1: return (
+      <>
+        {[
+          { ic: <Mic size={14} />, t: <><b>Voice outreach</b> — hiring line is live</>, dl: 0 },
+          { ic: <MessageSquare size={14} />, t: <><b>SMS campaign</b> — 412 workers notified</>, dl: 600 },
+          { ic: <Megaphone size={14} />, t: <><b>Warehouse Workers London</b> — community activated</>, dl: 1200 },
+        ].map((r, i) => (
+          <div className="dcard" key={i} style={d(r.dl)}>
+            <div className="drow"><div className="ric">{r.ic}</div><span>{r.t}</span>
+              <span className="rok" style={d(r.dl + 350)}><Check size={15} strokeWidth={3} /></span></div>
+          </div>
+        ))}
+        <div className="dcard" style={d(2000)}>
+          <div className="dok"><span className="tick" style={d(2200)}><Check size={11} strokeWidth={3.5} /></span>
+            Campaign live — Sarah is now on duty 24/7</div>
+        </div>
+      </>
+    );
+    case 2: return (
+      <>
+        <div className="dcard">
+          <div className="drow"><div className="ric pulse-ic"><PhoneCall size={14} /></div>
+            <span><b>Incoming call</b> — worker from Stratford</span></div>
+          <div className="avrow">
+            {AV.map((a, i) => (
+              <span className="av" key={a.i} style={{ background: a.c, ...d(300 + i * 280) }}>{a.i}</span>
+            ))}
+            <span className="more">+17 engaging now</span>
+          </div>
+        </div>
+        <div className="dcard" style={d(1400)}>
+          <div className="drow"><div className="ric"><MessageSquare size={14} /></div>
+            <span><b>23 replies</b> via SMS &amp; WhatsApp in the last hour</span></div>
+        </div>
+      </>
+    );
+    case 3: return (
+      <>
+        <div className="dcard"><div className="bubble">Do you hold a valid forklift licence?</div></div>
+        <div className="dcard" style={d(700)}><div className="bubble me">Yes — counterbalance, renewed last year.</div></div>
+        <div className="dcard" style={d(1400)}>
+          <div className="score">
+            <div className="sl"><span>Match score — John T.</span><b>92%</b></div>
+            <div className="bar"><span className="fill" style={{ '--w': '92%', animationDelay: '1.6s' } as React.CSSProperties} /></div>
+          </div>
+        </div>
+      </>
+    );
+    default: return (
+      <>
+        {[
+          { i: 'JT', c: '#10b981', n: 'John Thornton', r: 'Forklift certified · starts immediately', s: '92%', dl: 0 },
+          { i: 'MS', c: '#6366f1', n: 'Maria Santos', r: 'Bilingual · 6 yrs logistics', s: '87%', dl: 600 },
+          { i: 'RO', c: '#14b8a6', n: "Rachel O'Brien", r: 'FLT licence · available now', s: '88%', dl: 1200 },
+        ].map(cd => (
+          <div className="dcard" key={cd.i} style={d(cd.dl)}>
+            <div className="drow">
+              <span className="av" style={{ background: cd.c, marginLeft: 0, animationDelay: `${cd.dl + 150}ms` }}>{cd.i}</span>
+              <span><b>{cd.n}</b><br /><span style={{ fontSize: '.76rem', color: '#9ca3af' }}>{cd.r}</span></span>
+              <span className="qbadge" style={{ marginLeft: 'auto' }}><Check size={11} strokeWidth={3} />{cd.s}</span>
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+}
+
+function ProductStory() {
+  const [stage, setStage] = useState(0);
+  const reduced = useRef(false);
+
+  useEffect(() => {
+    reduced.current = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced.current) return;
+    const t = setInterval(() => setStage(s => (s + 1) % STAGES.length), STAGE_MS);
+    return () => clearInterval(t);
+  }, [stage]);
+
+  return (
+    <div className="sgrid" style={{ '--dur': `${STAGE_MS}ms` } as React.CSSProperties}>
+      <div>
+        {STAGES.map((s, i) => (
+          <button key={s.title} className={`stp${i === stage ? ' on' : ''}`} onClick={() => setStage(i)}>
+            <span className="sico">{s.icon}</span>
+            <span>
+              <h3>{s.title}</h3>
+              {i === stage && <p>{s.body}</p>}
+            </span>
+            <span className="sprog" />
+          </button>
+        ))}
+      </div>
+      <div className="demo">
+        <div className="dhead">
+          <span className="sav"><Bot size={14} /></span>
+          <span>Sarah · AI hiring agent</span>
+          <span className="live">Working</span>
+        </div>
+        <div key={stage}>
+          <StoryDemo stage={stage} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage({
   onStartHiring,
-  onHearSarah = () => {},
 }: {
   onStartHiring?: () => void;
-  onHearSarah?: () => void;
 } = {}) {
   const navigate = useNavigate();
   const startHiring = onStartHiring ?? (() => navigate('/post-job'));
@@ -275,13 +472,6 @@ export default function LandingPage({
     { icon: <UtensilsCrossed size={20} />, label: 'Hospitality' },
     { icon: <ShoppingBag size={20} />, label: 'Retail' },
   ];
-  const steps = [
-    { icon: <Link2 size={20} />, title: 'Add your job', body: 'Paste a job link from Indeed, LinkedIn or your careers page — or just call Sarah.' },
-    { icon: <UserSearch size={20} />, title: 'We reach workers', body: 'We activate our London network through SMS, WhatsApp and voice — workers you already have.' },
-    { icon: <Cpu size={20} />, title: 'Sarah screens & qualifies', body: 'Sarah qualifies candidates by phone in 32 languages, 24/7 — no applications.' },
-    { icon: <Zap size={20} />, title: 'You hire faster', body: 'Ready-to-start, qualified candidates land in your dashboard. You just say yes.' },
-  ];
-
   return (
     <div className="gg">
       <style>{CSS}</style>
@@ -314,10 +504,6 @@ export default function LandingPage({
               <button className="cta" onClick={startHiring}>
                 Start hiring <ArrowRight size={17} strokeWidth={2.5} />
               </button>
-              <button className="ghost" onClick={onHearSarah}>
-                <span className="pl"><Play size={11} fill="currentColor" /></span>
-                Hear Sarah on the call
-              </button>
             </div>
             <div className="trust">No credit card required · Cancel anytime · Free for workers</div>
           </div>
@@ -346,19 +532,12 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* PRODUCT STORY */}
       <section className="sec how">
         <div className="wrap">
-          <h2>How GigGrab works</h2>
-          <div className="steps">
-            {steps.map((s) => (
-              <div className="step" key={s.title}>
-                <div className="sbox">{s.icon}</div>
-                <h3>{s.title}</h3>
-                <p>{s.body}</p>
-              </div>
-            ))}
-          </div>
+          <h2>You paste a job. Sarah does the rest.</h2>
+          <p className="hsub">Watch what happens the moment a campaign goes live.</p>
+          <ProductStory />
         </div>
       </section>
 
@@ -373,7 +552,6 @@ export default function LandingPage({
             <button className="primary" onClick={startHiring}>
               Start hiring <ArrowRight size={16} />
             </button>
-            <button className="secondary">Book a demo</button>
           </div>
         </div>
       </section>

@@ -11,7 +11,7 @@ export default function CreateJobPage() {
 
   const handleImport = () => {
     if (jobUrl) {
-      navigate(`/preview?type=${importTab}`);
+      navigate(`/market-intel?type=${importTab}`);
     }
   };
 

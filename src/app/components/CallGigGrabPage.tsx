@@ -145,7 +145,7 @@ export default function CallGigGrabPage() {
             <Button
               variant="contained"
               size="large"
-              onClick={() => navigate('/choose-plan')}
+              onClick={() => navigate('/market-intel')}
               disabled={currentIndex < transcript.length}
               sx={{
                 textTransform: 'none',

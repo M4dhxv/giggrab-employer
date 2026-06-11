@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Button, Slider } from '@mui/material';
-import { TrendingUp, Clock, Users, Star, Check, Zap, Rocket } from 'lucide-react';
+import { TrendingUp, Clock, Users, Star, Check, Zap } from 'lucide-react';
 
 const PLAN_CONFIG = {
   free: { label: 'FREE', min: 0, max: 0, default: 0, recommended: 0 },
-  standard: { label: 'STANDARD', min: 20, max: 250, default: 20, recommended: 25 },
-  premium: { label: 'PREMIUM', min: 35, max: 250, default: 45, recommended: 45 },
+  standard: { label: 'STANDARD', min: 20, max: 250, default: 20, recommended: 45 },
 };
 
 type Plan = keyof typeof PLAN_CONFIG;
@@ -20,27 +19,12 @@ function getEstimates(plan: Plan, budget: number) {
       timeToFill: '21–30 days',
     };
   }
-  if (plan === 'standard') {
-    const reach = Math.round(budget * 18);
-    const interestLow = Math.round(budget * 1.2);
-    const interestHigh = Math.round(budget * 1.8);
-    const qualLow = Math.round(budget * 0.35);
-    const qualHigh = Math.round(budget * 0.55);
-    const days = budget < 30 ? '14–21 days' : budget < 60 ? '10–14 days' : '7–10 days';
-    return {
-      reach: reach.toLocaleString(),
-      interest: `${interestLow}–${interestHigh}`,
-      qualified: `${qualLow}–${qualHigh}`,
-      timeToFill: days,
-    };
-  }
-  // premium
-  const reach = Math.round(budget * 33);
-  const interestLow = Math.round(budget * 1.4);
-  const interestHigh = Math.round(budget * 2.0);
-  const qualLow = Math.round(budget * 0.38);
+  const reach = Math.round(budget * 18);
+  const interestLow = Math.round(budget * 1.2);
+  const interestHigh = Math.round(budget * 1.8);
+  const qualLow = Math.round(budget * 0.35);
   const qualHigh = Math.round(budget * 0.55);
-  const days = budget < 45 ? '7–10 days' : budget < 80 ? '5–7 days' : '3–5 days';
+  const days = budget < 30 ? '14–21 days' : budget < 60 ? '10–14 days' : '7–10 days';
   return {
     reach: reach.toLocaleString(),
     interest: `${interestLow}–${interestHigh}`,
@@ -58,10 +42,7 @@ export default function SetBudgetPage() {
   const [dailyBudget, setDailyBudget] = useState(config.default);
   const estimates = getEstimates(plan, dailyBudget);
 
-  const planIcon =
-    plan === 'free' ? <Star className="w-4 h-4" /> :
-    plan === 'standard' ? <Zap className="w-4 h-4" /> :
-    <Rocket className="w-4 h-4" />;
+  const planIcon = plan === 'free' ? <Star className="w-4 h-4" /> : <Zap className="w-4 h-4" />;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -182,10 +163,10 @@ export default function SetBudgetPage() {
 
                 <div className="space-y-3 mb-5">
                   <div>
-                    <div className="text-xs text-gray-500 mb-0.5">Recommended promotion</div>
+                    <div className="text-xs text-gray-500 mb-0.5">Recommended plan</div>
                     <div className="flex items-center gap-2">
-                      <Rocket className="w-4 h-4 text-gray-700" />
-                      <span className="text-base">Premium</span>
+                      <Zap className="w-4 h-4 text-gray-700" />
+                      <span className="text-base">Standard</span>
                     </div>
                   </div>
                   <div>
@@ -196,10 +177,10 @@ export default function SetBudgetPage() {
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-5 space-y-2">
                   <div className="text-xs text-gray-500 mb-2">Expected results at £45/day</div>
-                  <RecoStat label="Worker Reach" value="1,500" />
-                  <RecoStat label="Interested Workers" value="50–70" />
-                  <RecoStat label="Qualified Candidates" value="12–18" />
-                  <RecoStat label="Estimated Fill Time" value="5–10 days" />
+                  <RecoStat label="Worker Reach" value="810" />
+                  <RecoStat label="Interested Workers" value="54–81" />
+                  <RecoStat label="Qualified Candidates" value="16–25" />
+                  <RecoStat label="Estimated Fill Time" value="10–14 days" />
                 </div>
 
                 {plan !== 'free' && (

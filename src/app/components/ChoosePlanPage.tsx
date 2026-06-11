@@ -2,62 +2,64 @@ import { useNavigate } from 'react-router';
 import { Button } from '@mui/material';
 import { Check, Zap, Star, Rocket } from 'lucide-react';
 
-const promotions = [
+const plans = [
   {
     id: 'free',
     name: 'FREE',
     price: '£0/day',
     icon: <Star className="w-5 h-5" />,
-    tagline: 'Basic listing, no promotion',
+    tagline: 'Try Sarah on your first role',
     features: [
-      'Post job listing',
-      'Low visibility',
-      'Organic discovery only',
+      '100 Sarah minutes',
+      'Basic worker acquisition',
+      'Candidate dashboard',
+      'Organic visibility',
     ],
-    notIncluded: [
-      'No candidate outreach',
-      'No promotion',
-    ],
-    cta: 'Post for Free',
+    notIncluded: [],
+    cta: 'Start Free',
     highlighted: false,
     badge: null,
   },
   {
     id: 'standard',
     name: 'STANDARD',
-    price: 'Starts at £20/day',
+    price: 'Starting at £20/day',
     icon: <Zap className="w-5 h-5" />,
-    tagline: 'Promoted listing with screening',
+    tagline: 'Full autonomous worker acquisition',
     features: [
-      'Higher visibility',
-      'Featured placement',
-      'Candidate screening',
+      '500 Sarah minutes',
+      'AI screening',
       'SMS follow-up',
-      'Better search ranking',
+      'Candidate qualification',
+      'Candidate ranking',
+      'Worker reactivation',
+      'Advanced acquisition',
     ],
     notIncluded: [],
-    cta: 'Choose Standard',
+    cta: 'Launch Hiring Campaign',
     highlighted: true,
-    badge: 'Recommended',
+    badge: 'Most popular',
   },
   {
     id: 'premium',
     name: 'PREMIUM',
-    price: 'Starts at £35/day',
+    price: 'Custom pricing',
     icon: <Rocket className="w-5 h-5" />,
-    tagline: 'Full candidate acquisition campaign',
+    tagline: 'Enterprise workforce acquisition',
     features: [
-      'Everything in Standard',
-      'Instant candidate campaigns',
-      'SMS outreach',
-      'WhatsApp outreach',
-      'Worker database activation',
-      'Priority candidate delivery',
+      'Unlimited Sarah minutes',
+      'Dedicated hiring hotline',
+      'Enterprise onboarding',
+      'Multi-location hiring',
+      'Advanced workflows',
+      'Custom integrations',
+      'Dedicated support',
+      'White-label options',
     ],
     notIncluded: [],
-    cta: 'Choose Premium',
+    cta: 'Contact Sales',
     highlighted: false,
-    badge: 'Fastest time-to-fill',
+    badge: 'Enterprise',
   },
 ];
 
@@ -70,14 +72,14 @@ export default function ChoosePlanPage() {
       <div className="flex-1 px-6 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="mb-10">
-            <h1 className="text-4xl mb-2">Choose how to promote your job</h1>
+            <h1 className="text-4xl mb-2">Launch your hiring campaign</h1>
             <p className="text-gray-600">
-              More promotion means more visibility, more candidates, faster hiring.
+              Choose how hard Sarah works for you. She acquires, screens and qualifies — you review outcomes.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {promotions.map((promo) => (
+            {plans.map((promo) => (
               <div
                 key={promo.id}
                 className={`bg-white rounded-xl p-8 border-2 flex flex-col relative ${
@@ -133,7 +135,13 @@ export default function ChoosePlanPage() {
                   fullWidth
                   variant={promo.highlighted ? 'contained' : 'outlined'}
                   size="large"
-                  onClick={() => navigate(`/set-budget?plan=${promo.id}`)}
+                  onClick={() => {
+                    if (promo.id === 'premium') {
+                      window.location.href = 'mailto:sales@giggrab.com?subject=GigGrab%20Enterprise';
+                    } else {
+                      navigate(`/set-budget?plan=${promo.id}`);
+                    }
+                  }}
                   sx={{
                     textTransform: 'none',
                     fontSize: '1rem',
@@ -164,7 +172,7 @@ export default function ChoosePlanPage() {
           </div>
 
           <p className="text-center text-sm text-gray-400">
-            You can adjust your daily budget on the next step. No monthly commitment.
+            You set the daily budget on the next step. No monthly commitment — pause anytime.
           </p>
         </div>
       </div>
