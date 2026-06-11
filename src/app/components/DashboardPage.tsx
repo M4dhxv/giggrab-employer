@@ -8,6 +8,7 @@ import {
   ArrowLeft, FileText, Phone, HelpCircle, ChevronDown,
   Sparkles, MessageSquare, ChevronUp, User, CreditCard,
   Bell, Shield, RotateCcw, Bot, Send, Activity, PhoneCall,
+  Menu, X,
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -297,6 +298,7 @@ const AGENT_CSS = `
 @keyframes ggFadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes ggToastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
 @keyframes ggBlink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes ggDrawer{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.gg-anim{animation:none!important}}
 `;
 
@@ -325,183 +327,123 @@ const RUN_RESULTS = [
   { summary: 'Interviews scheduled with 2 qualified candidates for Thursday.', toast: { title: 'Interviews scheduled', body: 'Calendar invites sent for Thursday 10:00 and 14:30.' } },
 ];
 
-function CommandCenter({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
+function AgentDock({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
   const [command, setCommand] = useState('');
-  const [phase, setPhase] = useState<'idle' | 'running' | 'done'>('idle');
-  const [step, setStep] = useState(0);
-  const [result, setResult] = useState('');
+  const [running, setRunning] = useState<{ cmd: string; step: number } | null>(null);
+  const [history, setHistory] = useState<{ id: number; cmd: string; result: string }[]>([]);
   const runIdx = useRef(0);
 
   const run = (text: string) => {
-    if (!text.trim() || phase === 'running') return;
-    setCommand(text);
-    setPhase('running');
-    setStep(0);
+    const cmd = text.trim();
+    if (!cmd || running) return;
+    setCommand('');
+    setRunning({ cmd, step: 0 });
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const tick = reduced ? 120 : 850;
     let s = 0;
     const t = setInterval(() => {
       s += 1;
-      if (s < RUN_STEPS.length) { setStep(s); return; }
+      if (s < RUN_STEPS.length) { setRunning(r => (r ? { ...r, step: s } : r)); return; }
       clearInterval(t);
       const res = RUN_RESULTS[runIdx.current % RUN_RESULTS.length];
       runIdx.current += 1;
-      setResult(res.summary);
-      setPhase('done');
+      setHistory(prev => [...prev, { id: Date.now(), cmd, result: res.summary }].slice(-3));
+      setRunning(null);
       onToast(res.toast);
     }, tick);
   };
 
   return (
-    <div className="rounded-xl border border-[#a7f3d0] bg-gradient-to-br from-[#f0fdf4] to-white mb-5 overflow-hidden">
-      <div className="px-5 pt-4 pb-3">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-full bg-[#10b981] flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div>
-          <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>Tell Sarah what you need</span>
-          <span className="ml-auto flex items-center gap-1.5 text-xs text-[#059669]" style={{ fontWeight: 600 }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
-            On duty 24/7
-          </span>
-        </div>
+    <div className="shrink-0 pt-2 pb-5">
+      {/* Sarah working / completed tasks — in place, above the bar */}
+      {(history.length > 0 || running) && (
+        <div className="space-y-2 mb-2.5">
+          {history.map(h => (
+            <div key={h.id} className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-start gap-2.5 gg-anim" style={{ animation: 'ggFadeUp .3s both' }}>
+              <div className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center shrink-0"><Bot className="w-3.5 h-3.5 text-white" /></div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 truncate">“{h.cmd}”</div>
+                <div className="text-sm text-gray-800 mt-0.5 flex items-center gap-1.5" style={{ fontWeight: 600 }}>
+                  <CheckCircle className="w-3.5 h-3.5 text-[#10b981] shrink-0" />
+                  {h.result}
+                </div>
+              </div>
+              <button onClick={() => setHistory(prev => prev.filter(x => x.id !== h.id))} className="text-gray-300 hover:text-gray-500 shrink-0" aria-label="Dismiss">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
 
-        <form
-          className="flex gap-2"
-          onSubmit={e => { e.preventDefault(); run(command); }}
-        >
+          {running && (
+            <div className="bg-white border border-[#a7f3d0] rounded-xl px-4 py-3 gg-anim" style={{ animation: 'ggFadeUp .3s both' }}>
+              <div className="text-xs text-gray-400 truncate mb-1.5">“{running.cmd}”</div>
+              <div className="flex items-center gap-2.5">
+                <span className="w-4 h-4 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin shrink-0" />
+                <div className="flex-1">
+                  <div key={running.step} className="text-sm text-gray-800 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>
+                    {RUN_STEPS[running.step]}
+                  </div>
+                  <div className="flex gap-1 mt-1.5">
+                    {RUN_STEPS.map((_, i) => (
+                      <span key={i} className="h-1 flex-1 rounded-full transition-colors" style={{ backgroundColor: i <= running.step ? '#10b981' : '#e5e7eb' }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Example commands */}
+      {!running && history.length === 0 && (
+        <div className="flex gap-1.5 mb-2.5 flex-wrap">
+          {EXAMPLE_COMMANDS.map(c => (
+            <button
+              key={c}
+              onClick={() => run(c)}
+              className="text-xs text-gray-500 bg-white border border-gray-200 hover:border-[#10b981] hover:text-[#059669] rounded-full px-3 py-1 transition-colors"
+              style={{ fontWeight: 500 }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Chat bar */}
+      <form onSubmit={e => { e.preventDefault(); run(command); }}>
+        <div className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-2xl shadow-sm px-3 py-2 transition-colors focus-within:border-[#10b981] focus-within:shadow-md">
+          <div className="w-8 h-8 rounded-full bg-[#10b981] flex items-center justify-center shrink-0 relative">
+            <Bot className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#10b981] border-2 border-white gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
+          </div>
           <input
             value={command}
             onChange={e => setCommand(e.target.value)}
-            disabled={phase === 'running'}
-            placeholder='e.g. "Call top 10 matched candidates and confirm availability"'
-            className="flex-1 bg-white border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:border-[#10b981] transition-colors disabled:opacity-60"
+            disabled={!!running}
+            placeholder={running ? 'Sarah is working…' : 'Tell Sarah what you need…'}
+            className="flex-1 bg-transparent text-sm outline-none disabled:opacity-50 min-w-0"
             style={{ fontFamily: 'inherit' }}
           />
           <button
             type="submit"
-            disabled={phase === 'running' || !command.trim()}
-            className="flex items-center gap-1.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-40 text-white rounded-lg px-4 text-sm transition-colors"
-            style={{ fontWeight: 600 }}
+            disabled={!!running || !command.trim()}
+            className="flex items-center gap-1.5 bg-[#10b981] hover:bg-[#059669] disabled:opacity-30 text-white rounded-full px-4 py-2 text-xs transition-colors shrink-0"
+            style={{ fontWeight: 700 }}
           >
             <Send className="w-3.5 h-3.5" />
-            Run
+            Send
           </button>
-        </form>
-
-        {phase === 'idle' && (
-          <div className="flex gap-1.5 mt-2.5 flex-wrap">
-            {EXAMPLE_COMMANDS.map(c => (
-              <button
-                key={c}
-                onClick={() => run(c)}
-                className="text-xs text-gray-500 bg-white border border-gray-200 hover:border-[#10b981] hover:text-[#059669] rounded-full px-3 py-1 transition-colors"
-                style={{ fontWeight: 500 }}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {phase === 'running' && (
-        <div className="px-5 py-3 border-t border-[#d1fae5] bg-white/60">
-          <div className="flex items-center gap-3">
-            <span className="w-4 h-4 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin shrink-0" />
-            <div className="flex-1">
-              <div key={step} className="text-sm text-gray-800 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>{RUN_STEPS[step]}</div>
-              <div className="flex gap-1 mt-1.5">
-                {RUN_STEPS.map((_, i) => (
-                  <span key={i} className="h-1 flex-1 rounded-full transition-colors" style={{ backgroundColor: i <= step ? '#10b981' : '#e5e7eb' }} />
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
-      )}
-
-      {phase === 'done' && (
-        <div className="px-5 py-3 border-t border-[#d1fae5] bg-white/60 gg-anim" style={{ animation: 'ggFadeUp .3s both' }}>
-          <div className="flex items-start gap-2.5">
-            <CheckCircle className="w-4 h-4 text-[#10b981] shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="text-sm text-gray-800" style={{ fontWeight: 600 }}>{result}</span>
-              <div className="text-xs text-gray-400 mt-0.5">Sarah completed this task just now.</div>
-            </div>
-            <button
-              onClick={() => { setPhase('idle'); setCommand(''); }}
-              className="text-xs text-[#059669] hover:underline shrink-0"
-              style={{ fontWeight: 600 }}
-            >
-              New task
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const FEED_POOL: { icon: 'phone' | 'check' | 'calendar' | 'rotate' | 'users'; text: string }[] = [
-  { icon: 'phone',    text: 'Sarah called 12 candidates' },
-  { icon: 'check',    text: 'Sarah qualified 4 workers' },
-  { icon: 'calendar', text: 'Sarah scheduled 2 interviews' },
-  { icon: 'rotate',   text: 'Sarah reactivated 8 previous candidates' },
-  { icon: 'users',    text: 'Sarah found 15 new workers' },
-  { icon: 'phone',    text: 'SMS follow-ups sent to 23 workers' },
-];
-
-const FEED_ICONS = {
-  phone:    <PhoneCall className="w-3 h-3" />,
-  check:    <CheckCircle className="w-3 h-3" />,
-  calendar: <Calendar className="w-3 h-3" />,
-  rotate:   <RotateCcw className="w-3 h-3" />,
-  users:    <Users className="w-3 h-3" />,
-};
-
-let feedSeq = 3;
-
-function ActivityFeed() {
-  const [items, setItems] = useState(() =>
-    FEED_POOL.slice(0, 3).map((f, i) => ({ ...f, id: `seed-${i}`, time: ['just now', '4 min ago', '11 min ago'][i] })),
-  );
-
-  useEffect(() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = setInterval(() => {
-      const id = feedSeq++;
-      const next = FEED_POOL[id % FEED_POOL.length];
-      setItems(prev => [{ ...next, id: `f-${id}`, time: 'just now' }, ...prev.map(p => p.time === 'just now' ? { ...p, time: 'a moment ago' } : p)].slice(0, 6));
-    }, 7000);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <div className="px-5 py-4 border-b border-gray-100">
-      <div className="flex items-center gap-1.5 mb-3">
-        <Activity className="w-3.5 h-3.5 text-[#10b981]" />
-        <span className="text-xs text-gray-400 uppercase tracking-wide" style={{ fontWeight: 600 }}>Sarah's Activity</span>
-        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
-      </div>
-      <div className="space-y-2.5">
-        {items.map(item => (
-          <div key={item.id} className="flex items-start gap-2 gg-anim" style={{ animation: 'ggFadeUp .35s both' }}>
-            <span className="w-5 h-5 rounded-md bg-[#f0fdf4] text-[#10b981] border border-[#d1fae5] flex items-center justify-center shrink-0 mt-px">
-              {FEED_ICONS[item.icon]}
-            </span>
-            <div>
-              <div className="text-xs text-gray-600 leading-snug" style={{ fontWeight: 500 }}>{item.text}</div>
-              <div className="text-xs text-gray-300" style={{ fontSize: '0.65rem' }}>{item.time}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      </form>
     </div>
   );
 }
 
 function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
   return (
-    <div className="fixed bottom-5 right-5 z-50 space-y-2 w-80">
+    <div className="fixed top-16 right-5 z-50 space-y-2 w-80">
       {toasts.map(t => (
         <div key={t.id} className="bg-white border border-gray-200 shadow-lg rounded-xl px-4 py-3 flex items-start gap-2.5 gg-anim" style={{ animation: 'ggToastIn .3s both' }}>
           <div className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center shrink-0"><Bot className="w-3.5 h-3.5 text-white" /></div>
@@ -526,8 +468,7 @@ export default function DashboardPage() {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [statusFilter, setStatusFilter]       = useState('All');
   const [search, setSearch]                   = useState('');
-  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
-  const [budgetDelta, setBudgetDelta]         = useState(0);
+  const [drawerOpen, setDrawerOpen]           = useState(false);
   const [toasts, setToasts]                   = useState<Toast[]>([]);
 
   const pushToast = (t: Omit<Toast, 'id'>) => {
@@ -551,12 +492,6 @@ export default function DashboardPage() {
   const updateJob = (id: string, patch: Partial<Job>) =>
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...patch } : j));
 
-  const applyBudget = () => {
-    updateJob(selectedJobId, { budget: selectedJob.budget + budgetDelta });
-    setBudgetModalOpen(false);
-    setBudgetDelta(0);
-  };
-
   const openProfile = (c: Candidate) => {
     setSelectedCandidate(c);
     setView('profile');
@@ -570,67 +505,94 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
       <style>{AGENT_CSS}</style>
       <ToastStack toasts={toasts} onDismiss={id => setToasts(prev => prev.filter(t => t.id !== id))} />
 
-      {/* ── Left Sidebar ─────────────────────────────────────────────────── */}
-      <aside className="w-52 shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
-        <div className="px-5 py-5">
-          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#10b981' }}>GigGrab</span>
+      {/* ── Top bar ──────────────────────────────────────────────────────── */}
+      <header className="shrink-0 bg-white border-b border-gray-100 flex items-center gap-3 px-4 py-2.5">
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="w-9 h-9 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-4 h-4" />
+        </button>
+        <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10b981' }}>GigGrab</span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-xs text-[#059669]" style={{ fontWeight: 600 }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
+            Sarah on duty
+          </span>
+          <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500" style={{ fontWeight: 600 }}>M</div>
         </div>
+      </header>
 
-        <div className="px-3 mb-4">
-          <button
-            onClick={() => navigate('/post-job')}
-            className="w-full flex items-center justify-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg py-2 text-sm transition-colors"
-            style={{ fontWeight: 600 }}
-          >
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </button>
-        </div>
-
-        <nav className="flex-1 px-2">
-          {[
-            { id: 'dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, label: 'Dashboard' },
-            { id: 'jobs',       icon: <Briefcase className="w-4 h-4" />,       label: 'Campaigns' },
-            { id: 'candidates', icon: <Users className="w-4 h-4" />,           label: 'Candidates' },
-            { id: 'settings',   icon: <Settings className="w-4 h-4" />,        label: 'Settings' },
-          ].map(item => {
-            const active = view === item.id || (view === 'profile' && item.id === 'candidates');
-            return (
-              <button
-                key={item.id}
-                onClick={() => { setView(item.id as View); setSelectedCandidate(null); }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5"
-                style={{
-                  fontWeight: active ? 600 : 400,
-                  backgroundColor: active ? '#f0fdf4' : 'transparent',
-                  color: active ? '#10b981' : '#6b7280',
-                }}
-              >
-                <span className={active ? 'text-[#10b981]' : 'text-gray-400'}>{item.icon}</span>
-                {item.label}
+      {/* ── Nav drawer (pops out on click) ───────────────────────────────── */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/25" onClick={() => setDrawerOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-60 bg-white shadow-2xl flex flex-col gg-anim" style={{ animation: 'ggDrawer .2s both' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10b981' }}>GigGrab</span>
+              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close menu">
+                <X className="w-4 h-4" />
               </button>
-            );
-          })}
-        </nav>
+            </div>
 
-        <div className="px-3 pb-4 border-t border-gray-100 pt-4 space-y-2">
-          <div className="flex items-center gap-2 px-2">
-            <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500" style={{ fontWeight: 600 }}>M</div>
-            <span className="text-xs text-gray-500 truncate" style={{ fontWeight: 500 }}>M&S Logistics Ltd</span>
-          </div>
-          <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <HelpCircle className="w-3.5 h-3.5" />
-            Visit Help Center
-          </button>
+            <div className="px-3 py-4">
+              <button
+                onClick={() => navigate('/post-job')}
+                className="w-full flex items-center justify-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg py-2 text-sm transition-colors"
+                style={{ fontWeight: 600 }}
+              >
+                <Plus className="w-4 h-4" />
+                New Campaign
+              </button>
+            </div>
+
+            <nav className="flex-1 px-2">
+              {[
+                { id: 'dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, label: 'Dashboard' },
+                { id: 'jobs',       icon: <Briefcase className="w-4 h-4" />,       label: 'Campaigns' },
+                { id: 'candidates', icon: <Users className="w-4 h-4" />,           label: 'Candidates' },
+                { id: 'settings',   icon: <Settings className="w-4 h-4" />,        label: 'Settings' },
+              ].map(item => {
+                const active = view === item.id || (view === 'profile' && item.id === 'candidates');
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setView(item.id as View); setSelectedCandidate(null); setDrawerOpen(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5"
+                    style={{
+                      fontWeight: active ? 600 : 400,
+                      backgroundColor: active ? '#f0fdf4' : 'transparent',
+                      color: active ? '#10b981' : '#6b7280',
+                    }}
+                  >
+                    <span className={active ? 'text-[#10b981]' : 'text-gray-400'}>{item.icon}</span>
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="px-3 pb-4 border-t border-gray-100 pt-4 space-y-2">
+              <div className="flex items-center gap-2 px-2">
+                <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500" style={{ fontWeight: 600 }}>M</div>
+                <span className="text-xs text-gray-500 truncate" style={{ fontWeight: 500 }}>M&S Logistics Ltd</span>
+              </div>
+              <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+                <HelpCircle className="w-3.5 h-3.5" />
+                Visit Help Center
+              </button>
+            </div>
+          </aside>
         </div>
-      </aside>
+      )}
 
       {/* ── Main content ─────────────────────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className={`flex-1 min-h-0 flex flex-col min-w-0 ${view === 'dashboard' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {view === 'dashboard' && (
           <DashboardView
             jobs={jobs}
@@ -669,124 +631,6 @@ export default function DashboardPage() {
         )}
         {view === 'settings' && <SettingsView />}
       </main>
-
-      {/* ── Right Job Panel (dashboard only) ─────────────────────────────── */}
-      {view === 'dashboard' && (
-        <aside className="w-56 shrink-0 bg-white border-l border-gray-100 flex flex-col h-full overflow-y-auto">
-          {/* Job header */}
-          <div className="px-5 pt-6 pb-4 border-b border-gray-100">
-            <div className="text-xs text-gray-400 mb-3 uppercase tracking-wide" style={{ fontWeight: 600 }}>Campaign Overview</div>
-            <div className="text-gray-900 mb-0.5" style={{ fontSize: '0.95rem', fontWeight: 700 }}>{selectedJob.title}</div>
-            <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
-              <MapPin className="w-3 h-3" />{selectedJob.location}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-block rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: selectedJob.status === 'Active' ? '#f0fdf4' : '#fef9c3', color: selectedJob.status === 'Active' ? '#15803d' : '#92400e', fontWeight: 600 }}>
-                {selectedJob.status}
-              </span>
-              <span className="inline-block rounded-full px-2 py-0.5 text-xs bg-purple-50 text-purple-700" style={{ fontWeight: 600 }}>
-                {selectedJob.promotion}
-              </span>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="px-5 py-4 space-y-3.5 border-b border-gray-100">
-            <RightStat icon={<DollarSign className="w-3.5 h-3.5" />} label="Daily Budget"         value={`£${selectedJob.budget}/day`} />
-            <RightStat icon={<CheckCircle className="w-3.5 h-3.5" />} label="Qualified Candidates" value={`${selectedJob.qualified} candidates`} highlight />
-            <RightStat icon={<Clock className="w-3.5 h-3.5" />}       label="Est. Time-to-Fill"    value={`${selectedJob.daysToFill} days`} />
-            <RightStat icon={<TrendingUp className="w-3.5 h-3.5" />}  label="Total Spend"          value={`£${selectedJob.totalSpend} so far`} />
-          </div>
-
-          {/* Live agent activity */}
-          <ActivityFeed />
-
-          {/* Actions */}
-          <div className="px-4 py-4 space-y-2 border-b border-gray-100">
-            <button
-              onClick={() => setBudgetModalOpen(true)}
-              className="w-full flex items-center justify-center gap-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg py-2 text-xs transition-colors"
-              style={{ fontWeight: 600 }}
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              Increase Budget
-            </button>
-            <button
-              onClick={() => setView('jobs')}
-              className="w-full flex items-center justify-center gap-1.5 border border-[#10b981] text-[#10b981] hover:bg-[#f0fdf4] rounded-lg py-2 text-xs transition-colors"
-              style={{ fontWeight: 600 }}
-            >
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              View Campaign
-            </button>
-            <button className="w-full flex items-center justify-center gap-1.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
-              <Edit className="w-3.5 h-3.5" />
-              Edit Job
-            </button>
-            <button
-              onClick={() => updateJob(selectedJobId, { status: selectedJob.status === 'Active' ? 'Paused' : 'Active' })}
-              className="w-full flex items-center justify-center gap-1.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg py-2 text-xs transition-colors"
-              style={{ fontWeight: 500 }}
-            >
-              <Pause className="w-3.5 h-3.5" />
-              {selectedJob.status === 'Active' ? 'Pause Campaign' : 'Resume Campaign'}
-            </button>
-            <button className="w-full flex items-center justify-center gap-1.5 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
-              <XCircle className="w-3.5 h-3.5" />
-              End Campaign
-            </button>
-          </div>
-
-          {/* Talk With Sarah */}
-          <div className="px-4 py-4 mt-auto">
-            <div className="bg-gradient-to-br from-[#f0fdf4] to-[#ecfdf5] border border-[#a7f3d0] rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-full bg-[#10b981] flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-xs text-gray-700" style={{ fontWeight: 700 }}>Sarah</span>
-                <span className="text-xs bg-[#10b981] text-white px-1.5 py-0.5 rounded-full" style={{ fontWeight: 600 }}>AI</span>
-              </div>
-              <p className="text-xs text-gray-600 mb-1" style={{ fontWeight: 600 }}>Need help filling this role?</p>
-              <p className="text-xs text-gray-400 mb-3">Ask Sarah for recommendations, hiring insights, or campaign suggestions.</p>
-              <button className="w-full bg-[#10b981] hover:bg-[#059669] text-white rounded-lg py-2 text-xs transition-colors" style={{ fontWeight: 600 }}>
-                Talk With Sarah
-              </button>
-            </div>
-          </div>
-        </aside>
-      )}
-
-      {/* Budget modal */}
-      {budgetModalOpen && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={() => setBudgetModalOpen(false)}>
-          <div className="bg-white rounded-2xl p-6 w-80 shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="text-gray-900 mb-1" style={{ fontSize: '1rem', fontWeight: 700 }}>Increase Daily Budget</div>
-            <div className="text-sm text-gray-400 mb-5">Current: £{selectedJob.budget}/day</div>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {[5, 10, 20, 50].map(d => (
-                <button
-                  key={d}
-                  onClick={() => setBudgetDelta(d)}
-                  className="py-2 rounded-lg border text-sm transition-colors"
-                  style={{ fontWeight: 600, borderColor: budgetDelta === d ? '#10b981' : '#e5e7eb', backgroundColor: budgetDelta === d ? '#f0fdf4' : 'transparent', color: budgetDelta === d ? '#059669' : '#374151' }}
-                >
-                  +£{d}
-                </button>
-              ))}
-            </div>
-            {budgetDelta > 0 && (
-              <div className="text-xs text-gray-400 mb-4 text-center">
-                New budget: £{selectedJob.budget + budgetDelta}/day
-              </div>
-            )}
-            <div className="flex gap-2">
-              <button onClick={() => setBudgetModalOpen(false)} className="flex-1 py-2 border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50" style={{ fontWeight: 500 }}>Cancel</button>
-              <button onClick={applyBudget} disabled={budgetDelta === 0} className="flex-1 py-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-sm disabled:opacity-40 transition-colors" style={{ fontWeight: 600 }}>Apply</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -803,73 +647,46 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
   onOpenCandidate: (c: Candidate) => void;
   onToast: (t: Omit<Toast, 'id'>) => void;
 }) {
+  const matched = [...candidates].sort((a, b) => b.score - a.score);
+
   return (
-    <div className="flex-1 px-8 py-7">
+    <div className="flex-1 min-h-0 flex flex-col w-full max-w-3xl mx-auto px-6">
       {/* Greeting */}
-      <div className="mb-5">
-        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
-        <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns. Here's what she's delivered.</p>
+      <div className="pt-5 pb-3 shrink-0">
+        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
+        <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns — tell her what you need below.</p>
       </div>
 
-      {/* ── Agent Command Center ── */}
-      <CommandCenter onToast={onToast} />
-
-      {/* ── Job Switcher ── */}
-      <div className="mb-5">
-        <div className="flex gap-2 flex-wrap">
-          {jobs.map(job => {
-            const active = job.id === selectedJob.id;
-            return (
-              <button
-                key={job.id}
-                onClick={() => onSelectJob(job.id)}
-                className="flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-left transition-all"
-                style={{
-                  backgroundColor: active ? '#fff' : '#f9fafb',
-                  borderColor: active ? '#10b981' : '#e5e7eb',
-                  boxShadow: active ? '0 1px 6px rgba(16,185,129,0.12)' : 'none',
-                }}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-900" style={{ fontWeight: active ? 700 : 500 }}>{job.title}</span>
-                    <span className="text-xs rounded-full px-1.5 py-0.5" style={{
-                      backgroundColor: job.status === 'Active' ? '#f0fdf4' : '#fef9c3',
-                      color: job.status === 'Active' ? '#15803d' : '#92400e',
-                      fontWeight: 600,
-                    }}>{job.status}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">
-                    <span style={{ color: '#15803d', fontWeight: 600 }}>{job.qualified} qualified</span>
-                    <span>·</span>
-                    <span>£{job.budget}/day</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {/* Campaign chips */}
+      <div className="flex gap-2 overflow-x-auto pb-3 shrink-0">
+        {jobs.map(job => {
+          const active = job.id === selectedJob.id;
+          return (
+            <button
+              key={job.id}
+              onClick={() => onSelectJob(job.id)}
+              className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs whitespace-nowrap transition-all shrink-0"
+              style={{
+                backgroundColor: active ? '#f0fdf4' : '#fff',
+                borderColor: active ? '#10b981' : '#e5e7eb',
+                color: active ? '#059669' : '#6b7280',
+                fontWeight: active ? 700 : 500,
+              }}
+            >
+              {job.title}
+              <span style={{ color: active ? '#15803d' : '#9ca3af', fontWeight: 600 }}>{job.qualified}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Metrics strip */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {[
-          { value: selectedJob.qualified,      label: 'Qualified Candidates', sub: 'Add to pipeline',   bg: '#f0fdf4', color: '#15803d' },
-          { value: selectedJob.awaitingReview, label: 'Awaiting Review',      sub: 'Review candidates', bg: '#fffbeb', color: '#b45309' },
-          { value: selectedJob.interviews,     label: 'Interviews Scheduled', sub: 'This week',         bg: '#faf5ff', color: '#7e22ce' },
-        ].map(({ value, label, sub, bg, color }) => (
-          <div key={label} className="rounded-xl px-5 py-4 cursor-pointer hover:opacity-90 transition-opacity" style={{ backgroundColor: bg }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color, lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</div>
-            <div className="text-xs mt-1.5" style={{ color, fontWeight: 600 }}>{label}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Candidate pipeline */}
-      <div className="bg-white rounded-xl border border-gray-100">
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
-          <span className="text-gray-900" style={{ fontSize: '0.9rem', fontWeight: 700 }}>Candidate Pipeline</span>
+      {/* Matched candidates */}
+      <div className="flex-1 min-h-0 flex flex-col bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+          <span className="text-gray-900" style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+            Matched candidates
+            <span className="text-gray-300 ml-1.5" style={{ fontWeight: 500 }}>{matched.length}</span>
+          </span>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-gray-300 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -883,16 +700,16 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
             </div>
           </div>
         </div>
-        {candidates.length === 0
-          ? <div className="py-16 text-center text-sm text-gray-400">No candidates match your filters.</div>
-          : candidates.map((c, i) => <CandidateRow key={c.id} candidate={c} onClick={() => onOpenCandidate(c)} last={i === candidates.length - 1} />)
-        }
-        {candidates.length > 0 && (
-          <div className="px-5 py-3 border-t border-gray-100 text-center">
-            <button className="text-xs text-[#10b981] hover:underline" style={{ fontWeight: 600 }}>Load More ↓</button>
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto">
+          {matched.length === 0
+            ? <div className="py-16 text-center text-sm text-gray-400">No candidates match your filters.</div>
+            : matched.map((c, i) => <CandidateRow key={c.id} candidate={c} onClick={() => onOpenCandidate(c)} last={i === matched.length - 1} />)
+          }
+        </div>
       </div>
+
+      {/* ── Agentic command bar ── */}
+      <AgentDock onToast={onToast} />
     </div>
   );
 }
@@ -1470,20 +1287,6 @@ function SettingsView() {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function RightStat({ icon, label, value, highlight = false }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${highlight ? 'bg-[#f0fdf4] text-[#10b981]' : 'bg-gray-50 text-gray-400'} border border-gray-200`}>
-        {icon}
-      </div>
-      <div>
-        <div className="text-xs text-gray-400">{label}</div>
-        <div className="text-sm text-gray-800" style={{ fontWeight: 600 }}>{value}</div>
-      </div>
-    </div>
-  );
-}
 
 function NotificationToggle({ label, description, defaultOn }: { label: string; description: string; defaultOn: boolean }) {
   const [on, setOn] = useState(defaultOn);

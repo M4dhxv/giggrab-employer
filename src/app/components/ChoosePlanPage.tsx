@@ -27,7 +27,8 @@ const plans = [
     icon: <Zap className="w-5 h-5" />,
     tagline: 'Full autonomous worker acquisition',
     features: [
-      '500 Sarah minutes',
+      '500 Sarah minutes — covers 100 interested workers',
+      'Minutes scale up in tiers as interest grows',
       'AI screening',
       'SMS follow-up',
       'Candidate qualification',

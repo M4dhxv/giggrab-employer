@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Button, Slider } from '@mui/material';
-import { TrendingUp, Clock, Users, Star, Check, Zap } from 'lucide-react';
+import { TrendingUp, Clock, Users, Star, Check, Zap, Timer } from 'lucide-react';
 
 const PLAN_CONFIG = {
   free: { label: 'FREE', min: 0, max: 0, default: 0, recommended: 0 },
@@ -10,6 +10,12 @@ const PLAN_CONFIG = {
 
 type Plan = keyof typeof PLAN_CONFIG;
 
+// Sarah minutes scale in tiers: avg 5 min per interested worker,
+// so 500 minutes cover the first 100 interested workers, then +500 per extra 100.
+function minutesForInterest(interestedWorkers: number) {
+  return Math.max(1, Math.ceil(interestedWorkers / 100)) * 500;
+}
+
 function getEstimates(plan: Plan, budget: number) {
   if (plan === 'free' || budget === 0) {
     return {
@@ -17,6 +23,7 @@ function getEstimates(plan: Plan, budget: number) {
       interest: '2–5',
       qualified: '1–2',
       timeToFill: '21–30 days',
+      minutes: '100',
     };
   }
   const reach = Math.round(budget * 18);
@@ -30,6 +37,7 @@ function getEstimates(plan: Plan, budget: number) {
     interest: `${interestLow}–${interestHigh}`,
     qualified: `${qualLow}–${qualHigh}`,
     timeToFill: days,
+    minutes: minutesForInterest(interestHigh).toLocaleString(),
   };
 }
 
@@ -111,6 +119,11 @@ export default function SetBudgetPage() {
                       value={`${estimates.reach} workers`}
                     />
                     <EstimateStat
+                      icon={<Timer className="w-5 h-5" />}
+                      label="Sarah Minutes Included"
+                      value={`${estimates.minutes} mins`}
+                    />
+                    <EstimateStat
                       icon={<TrendingUp className="w-5 h-5" />}
                       label="Interested Workers"
                       value={`${estimates.interest} workers`}
@@ -126,6 +139,12 @@ export default function SetBudgetPage() {
                       value={estimates.timeToFill}
                     />
                   </div>
+                  {plan !== 'free' && (
+                    <p className="text-xs text-gray-400 mt-4 pt-4 border-t border-gray-200">
+                      Sarah averages ~5 minutes per interested worker. 500 minutes cover your first
+                      100 interested workers — beyond that, minutes step up in 500-minute tiers automatically.
+                    </p>
+                  )}
                 </div>
               </div>
 

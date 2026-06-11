@@ -53,16 +53,13 @@ const CSS = `
 .gg .sub{font-size:1.05rem;line-height:1.6;color:var(--gray-500);max-width:440px;margin-top:22px}
 .gg .sub b{color:var(--gray-900);font-weight:600}
 .gg .cta-row{display:flex;align-items:center;gap:16px;margin-top:32px;flex-wrap:wrap}
-.gg .cta{display:inline-flex;align-items:center;gap:10px;background:var(--em);color:#fff;border:none;
-  font-family:inherit;font-size:.95rem;font-weight:700;padding:15px 28px;border-radius:13px;cursor:pointer;
-  transition:.18s;box-shadow:0 12px 28px -10px rgba(16,185,129,.5)}
-.gg .cta:hover{background:var(--em-d);transform:translateY(-1px)}
-.gg .cta svg{transition:transform .18s}.gg .cta:hover svg{transform:translateX(3px)}
-.gg .ghost{display:inline-flex;align-items:center;gap:9px;font-size:.92rem;font-weight:600;
-  color:var(--gray-600);text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;transition:.15s}
-.gg .ghost:hover{color:var(--gray-900)}
-.gg .ghost .pl{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;
-  place-items:center;color:var(--em)}
+.gg .cta{display:inline-flex;align-items:center;gap:18px;background:#fff;color:var(--gray-900);
+  border:1.5px solid var(--gray-900);font-family:inherit;font-size:.95rem;font-weight:700;
+  padding:7px 7px 7px 26px;border-radius:999px;cursor:pointer;transition:.18s}
+.gg .cta:hover{transform:translateY(-1px);box-shadow:0 12px 26px -14px rgba(15,23,42,.4)}
+.gg .arr{width:40px;height:40px;border-radius:50%;background:var(--gray-900);color:#fff;
+  display:grid;place-items:center;flex-shrink:0;transition:.18s}
+.gg .cta:hover .arr{background:var(--em);transform:translateX(2px)}
 .gg .trust{margin-top:22px;font-size:.82rem;font-weight:500;color:var(--gray-400)}
 
 /* right: odometer */
@@ -76,9 +73,16 @@ const CSS = `
 .gg .comma{width:.26em;display:flex;align-items:flex-end;justify-content:center;color:var(--gray-900)}
 .gg .label{margin-top:16px;font-size:1.02rem;font-weight:500;color:var(--gray-500)}
 .gg .label b{color:var(--gray-900);font-weight:600}
-.gg .activity{margin-top:22px;height:24px;display:flex;align-items:center;justify-content:center;gap:10px}
-.gg .activity .adot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s;background:var(--em)}
-.gg .activity .atxt{font-size:.92rem;font-weight:500;color:var(--gray-600);transition:opacity .3s;white-space:nowrap}
+.gg .hfeed{margin-top:26px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.gg .hfeed .fitem{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:9px 12px;animation:ggrise .4s cubic-bezier(.22,1,.36,1) both;
+  box-shadow:0 4px 14px -10px rgba(15,23,42,.18)}
+.gg .hfeed .fitem:nth-child(2){opacity:.6}
+.gg .hfeed .fitem:nth-child(3){opacity:.3}
+.gg .hfeed .fic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex-shrink:0}
+.gg .hfeed .ftxt{font-size:.8rem;font-weight:500;color:var(--gray-600);line-height:1.35;min-width:0}
+.gg .hfeed .ftxt b{color:var(--gray-900);font-weight:600}
+.gg .hfeed .ftime{margin-left:auto;font-size:.68rem;color:var(--gray-400);flex-shrink:0}
 
 /* industries */
 .gg .sec{border-top:1px solid var(--line-2)}
@@ -160,10 +164,11 @@ const CSS = `
 .gg .band-in h2{color:#fff;font-size:1.55rem;font-weight:700;margin-bottom:4px}
 .gg .band-in p{color:#a7f3d0;font-size:1rem}
 .gg .band-btns{display:flex;gap:12px;flex-shrink:0}
-.gg .band-btns .primary{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--em-d);
-  border:none;font-family:inherit;font-weight:700;font-size:.9rem;padding:12px 22px;border-radius:12px;cursor:pointer}
-.gg .band-btns .secondary{display:inline-flex;align-items:center;background:none;color:#fff;cursor:pointer;
-  border:1px solid rgba(255,255,255,.45);font-family:inherit;font-weight:500;font-size:.9rem;padding:12px 22px;border-radius:12px}
+.gg .band-btns .primary{display:inline-flex;align-items:center;gap:14px;background:#fff;color:var(--gray-900);
+  border:none;font-family:inherit;font-weight:700;font-size:.9rem;padding:6px 6px 6px 22px;border-radius:999px;
+  cursor:pointer;transition:.18s}
+.gg .band-btns .primary:hover{transform:translateY(-1px)}
+.gg .band-btns .primary .arr{width:36px;height:36px}
 
 .gg footer{border-top:1px solid var(--line-2);padding:30px 0}
 .gg .foot{display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -268,12 +273,64 @@ const BOROUGHS = ['Newham','Barking','Croydon','Wembley','Hounslow','Stratford',
 const ROLES = ['forklift driver','warehouse operative','picker / packer','CSCS labourer','kitchen porter','care assistant','HGV Class 2 driver','cleaner','machine operator'];
 const pk = (a: string[]) => a[Math.floor(Math.random() * a.length)];
 
+/* ── HeroFeed: live agent events under the odometer ── */
+
+type HeroEvent = { id: number; kind: 'qualified' | 'call' | 'sms'; text: React.ReactNode };
+
+let heroSeq = 2;
+
+function mkHeroEvent(id: number): HeroEvent {
+  const r = Math.random();
+  if (r < 0.5) return { id, kind: 'qualified', text: <><b>Sarah qualified</b> a {pk(ROLES)} · {pk(BOROUGHS)}</> };
+  if (r < 0.8) return { id, kind: 'call', text: <><b>Sarah is on a call</b> · screening in {pk(BOROUGHS)}</> };
+  return { id, kind: 'sms', text: <><b>SMS follow-up sent</b> · {8 + Math.floor(Math.random() * 20)} candidates</> };
+}
+
+const HERO_FIC: Record<HeroEvent['kind'], { bg: string; color: string; icon: React.ReactNode }> = {
+  qualified: { bg: '#f0fdf4', color: '#059669', icon: <Check size={14} strokeWidth={3} /> },
+  call:      { bg: '#eff6ff', color: '#2563eb', icon: <PhoneCall size={13} /> },
+  sms:       { bg: '#f9fafb', color: '#6b7280', icon: <MessageSquare size={13} /> },
+};
+
+function HeroFeed({ onQualified }: { onQualified: () => void }) {
+  const [events, setEvents] = useState<HeroEvent[]>([
+    { id: 0, kind: 'call', text: <><b>Sarah is on a call</b> · screening in Newham</> },
+    { id: 1, kind: 'qualified', text: <><b>Sarah qualified</b> a forklift driver · Croydon</> },
+  ]);
+
+  useEffect(() => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const t = setInterval(() => {
+      const ev = mkHeroEvent(heroSeq++);
+      setEvents(prev => [ev, ...prev].slice(0, 3));
+      if (ev.kind === 'qualified') onQualified();
+    }, 2800);
+    return () => clearInterval(t);
+    // eslint-disable-next-line
+  }, []);
+
+  return (
+    <div className="hfeed" aria-live="polite">
+      {events.map(ev => {
+        const s = HERO_FIC[ev.kind];
+        return (
+          <div className="fitem" key={ev.id}>
+            <span className="fic" style={{ background: s.bg, color: s.color }}>{s.icon}</span>
+            <span className="ftxt">{ev.text}</span>
+            <span className="ftime">live</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── ProductStory: auto-playing pipeline showing Sarah working ── */
 
 const STAGE_MS = 3600;
 
 const STAGES = [
-  { icon: <Link2 size={17} />, title: 'You paste a job', body: 'A link from Indeed, LinkedIn or your careers page is all Sarah needs.' },
+  { icon: <PhoneCall size={17} />, title: 'Call Sarah or paste a job', body: 'Describe the role in one call — or paste a link from Indeed, LinkedIn or your careers page.' },
   { icon: <Megaphone size={17} />, title: 'Sarah builds the campaign', body: 'Voice, SMS and WhatsApp outreach goes live across our worker network.' },
   { icon: <PhoneCall size={17} />, title: 'Workers engage', body: 'Workers call in or pick up. No applications, no forms — just conversations.' },
   { icon: <ClipboardCheck size={17} />, title: 'Sarah screens & qualifies', body: 'Experience, availability, certifications — checked by phone in 32 languages.' },
@@ -291,18 +348,18 @@ function StoryDemo({ stage }: { stage: number }) {
     case 0: return (
       <>
         <div className="dcard">
+          <div className="drow"><div className="ric pulse-ic"><PhoneCall size={14} /></div>
+            <span><b>"Hi Sarah, I need two forklift drivers in Manchester."</b></span></div>
+        </div>
+        <div className="dcard" style={d(800)}>
           <div className="durl">
             <Link2 size={15} color="#9ca3af" />
-            <span className="dom">uk.indeed.com/viewjob?jk=88f2…</span>
+            <span className="dom">…or paste: uk.indeed.com/viewjob?jk=88f2…</span>
           </div>
         </div>
-        <div className="dcard" style={d(700)}>
-          <div className="dok"><span className="tick" style={d(900)}><Check size={11} strokeWidth={3.5} /></span>
-            Job imported — Warehouse Associate, Manchester</div>
-        </div>
-        <div className="dcard" style={d(1500)}>
-          <div className="drow"><div className="ric"><Bot size={15} /></div>
-            <span><b>Sarah</b> is reading the role requirements…</span></div>
+        <div className="dcard" style={d(1600)}>
+          <div className="dok"><span className="tick" style={d(1800)}><Check size={11} strokeWidth={3.5} /></span>
+            Job created — Forklift Operator, Manchester</div>
         </div>
       </>
     );
@@ -421,8 +478,6 @@ export default function LandingPage({
   const navigate = useNavigate();
   const startHiring = onStartHiring ?? (() => navigate('/post-job'));
   const [count, setCount] = useState(8412);
-  const actTxt = useRef<HTMLSpanElement>(null);
-  const actDot = useRef<HTMLSpanElement>(null);
 
   // load Inter once
   useEffect(() => {
@@ -435,33 +490,12 @@ export default function LandingPage({
     }
   }, []);
 
-  // live activity → drives the number
+  // steady background growth — qualification events from the feed add the rest
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const cycle = () => {
-      const r = Math.random();
-      let html, color, bump = 0;
-      if (r < 0.5) {
-        color = '#10b981'; bump = 1;
-        html = `<span style="color:#059669;font-weight:600">Qualified ✓</span> · ${pk(ROLES)}, ${pk(BOROUGHS)}`;
-      } else if (r < 0.8) {
-        color = '#2563eb';
-        html = `<span style="color:#2563eb;font-weight:600">Sarah is on a call</span> · ${pk(BOROUGHS)}`;
-      } else {
-        color = '#9ca3af';
-        html = `<span style="color:#4b5563;font-weight:600">SMS follow-up sent</span> · ${8 + Math.floor(Math.random()*20)} candidates`;
-      }
-      if (actTxt.current) actTxt.current.style.opacity = '0';
-      setTimeout(() => {
-        if (actTxt.current) { actTxt.current.innerHTML = html; actTxt.current.style.opacity = '1'; }
-        if (actDot.current) actDot.current.style.background = color;
-        if (bump) setCount((c) => c + bump);
-      }, 300);
-    };
-    const a = setInterval(cycle, 2600);
     const b = setInterval(() => setCount((c) => c + 1), 4300);
-    return () => { clearInterval(a); clearInterval(b); };
-  }, [setCount]);
+    return () => clearInterval(b);
+  }, []);
 
   const industries = [
     { icon: <HardHat size={20} />, label: 'Construction' },
@@ -495,40 +529,25 @@ export default function LandingPage({
           {/* left */}
           <div>
             <span className="kicker"><span className="d" />Live across London</span>
-            <h1>The workers are already <span className="g">here.</span></h1>
+            <h1>Hire workers. <span className="g">Fast.</span></h1>
             <p className="sub">
-              Don't post and wait. Describe a shift, set a daily budget — and <b>screened,
-              ready-to-start workers</b> come to you. Sarah qualifies them by phone, around the clock.
+              Tell Sarah who you need. She finds, calls and qualifies
+              <b> ready-to-start workers</b> for you — 24/7.
             </p>
             <div className="cta-row">
               <button className="cta" onClick={startHiring}>
-                Start hiring <ArrowRight size={17} strokeWidth={2.5} />
+                Start hiring <span className="arr"><ArrowRight size={17} strokeWidth={2.5} /></span>
               </button>
             </div>
             <div className="trust">No credit card required · Cancel anytime · Free for workers</div>
           </div>
 
-          {/* right: odometer */}
+          {/* right: odometer + live agent feed */}
           <div className="stage">
             <Odometer value={count} start={8412} />
             <div className="label"><b>workers ready to start</b> across London right now</div>
-            <div className="activity">
-              <span className="adot" ref={actDot} />
-              <span className="atxt" ref={actTxt}>Sarah is on a call · Newham</span>
-            </div>
+            <HeroFeed onQualified={() => setCount(c => c + 1)} />
           </div>
-        </div>
-      </section>
-
-      {/* INDUSTRIES */}
-      <section className="sec ind">
-        <div className="wrap ind-row">
-          {industries.map((i) => (
-            <div className="ind-item" key={i.label}>
-              <div className="ibox">{i.icon}</div>
-              <span>{i.label}</span>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -550,9 +569,21 @@ export default function LandingPage({
           </div>
           <div className="band-btns">
             <button className="primary" onClick={startHiring}>
-              Start hiring <ArrowRight size={16} />
+              Start hiring <span className="arr"><ArrowRight size={16} /></span>
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* INDUSTRIES */}
+      <section className="sec ind">
+        <div className="wrap ind-row">
+          {industries.map((i) => (
+            <div className="ind-item" key={i.label}>
+              <div className="ibox">{i.icon}</div>
+              <span>{i.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
