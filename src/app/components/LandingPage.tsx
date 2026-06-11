@@ -529,10 +529,10 @@ export default function LandingPage({
           {/* left */}
           <div>
             <span className="kicker"><span className="d" />Live across London</span>
-            <h1>Hire workers. <span className="g">Fast.</span></h1>
+            <h1>Hire frontline workers <span className="g">within hours.</span></h1>
             <p className="sub">
-              Tell Sarah who you need. She finds, calls and qualifies
-              <b> ready-to-start workers</b> for you — 24/7.
+              Reach workers through <b>calls and texts</b> — rather than
+              waiting and reviewing applicants.
             </p>
             <div className="cta-row">
               <button className="cta" onClick={startHiring}>
