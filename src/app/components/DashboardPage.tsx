@@ -608,6 +608,213 @@ function ActionPanel({ kind, candidates, onClose }: {
   );
 }
 
+// ─── ImportPanel: Sarah pulls jobs from a careers page / job post link ──────
+
+interface PulledJob { title: string; location: string; salary: string }
+
+const IMPORT_RESULTS: PulledJob[] = [
+  { title: 'Picker / Packer',  location: 'Manchester, UK', salary: '£11–13/hr' },
+  { title: 'Delivery Driver',  location: 'Salford, UK',    salary: '£13–15/hr' },
+  { title: 'Cleaner',          location: 'Manchester, UK', salary: '£11–12/hr' },
+  { title: 'Security Officer', location: 'Trafford, UK',   salary: '£12–14/hr' },
+  { title: 'Kitchen Porter',   location: 'Manchester, UK', salary: '£11/hr' },
+];
+
+let importSeq = 10;
+
+const IMPORT_STEPS = [
+  'Opening the page…',
+  'Scanning for job posts…',
+  'Reading descriptions…',
+  'Extracting pay, shifts & location…',
+  'Ranking by fill difficulty…',
+];
+
+function ImportPanel({ onClose, onImport }: {
+  onClose: () => void;
+  onImport: (jobs: PulledJob[]) => void;
+}) {
+  const [url, setUrl] = useState('');
+  const [phase, setPhase] = useState<'input' | 'pulling' | 'select' | 'done'>('input');
+  const [tick, setTick] = useState(0);
+  const [selected, setSelected] = useState<Set<number>>(new Set(IMPORT_RESULTS.map((_, i) => i)));
+
+  const step = Math.min(tick, IMPORT_STEPS.length - 1);
+  const revealed = Math.max(0, Math.min(tick - 1, IMPORT_RESULTS.length));
+
+  const pull = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+    setPhase('pulling');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ms = reduced ? 120 : 950;
+    let t = 0;
+    const iv = setInterval(() => {
+      t += 1;
+      setTick(t);
+      if (t >= IMPORT_RESULTS.length + 2) { clearInterval(iv); setPhase('select'); }
+    }, ms);
+  };
+
+  const toggle = (i: number) =>
+    setSelected(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
+
+  const confirm = () => {
+    onImport(IMPORT_RESULTS.filter((_, i) => selected.has(i)));
+    setPhase('done');
+  };
+
+  return (
+    <aside className="w-80 shrink-0 bg-white border-l border-gray-100 flex flex-col min-h-0 gg-anim" style={{ animation: 'ggPanel .25s both' }}>
+      {/* Header */}
+      <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-[#f0fdf4] border border-[#a7f3d0] text-[#059669] flex items-center justify-center shrink-0">
+          <Briefcase className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>Import jobs</span>
+            {phase === 'pulling' && (
+              <span className="flex items-center gap-1 text-xs text-[#059669]" style={{ fontWeight: 700 }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.2s infinite' }} />
+                LIVE
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">Careers page or job post link</div>
+        </div>
+        <button onClick={onClose} className="text-gray-300 hover:text-gray-600 shrink-0 mt-0.5" aria-label="Close panel">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {phase === 'input' && (
+          <form onSubmit={pull} className="gg-in">
+            <label className="block text-xs text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>Paste a link</label>
+            <input
+              autoFocus
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              placeholder="company.com/careers or job post URL"
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-[#10b981] transition-colors mb-3"
+              style={{ fontFamily: 'inherit' }}
+            />
+            <button
+              type="submit"
+              disabled={!url.trim()}
+              className="w-full flex items-center justify-center gap-2 bg-[#10b981] hover:bg-[#059669] disabled:opacity-40 text-white rounded-xl py-2.5 text-sm transition-colors"
+              style={{ fontWeight: 700 }}
+            >
+              <Bot className="w-4 h-4" />
+              Pull jobs
+            </button>
+            <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+              Sarah reads the page, extracts every open role with pay, shifts and
+              location — then you pick which ones to launch.
+            </p>
+          </form>
+        )}
+
+        {phase !== 'input' && (
+          <>
+            {/* Live steps while pulling */}
+            {phase === 'pulling' && (
+              <div className="flex items-center gap-2.5 mb-3 px-1">
+                <span className="w-4 h-4 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin shrink-0" />
+                <span key={step} className="text-sm text-gray-800 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>
+                  {IMPORT_STEPS[step]}
+                </span>
+              </div>
+            )}
+            {phase === 'select' && (
+              <div className="text-sm text-gray-800 mb-3 px-1 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>
+                Found {IMPORT_RESULTS.length} open roles — pick which to launch.
+              </div>
+            )}
+            {phase === 'done' && (
+              <div className="flex items-center gap-2 text-xs text-[#15803d] bg-[#f0fdf4] border border-[#a7f3d0] rounded-xl px-3 py-2.5 mb-3 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .3s both' }}>
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                {selected.size} job{selected.size !== 1 ? 's' : ''} imported. Sarah is sizing the worker pool for each.
+              </div>
+            )}
+
+            {/* Pulled jobs appear one by one */}
+            <div className="space-y-1.5">
+              {IMPORT_RESULTS.slice(0, phase === 'pulling' ? revealed : IMPORT_RESULTS.length).map((j, i) => (
+                <div
+                  key={j.title}
+                  onClick={phase === 'select' ? () => toggle(i) : undefined}
+                  className={`rounded-xl border px-3 py-2.5 gg-anim transition-colors ${
+                    phase === 'select' ? 'cursor-pointer' : ''
+                  } ${phase !== 'pulling' && selected.has(i) ? 'border-[#a7f3d0] bg-[#f0fdf4]/50' : 'border-gray-100'}`}
+                  style={{ animation: 'ggFadeUp .3s both' }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {phase === 'pulling' ? (
+                      <span className="w-4 h-4 rounded-full bg-[#10b981] text-white flex items-center justify-center shrink-0 gg-anim" style={{ animation: 'ggFadeUp .2s both' }}>
+                        <CheckCircle className="w-3 h-3" />
+                      </span>
+                    ) : (
+                      <span
+                        className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                          selected.has(i) ? 'bg-[#10b981] border-[#10b981] text-white' : 'border-gray-300 bg-white'
+                        }`}
+                      >
+                        {selected.has(i) && <CheckCircle className="w-3 h-3" />}
+                      </span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-gray-900 truncate" style={{ fontWeight: 600 }}>{j.title}</div>
+                      <div className="text-xs text-gray-400" style={{ fontSize: '0.68rem' }}>{j.location} · {j.salary}</div>
+                    </div>
+                    {phase === 'pulling' && (
+                      <span className="text-xs text-[#059669] shrink-0" style={{ fontSize: '0.66rem', fontWeight: 600 }}>pulled</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-gray-100 shrink-0">
+        {phase === 'select' && (
+          <button
+            onClick={confirm}
+            disabled={selected.size === 0}
+            className="w-full bg-[#10b981] hover:bg-[#059669] disabled:opacity-40 text-white rounded-xl py-2.5 text-sm transition-colors"
+            style={{ fontWeight: 700 }}
+          >
+            Add {selected.size} job{selected.size !== 1 ? 's' : ''} to campaigns
+          </button>
+        )}
+        {phase === 'done' && (
+          <button
+            onClick={onClose}
+            className="w-full border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl py-2.5 text-sm transition-colors"
+            style={{ fontWeight: 600 }}
+          >
+            Close
+          </button>
+        )}
+        {(phase === 'input' || phase === 'pulling') && (
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span style={{ fontWeight: 500 }}>{phase === 'pulling' ? `${revealed} of ${IMPORT_RESULTS.length} pulled` : 'Indeed, LinkedIn, careers pages'}</span>
+            <span className="flex items-center gap-1.5 text-[#059669]" style={{ fontWeight: 600 }}>
+              <Bot className="w-3.5 h-3.5" />
+              {phase === 'pulling' ? 'Sarah is reading' : 'Sarah is ready'}
+            </span>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 function AgentDock({ onToast, onShowArea, onAction }: {
   onToast: (t: Omit<Toast, 'id'>) => void;
   onShowArea: (area: string) => number;
@@ -783,6 +990,20 @@ export default function DashboardPage() {
     setView('profile');
   };
 
+  const addImportedJobs = (pulled: PulledJob[]) => {
+    setJobs(prev => [...prev, ...pulled.map(p => ({
+      id: `imp-${importSeq++}`, title: p.title, location: p.location,
+      status: 'Active' as const, promotion: 'FREE' as const,
+      budget: 0, totalSpend: 0, candidates: 0, qualified: 0,
+      awaitingReview: 0, interviews: 0, daysToFill: 14,
+      postedAt: 'just now', salary: p.salary,
+    }))]);
+    pushToast({
+      title: `${pulled.length} job${pulled.length !== 1 ? 's' : ''} imported`,
+      body: 'Sarah is sizing the worker pool for each role.',
+    });
+  };
+
   const jobCandidates = candidatePool.filter(c => c.jobId === selectedJobId);
   const filteredCandidates = jobCandidates.filter(c => {
     const q = search.toLowerCase();
@@ -847,7 +1068,7 @@ export default function DashboardPage() {
                 style={{ fontWeight: 600 }}
               >
                 <Plus className="w-4 h-4" />
-                New Campaign
+                Post a new job
               </button>
             </div>
 
@@ -904,6 +1125,7 @@ export default function DashboardPage() {
             onOpenCandidate={openProfile}
             onToast={pushToast}
             onShowArea={showAreaCandidates}
+            onImportJobs={addImportedJobs}
           />
         )}
         {view === 'jobs' && (
@@ -938,7 +1160,7 @@ export default function DashboardPage() {
 
 // ─── Dashboard view ──────────────────────────────────────────────────────────
 
-function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate, onToast, onShowArea }: {
+function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate, onToast, onShowArea, onImportJobs }: {
   jobs: Job[];
   selectedJob: Job;
   onSelectJob: (id: string) => void;
@@ -948,17 +1170,29 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
   onOpenCandidate: (c: Candidate) => void;
   onToast: (t: Omit<Toast, 'id'>) => void;
   onShowArea: (area: string) => number;
+  onImportJobs: (jobs: PulledJob[]) => void;
 }) {
   const matched = [...candidates].sort((a, b) => b.score - a.score);
   const [action, setAction] = useState<{ kind: ActionKind; id: number } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <div className="flex-1 min-h-0 flex w-full overflow-hidden">
       <div className="flex-1 min-h-0 flex flex-col max-w-3xl mx-auto px-6 min-w-0">
-      {/* Greeting */}
-      <div className="pt-5 pb-3 shrink-0">
-        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
-        <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns — tell her what you need below.</p>
+      {/* Greeting + import */}
+      <div className="pt-5 pb-3 shrink-0 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
+          <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns — tell her what you need below.</p>
+        </div>
+        <button
+          onClick={() => { setAction(null); setImportOpen(true); }}
+          className="flex items-center gap-1.5 border border-gray-200 hover:border-[#10b981] hover:text-[#059669] bg-white text-gray-600 rounded-lg px-3.5 py-2 text-xs transition-colors shrink-0 mt-1"
+          style={{ fontWeight: 600 }}
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          Import jobs
+        </button>
       </div>
 
       {/* Campaign chips */}
@@ -1016,17 +1250,25 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
         <AgentDock
           onToast={onToast}
           onShowArea={onShowArea}
-          onAction={kind => setAction({ kind, id: Date.now() })}
+          onAction={kind => { setImportOpen(false); setAction({ kind, id: Date.now() }); }}
         />
       </div>
 
       {/* ── Live action panel (calls / interviews / SMS) ── */}
-      {action && (
+      {action && !importOpen && (
         <ActionPanel
           key={action.id}
           kind={action.kind}
           candidates={matched.length ? matched : candidates}
           onClose={() => setAction(null)}
+        />
+      )}
+
+      {/* ── Job import panel ── */}
+      {importOpen && (
+        <ImportPanel
+          onClose={() => setImportOpen(false)}
+          onImport={onImportJobs}
         />
       )}
     </div>
