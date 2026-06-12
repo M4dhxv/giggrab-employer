@@ -281,6 +281,51 @@ const CANDIDATES: Candidate[] = [
   },
 ];
 
+// ─── Synthesised candidates (Sarah "finds" these on area commands) ──────────
+
+const SYNTH_NAMES = [
+  { name: 'Tomasz Nowak',  initials: 'TN', color: '#0ea5e9', languages: ['English', 'Polish'] },
+  { name: 'Priya Patel',   initials: 'PP', color: '#f97316', languages: ['English', 'Gujarati'] },
+  { name: 'Daniel Hughes', initials: 'DH', color: '#84cc16', languages: ['English'] },
+  { name: 'Amara Okafor',  initials: 'AO', color: '#a855f7', languages: ['English'] },
+  { name: 'Liam Carter',   initials: 'LC', color: '#ef4444', languages: ['English'] },
+  { name: 'Sofia Reyes',   initials: 'SR', color: '#6366f1', languages: ['English', 'Spanish'] },
+];
+
+let synthSeq = 0;
+
+function synthCandidates(area: string, job: Job, n: number): Candidate[] {
+  const place = area.trim().replace(/\b\w/g, ch => ch.toUpperCase());
+  return Array.from({ length: n }, (_, i) => {
+    const t = SYNTH_NAMES[synthSeq % SYNTH_NAMES.length];
+    const id = `synth-${synthSeq++}`;
+    const years = 2 + ((synthSeq + i) % 5);
+    const score = 86 - i * 4;
+    return {
+      id, initials: t.initials, color: t.color, name: t.name,
+      role: job.title, experience: `${years}yr experience`, location: place,
+      languages: t.languages, score, status: 'Qualified' as const,
+      availability: 'Available immediately', certifications: [],
+      employmentStatus: 'Available', notes: `Sourced by Sarah from the ${place} talent pool.`,
+      job: job.title, jobId: job.id, addedAt: 'just now', salaryExpectation: '£12–14/hr',
+      screeningSummary: {
+        experience: `${years} years in similar frontline roles around ${place}.`,
+        availability: 'Available immediately. Flexible on shifts.',
+        certifications: 'None held.',
+        languages: t.languages.join(' and ') + '.',
+        salaryExpectations: '£12–14/hr.',
+        strengths: ['Immediate availability', `Local to ${place}`, 'Screened by Sarah moments ago'],
+        concerns: ['Full screening summary pending review'],
+      },
+      transcript: [
+        { speaker: 'AI' as const, text: `Hi ${t.name.split(' ')[0]}, calling about a ${job.title} role near ${place}. Is now a good time?`, time: 'now' },
+        { speaker: 'Candidate' as const, text: 'Yes, perfect — go ahead.', time: 'now' },
+      ],
+      interviews: [],
+    };
+  });
+}
+
 // ─── Status styling ──────────────────────────────────────────────────────────
 
 const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
@@ -299,6 +344,7 @@ const AGENT_CSS = `
 @keyframes ggToastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
 @keyframes ggBlink{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes ggDrawer{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+@keyframes ggPanel{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.gg-anim{animation:none!important}}
 `;
 
@@ -306,50 +352,289 @@ interface Toast { id: number; title: string; body: string }
 
 const EXAMPLE_COMMANDS = [
   'Call top 10 matched candidates and confirm availability',
-  'Find more Spanish-speaking warehouse workers',
+  'Give me candidates in Salford',
+  'Schedule AI interviews for the top 10 matched',
   'Reactivate qualified candidates from the last 30 days',
-  'Schedule interviews for qualified candidates',
 ];
 
-const RUN_STEPS = [
-  'Thinking…',
-  'Finding candidates…',
-  'Calling workers…',
-  'Collecting availability…',
-  'Scheduling interviews…',
-  'Generating summary…',
-];
+// ─── Command intents: each command type gets its own task plan ──────────────
 
-const RUN_RESULTS = [
+type ActionKind = 'call' | 'interview' | 'sms';
+
+interface AgentPlan {
+  steps: string[];
+  // Fires as the plan starts — opens the live action panel for phone/SMS work.
+  start?: () => void;
+  // Runs when the plan completes. Applies side effects (e.g. filtering the
+  // candidate list) and returns what Sarah reports back.
+  finish: () => { result: string; toast: Omit<Toast, 'id'> };
+}
+
+const GENERIC_RESULTS = [
   { summary: 'Availability confirmed for 8 candidates. 2 interviews scheduled.', toast: { title: 'Availability confirmed', body: '8 candidates confirmed availability for this week.' } },
-  { summary: '15 new workers found and added to your talent pool. 6 match this role.', toast: { title: 'New qualified candidates found', body: '6 new matches added to Warehouse Associate.' } },
-  { summary: '8 previous candidates reactivated. 3 already responded.', toast: { title: 'Workers reactivated', body: '8 qualified workers re-engaged via SMS and voice.' } },
-  { summary: 'Interviews scheduled with 2 qualified candidates for Thursday.', toast: { title: 'Interviews scheduled', body: 'Calendar invites sent for Thursday 10:00 and 14:30.' } },
+  { summary: '15 new workers found and added to your talent pool. 6 match this role.', toast: { title: 'New qualified candidates found', body: '6 new matches added to your campaign.' } },
 ];
+let genericIdx = 0;
 
-function AgentDock({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
+function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: (kind: ActionKind) => void): AgentPlan {
+  const c = cmd.toLowerCase();
+  const areaMatch = c.match(/(?:in|from|near|around)\s+([a-z][a-z\s'-]*?)(?:\s+area)?\s*[.!]?$/i);
+
+  // "Give me candidates in Salford" — actually changes the list
+  if (areaMatch && /candidate|worker|people|staff/.test(c)) {
+    const area = areaMatch[1].trim().replace(/\b\w/g, ch => ch.toUpperCase());
+    return {
+      steps: ['Thinking…', `Searching talent pools in ${area}…`, 'Checking worker communities…', 'Screening availability…', 'Ranking by match score…'],
+      finish: () => {
+        const n = onShowArea(area);
+        return {
+          result: `Found ${n} candidates in ${area} — your matched list is now showing them.`,
+          toast: { title: `Candidates found in ${area}`, body: `${n} local workers matched and added to your list.` },
+        };
+      },
+    };
+  }
+
+  // "Schedule AI interviews for availability on top 10 matched"
+  if (/interview|schedul/.test(c)) {
+    return {
+      steps: ['Thinking…', 'Picking top 10 by match score…', 'Calling to confirm availability…', 'Running AI interviews…', 'Booking time slots…'],
+      start: () => onAction('interview'),
+      finish: () => ({
+        result: 'AI interviews run with your top 10 matched — 7 passed and are booked for this week.',
+        toast: { title: 'Interviews scheduled', body: '7 AI interviews completed and booked with top matched candidates.' },
+      }),
+    };
+  }
+
+  // "Reactivate qualified candidates" / "text workers about the role"
+  if (/reactivat|re-engage|previous|\bsms\b|\btext/.test(c)) {
+    return {
+      steps: ['Thinking…', 'Searching past qualified candidates…', 'Sending SMS re-engagement…', 'Tracking replies…', 'Updating your pipeline…'],
+      start: () => onAction('sms'),
+      finish: () => ({
+        result: '8 previous candidates reactivated — 3 already responded and want this role.',
+        toast: { title: 'Workers reactivated', body: '8 qualified workers re-engaged via SMS and voice.' },
+      }),
+    };
+  }
+
+  // "Call top 10 matched candidates and confirm availability"
+  if (/\bcall|ring|phone/.test(c)) {
+    return {
+      steps: ['Thinking…', 'Selecting top matched candidates…', 'Calling workers…', 'Confirming availability…', 'Generating summary…'],
+      start: () => onAction('call'),
+      finish: () => ({
+        result: 'Called your top 10 matched candidates — 8 confirmed availability for this week.',
+        toast: { title: 'Calls completed', body: '8 of 10 candidates confirmed availability. Summaries ready.' },
+      }),
+    };
+  }
+
+  // "Find more Spanish-speaking warehouse workers"
+  if (/find|more|source|search/.test(c)) {
+    return {
+      steps: ['Thinking…', 'Scanning the worker network…', 'Matching to your role…', 'Screening top prospects…', 'Ranking results…'],
+      finish: () => ({
+        result: '15 new workers found — 6 strong matches added to your talent pool.',
+        toast: { title: 'New workers found', body: '6 strong matches added to your campaign.' },
+      }),
+    };
+  }
+
+  // Anything else: Sarah still gets it done
+  const res = GENERIC_RESULTS[genericIdx++ % GENERIC_RESULTS.length];
+  return {
+    steps: ['Thinking…', 'Finding candidates…', 'Calling workers…', 'Collecting availability…', 'Generating summary…'],
+    finish: () => ({ result: res.summary, toast: res.toast }),
+  };
+}
+
+// ─── ActionPanel: live view of Sarah calling / interviewing / texting ────────
+
+const PANEL_META: Record<ActionKind, { title: string; sub: string; active: string; icon: React.ReactNode }> = {
+  call:      { title: 'Calling candidates',  sub: 'Confirming availability by phone',   active: 'On call…',        icon: <PhoneCall className="w-4 h-4" /> },
+  interview: { title: 'AI interviews',       sub: 'Screening your top matched workers', active: 'Interviewing…',   icon: <Calendar className="w-4 h-4" /> },
+  sms:       { title: 'SMS re-engagement',   sub: 'Re-activating qualified workers',    active: 'Sending…',        icon: <MessageSquare className="w-4 h-4" /> },
+};
+
+const PANEL_OUTCOMES: Record<ActionKind, string[]> = {
+  call:      ['Available ✓', 'Available ✓', 'Voicemail', 'Available ✓', 'Available ✓', 'Available ✓'],
+  interview: ['Passed · Thu 10:00', 'Passed · Fri 14:30', 'Needs review', 'Passed · Thu 11:30', 'Passed · Mon 09:00', 'Passed · Tue 15:00'],
+  sms:       ['Replied “YES”', 'Delivered ✓', 'Replied “YES”', 'Delivered ✓', 'Replied “interested”', 'Delivered ✓'],
+};
+
+function panelLines(kind: ActionKind, c: Candidate): { who: 'sarah' | 'cand'; text: string }[] {
+  const first = c.name.split(' ')[0];
+  if (kind === 'call') return [
+    { who: 'sarah', text: `Hi ${first}, it's Sarah from GigGrab — still available for the ${c.role} role this week?` },
+    { who: 'cand',  text: 'Yes — I can start straight away.' },
+  ];
+  if (kind === 'interview') return [
+    { who: 'sarah', text: `Walk me through your recent ${c.role.toLowerCase()} experience.` },
+    { who: 'cand',  text: `${c.experience.replace('yr', ' years')}, mostly nights — happy to do weekends too.` },
+  ];
+  return [
+    { who: 'sarah', text: `SMS → ${first}: “New ${c.role} role near ${c.location} — interested? Reply YES”` },
+    { who: 'cand',  text: 'YES — when can I start?' },
+  ];
+}
+
+function ActionPanel({ kind, candidates, onClose }: {
+  kind: ActionKind;
+  candidates: Candidate[];
+  onClose: () => void;
+}) {
+  const meta = PANEL_META[kind];
+  const items = candidates.slice(0, 6);
+  // Each candidate takes two ticks: line 1 of the exchange, then line 2 + outcome.
+  const [p, setP] = useState(0);
+  const total = items.length * 2;
+
+  useEffect(() => {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const t = setInterval(() => {
+      setP(prev => {
+        if (prev >= total) { clearInterval(t); return prev; }
+        return prev + 1;
+      });
+    }, reduced ? 150 : 1300);
+    return () => clearInterval(t);
+  }, [total]);
+
+  const activeIdx = Math.floor(p / 2);
+  const allDone = p >= total;
+  const doneCount = Math.min(activeIdx, items.length);
+  const active = !allDone ? items[activeIdx] : null;
+  const lines = active ? panelLines(kind, active).slice(0, (p % 2) + 1) : [];
+
+  return (
+    <aside className="w-80 shrink-0 bg-white border-l border-gray-100 flex flex-col min-h-0 gg-anim" style={{ animation: 'ggPanel .25s both' }}>
+      {/* Header */}
+      <div className="flex items-start gap-3 px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-[#f0fdf4] border border-[#a7f3d0] text-[#059669] flex items-center justify-center shrink-0">
+          {meta.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>{meta.title}</span>
+            {!allDone && (
+              <span className="flex items-center gap-1 text-xs text-[#059669]" style={{ fontWeight: 700 }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.2s infinite' }} />
+                LIVE
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">{meta.sub}</div>
+        </div>
+        <button onClick={onClose} className="text-gray-300 hover:text-gray-600 shrink-0 mt-0.5" aria-label="Close panel">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Candidate queue */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1.5">
+        {items.map((c, i) => {
+          const isDone = i < activeIdx || allDone;
+          const isActive = !allDone && i === activeIdx;
+          const outcome = PANEL_OUTCOMES[kind][i % PANEL_OUTCOMES[kind].length];
+          const muted = outcome === 'Voicemail' || outcome === 'Delivered ✓' || outcome === 'Needs review';
+          return (
+            <div key={c.id} className={`rounded-xl border px-3 py-2.5 transition-colors ${isActive ? 'border-[#a7f3d0] bg-[#f0fdf4]/60' : 'border-gray-100'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: c.color, fontSize: '0.65rem', fontWeight: 700 }}>{c.initials}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-gray-900 truncate" style={{ fontWeight: 600 }}>{c.name}</div>
+                  <div className="text-xs text-gray-400" style={{ fontSize: '0.68rem' }}>{c.score}% match · {c.location}</div>
+                </div>
+                {isDone ? (
+                  <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${muted ? 'bg-gray-100 text-gray-500' : 'bg-[#f0fdf4] text-[#15803d]'}`} style={{ fontWeight: 600, fontSize: '0.66rem' }}>
+                    {outcome}
+                  </span>
+                ) : isActive ? (
+                  <span className="flex items-center gap-1.5 text-xs text-[#b45309] bg-amber-50 rounded-full px-2 py-0.5 shrink-0" style={{ fontWeight: 600, fontSize: '0.66rem' }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 gg-anim" style={{ animation: 'ggBlink 1s infinite' }} />
+                    {meta.active}
+                  </span>
+                ) : (
+                  <span className="text-xs text-gray-300 shrink-0" style={{ fontSize: '0.66rem', fontWeight: 500 }}>Queued</span>
+                )}
+              </div>
+
+              {/* Live exchange for the active candidate */}
+              {isActive && lines.length > 0 && (
+                <div className="mt-2.5 space-y-1.5 pl-9">
+                  {lines.map((l, li) => (
+                    <div
+                      key={li}
+                      className="text-xs leading-relaxed px-2.5 py-1.5 gg-anim"
+                      style={{
+                        animation: 'ggFadeUp .3s both',
+                        backgroundColor: l.who === 'sarah' ? '#f9fafb' : '#f0fdf4',
+                        color: '#374151',
+                        borderRadius: l.who === 'sarah' ? '4px 10px 10px 10px' : '10px 4px 10px 10px',
+                        marginLeft: l.who === 'cand' ? '16px' : 0,
+                        marginRight: l.who === 'sarah' ? '16px' : 0,
+                      }}
+                    >
+                      {l.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Footer summary */}
+      <div className="px-4 py-3 border-t border-gray-100 shrink-0">
+        {allDone ? (
+          <div className="flex items-center gap-2 text-xs text-[#15803d] bg-[#f0fdf4] border border-[#a7f3d0] rounded-xl px-3 py-2.5 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .3s both' }}>
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            Done — {items.length}/{items.length} contacted. Results are in your pipeline.
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span style={{ fontWeight: 500 }}>{doneCount} of {items.length} complete</span>
+            <span className="flex items-center gap-1.5 text-[#059669]" style={{ fontWeight: 600 }}>
+              <Bot className="w-3.5 h-3.5" />
+              Sarah is working
+            </span>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function AgentDock({ onToast, onShowArea, onAction }: {
+  onToast: (t: Omit<Toast, 'id'>) => void;
+  onShowArea: (area: string) => number;
+  onAction: (kind: ActionKind) => void;
+}) {
   const [command, setCommand] = useState('');
-  const [running, setRunning] = useState<{ cmd: string; step: number } | null>(null);
+  const [running, setRunning] = useState<{ cmd: string; step: number; steps: string[] } | null>(null);
   const [history, setHistory] = useState<{ id: number; cmd: string; result: string }[]>([]);
-  const runIdx = useRef(0);
 
   const run = (text: string) => {
     const cmd = text.trim();
     if (!cmd || running) return;
+    const plan = buildPlan(cmd, onShowArea, onAction);
     setCommand('');
-    setRunning({ cmd, step: 0 });
+    setRunning({ cmd, step: 0, steps: plan.steps });
+    plan.start?.();
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const tick = reduced ? 120 : 850;
     let s = 0;
     const t = setInterval(() => {
       s += 1;
-      if (s < RUN_STEPS.length) { setRunning(r => (r ? { ...r, step: s } : r)); return; }
+      if (s < plan.steps.length) { setRunning(r => (r ? { ...r, step: s } : r)); return; }
       clearInterval(t);
-      const res = RUN_RESULTS[runIdx.current % RUN_RESULTS.length];
-      runIdx.current += 1;
-      setHistory(prev => [...prev, { id: Date.now(), cmd, result: res.summary }].slice(-3));
+      const { result, toast } = plan.finish();
+      setHistory(prev => [...prev, { id: Date.now(), cmd, result }].slice(-3));
       setRunning(null);
-      onToast(res.toast);
+      onToast(toast);
     }, tick);
   };
 
@@ -381,10 +666,10 @@ function AgentDock({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
                 <span className="w-4 h-4 rounded-full border-2 border-[#10b981] border-t-transparent animate-spin shrink-0" />
                 <div className="flex-1">
                   <div key={running.step} className="text-sm text-gray-800 gg-anim" style={{ fontWeight: 600, animation: 'ggFadeUp .25s both' }}>
-                    {RUN_STEPS[running.step]}
+                    {running.steps[running.step]}
                   </div>
                   <div className="flex gap-1 mt-1.5">
-                    {RUN_STEPS.map((_, i) => (
+                    {running.steps.map((_, i) => (
                       <span key={i} className="h-1 flex-1 rounded-full transition-colors" style={{ backgroundColor: i <= running.step ? '#10b981' : '#e5e7eb' }} />
                     ))}
                   </div>
@@ -464,6 +749,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [view, setView]                       = useState<View>('dashboard');
   const [jobs, setJobs]                       = useState<Job[]>(INITIAL_JOBS);
+  const [candidatePool, setCandidatePool]     = useState<Candidate[]>(CANDIDATES);
   const [selectedJobId, setSelectedJobId]     = useState('1');
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [statusFilter, setStatusFilter]       = useState('All');
@@ -497,12 +783,26 @@ export default function DashboardPage() {
     setView('profile');
   };
 
-  const jobCandidates = CANDIDATES.filter(c => c.jobId === selectedJobId);
+  const jobCandidates = candidatePool.filter(c => c.jobId === selectedJobId);
   const filteredCandidates = jobCandidates.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.role.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchSearch = c.name.toLowerCase().includes(q) || c.role.toLowerCase().includes(q) || c.location.toLowerCase().includes(q);
     const matchStatus = statusFilter === 'All' || c.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  // Agent effect: surface candidates for an area the user asked about.
+  // Sarah "finds" new local workers if the pool doesn't have enough there yet.
+  const showAreaCandidates = (area: string): number => {
+    const norm = area.trim().toLowerCase();
+    const existing = jobCandidates.filter(c => c.location.toLowerCase().includes(norm));
+    let added: Candidate[] = [];
+    if (existing.length < 3) added = synthCandidates(area, selectedJob, 3 - existing.length);
+    if (added.length) setCandidatePool(prev => [...prev, ...added]);
+    setStatusFilter('All');
+    setSearch(area.trim());
+    return existing.length + added.length;
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -603,6 +903,7 @@ export default function DashboardPage() {
             statusFilter={statusFilter} onStatusFilter={setStatusFilter}
             onOpenCandidate={openProfile}
             onToast={pushToast}
+            onShowArea={showAreaCandidates}
           />
         )}
         {view === 'jobs' && (
@@ -614,7 +915,7 @@ export default function DashboardPage() {
         )}
         {view === 'candidates' && (
           <CandidatesView
-            candidates={CANDIDATES}
+            candidates={candidatePool}
             statusFilter={statusFilter} onStatusFilter={setStatusFilter}
             search={search} onSearch={setSearch}
             onOpenCandidate={openProfile}
@@ -637,7 +938,7 @@ export default function DashboardPage() {
 
 // ─── Dashboard view ──────────────────────────────────────────────────────────
 
-function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate, onToast }: {
+function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onSearch, statusFilter, onStatusFilter, onOpenCandidate, onToast, onShowArea }: {
   jobs: Job[];
   selectedJob: Job;
   onSelectJob: (id: string) => void;
@@ -646,11 +947,14 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
   statusFilter: string; onStatusFilter: (s: string) => void;
   onOpenCandidate: (c: Candidate) => void;
   onToast: (t: Omit<Toast, 'id'>) => void;
+  onShowArea: (area: string) => number;
 }) {
   const matched = [...candidates].sort((a, b) => b.score - a.score);
+  const [action, setAction] = useState<{ kind: ActionKind; id: number } | null>(null);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col w-full max-w-3xl mx-auto px-6">
+    <div className="flex-1 min-h-0 flex w-full overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col max-w-3xl mx-auto px-6 min-w-0">
       {/* Greeting */}
       <div className="pt-5 pb-3 shrink-0">
         <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Good morning, Michael 👋</h1>
@@ -708,8 +1012,23 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
         </div>
       </div>
 
-      {/* ── Agentic command bar ── */}
-      <AgentDock onToast={onToast} />
+        {/* ── Agentic command bar ── */}
+        <AgentDock
+          onToast={onToast}
+          onShowArea={onShowArea}
+          onAction={kind => setAction({ kind, id: Date.now() })}
+        />
+      </div>
+
+      {/* ── Live action panel (calls / interviews / SMS) ── */}
+      {action && (
+        <ActionPanel
+          key={action.id}
+          kind={action.kind}
+          candidates={matched.length ? matched : candidates}
+          onClose={() => setAction(null)}
+        />
+      )}
     </div>
   );
 }

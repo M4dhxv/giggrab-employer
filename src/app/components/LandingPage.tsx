@@ -531,8 +531,9 @@ export default function LandingPage({
             <span className="kicker"><span className="d" />Live across London</span>
             <h1>Hire frontline workers <span className="g">within hours.</span></h1>
             <p className="sub">
-              Reach workers through <b>calls and texts</b> — rather than
-              waiting and reviewing applicants.
+              No job ads. No CV piles. No ghosting. Sarah sources, calls and
+              screens by phone — you get an <b>interview-ready shortlist</b>,
+              not applicants.
             </p>
             <div className="cta-row">
               <button className="cta" onClick={startHiring}>
