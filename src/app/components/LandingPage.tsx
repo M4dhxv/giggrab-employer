@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   ArrowRight, Check, HardHat, Package, Factory, Truck,
-  Heart, UtensilsCrossed, ShoppingBag, Link2, Megaphone, PhoneCall,
-  ClipboardCheck, UserCheck, Bot, MessageSquare, Mic,
+  Heart, UtensilsCrossed, ShoppingBag, Megaphone, PhoneCall,
+  ClipboardCheck, UserCheck, Bot, MessageSquare, Mic, Globe, Zap, Phone,
 } from 'lucide-react';
 
 /*
@@ -61,6 +61,67 @@ const CSS = `
   display:grid;place-items:center;flex-shrink:0;transition:.18s}
 .gg .cta:hover .arr{background:var(--em);transform:translateX(2px)}
 .gg .trust{margin-top:22px;font-size:.82rem;font-weight:500;color:var(--gray-400)}
+
+/* hotline card */
+.gg .hcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px 26px;
+  box-shadow:0 22px 44px -32px rgba(15,23,42,.35);margin-bottom:30px;max-width:470px}
+.gg .hlabel{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--gray-500)}
+.gg .hlabel .ld{width:7px;height:7px;border-radius:50%;background:var(--em);position:relative}
+.gg .hlabel .ld::after{content:"";position:absolute;inset:-4px;border-radius:50%;
+  border:1.5px solid var(--em);animation:ggring 2s infinite}
+.gg .hnum{font-size:clamp(1.9rem,3.8vw,2.7rem);font-weight:800;letter-spacing:.015em;
+  color:var(--gray-900);margin:10px 0 18px;white-space:nowrap}
+.gg .hbtns{display:flex;gap:10px;flex-wrap:wrap}
+.gg .callbtn{display:inline-flex;align-items:center;gap:9px;background:var(--em);color:#fff;border:none;
+  font-family:inherit;font-size:.92rem;font-weight:700;padding:13px 24px;border-radius:14px;cursor:pointer;
+  transition:.18s;box-shadow:0 12px 26px -12px rgba(16,185,129,.55);text-decoration:none}
+.gg .callbtn:hover{background:var(--em-d);transform:translateY(-1px)}
+.gg .callalt{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--gray-900);
+  border:1px solid var(--line);font-family:inherit;font-size:.92rem;font-weight:600;padding:13px 22px;
+  border-radius:14px;cursor:pointer;transition:.15s}
+.gg .callalt:hover{border-color:var(--gray-400)}
+.gg .hmeta{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;padding-top:16px;
+  border-top:1px dashed var(--line);font-size:.78rem;font-weight:500;color:var(--gray-500)}
+.gg .hmeta span{display:inline-flex;align-items:center;gap:6px}
+.gg .hmeta svg{color:var(--em)}
+
+/* live call demo */
+.gg .lcall{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  width:100%;max-width:430px;box-shadow:0 28px 56px -36px rgba(15,23,42,.4)}
+.gg .lhead{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line-2)}
+.gg .lhead .pic{width:34px;height:34px;border-radius:50%;background:var(--em);color:#fff;
+  display:grid;place-items:center;flex-shrink:0}
+.gg .lhead .t1{font-size:.85rem;font-weight:700;color:var(--gray-900)}
+.gg .lhead .t2{font-size:.72rem;color:var(--gray-400)}
+.gg .eq{margin-left:auto;display:flex;align-items:flex-end;gap:3px;height:16px}
+.gg .eq i{width:3px;border-radius:2px;background:var(--em);animation:ggeq 1s infinite ease-in-out}
+.gg .eq i:nth-child(2){animation-delay:.15s}.gg .eq i:nth-child(3){animation-delay:.3s}
+.gg .eq i:nth-child(4){animation-delay:.45s}
+@keyframes ggeq{0%,100%{height:5px}50%{height:15px}}
+.gg .lbody{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:140px}
+.gg .lb{max-width:86%;font-size:.83rem;line-height:1.45;padding:9px 13px;animation:ggrise .45s both}
+.gg .lb.ai{background:var(--em-tint);color:#065f46;border-radius:4px 14px 14px 14px;align-self:flex-start}
+.gg .lb.me{background:var(--gray-900);color:#fff;border-radius:14px 4px 14px 14px;align-self:flex-end}
+.gg .ldots{display:inline-flex;gap:4px;background:#f3f4f6;border-radius:14px;padding:11px 13px;
+  align-self:flex-start;animation:ggrise .4s 2.4s both}
+.gg .ldots i{width:5px;height:5px;border-radius:50%;background:#9ca3af;animation:ggdot 1.2s infinite}
+.gg .ldots i:nth-child(2){animation-delay:.2s}.gg .ldots i:nth-child(3){animation-delay:.4s}
+@keyframes ggdot{0%,100%{opacity:.3}50%{opacity:1}}
+.gg .lpool{border-top:1px solid var(--line-2);padding:14px 16px}
+.gg .lpool .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.gg .lpool .ph b{font-size:.8rem;font-weight:700;color:var(--gray-900)}
+.gg .lpool .new{font-size:.66rem;font-weight:700;background:var(--em-tint);color:#059669;
+  border:1px solid var(--em-border);padding:2px 8px;border-radius:99px}
+.gg .vrow{display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--line-2);
+  border-radius:12px;animation:ggrise .45s both}
+.gg .vrow+.vrow{margin-top:8px}
+.gg .vrow .vn{font-size:.78rem;font-weight:600;color:var(--gray-900)}
+.gg .vrow .vm{font-size:.68rem;color:var(--gray-400);margin-top:1px}
+.gg .vrow .vs{margin-left:auto;font-size:.74rem;font-weight:700;color:#059669;flex-shrink:0}
+
+/* live pool section (odometer) */
+.gg .pool{padding:72px 0}
 
 /* right: odometer */
 .gg .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
@@ -330,7 +391,7 @@ function HeroFeed({ onQualified }: { onQualified: () => void }) {
 const STAGE_MS = 3600;
 
 const STAGES = [
-  { icon: <PhoneCall size={17} />, title: 'Call Sarah or paste a job', body: 'Describe the role in one call — or paste a link from Indeed, LinkedIn or your careers page.' },
+  { icon: <PhoneCall size={17} />, title: 'Call Sarah', body: 'One call. Describe the role — Sarah writes the job spec while you talk.' },
   { icon: <Megaphone size={17} />, title: 'Sarah builds the campaign', body: 'Voice, SMS and WhatsApp outreach goes live across our worker network.' },
   { icon: <PhoneCall size={17} />, title: 'Workers engage', body: 'Workers call in or pick up. No applications, no forms — just conversations.' },
   { icon: <ClipboardCheck size={17} />, title: 'Sarah screens & qualifies', body: 'Experience, availability, certifications — checked by phone in 32 languages.' },
@@ -352,14 +413,12 @@ function StoryDemo({ stage }: { stage: number }) {
             <span><b>"Hi Sarah, I need two forklift drivers in Manchester."</b></span></div>
         </div>
         <div className="dcard" style={d(800)}>
-          <div className="durl">
-            <Link2 size={15} color="#9ca3af" />
-            <span className="dom">…or paste: uk.indeed.com/viewjob?jk=88f2…</span>
-          </div>
+          <div className="drow"><div className="ric"><Mic size={14} /></div>
+            <span><b>Sarah</b> is writing the job spec as you speak…</span></div>
         </div>
         <div className="dcard" style={d(1600)}>
           <div className="dok"><span className="tick" style={d(1800)}><Check size={11} strokeWidth={3.5} /></span>
-            Job created — Forklift Operator, Manchester</div>
+            Job spec ready — Forklift Operator, Manchester, nights, £14/hr</div>
         </div>
       </>
     );
@@ -523,31 +582,78 @@ export default function LandingPage({
         </div>
       </header>
 
-      {/* HERO */}
+      {/* HERO — recruiter hotline */}
       <section className="wrap hero">
         <div className="hgrid">
-          {/* left */}
+          {/* left: hotline card + headline */}
           <div>
-            <span className="kicker"><span className="d" />Live across London</span>
-            <h1>Hire frontline workers <span className="g">within hours.</span></h1>
-            <p className="sub">
-              No job ads. No CV piles. No ghosting. Sarah sources, calls and
-              screens by phone — you get an <b>interview-ready shortlist</b>,
-              not applicants.
-            </p>
-            <div className="cta-row">
-              <button className="cta" onClick={startHiring}>
-                Start hiring <span className="arr"><ArrowRight size={17} strokeWidth={2.5} /></span>
-              </button>
+            <span className="kicker"><span className="d" />Recruiter hotline · Vetted worker pool</span>
+
+            <div className="hcard">
+              <div className="hlabel"><span className="ld" />24/7 recruiter hotline</div>
+              <div className="hnum">+44 20 4571 8821</div>
+              <div className="hbtns">
+                <a className="callbtn" href="tel:+442045718821">
+                  <Phone size={16} fill="currentColor" strokeWidth={0} />
+                  Tap to call
+                </a>
+                <button className="callalt" onClick={startHiring}>Start online instead</button>
+              </div>
+              <div className="hmeta">
+                <span><Globe size={13} />32 languages</span>
+                <span><Check size={13} />Free to call</span>
+                <span><Zap size={13} />Avg. 5-min intake</span>
+              </div>
             </div>
-            <div className="trust">No credit card required · Cancel anytime · Free for workers</div>
+
+            <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
+            <p className="sub">
+              No job ads. No CV piles. Talk to Sarah for five minutes — she writes
+              the job spec, <b>calls vetted workers</b>, and sends you a ranked
+              shortlist within hours.
+            </p>
           </div>
 
-          {/* right: odometer + live agent feed */}
+          {/* right: live call demo */}
           <div className="stage">
-            <Odometer value={count} start={8412} />
-            <div className="label"><b>workers ready to start</b> across London right now</div>
-            <HeroFeed onQualified={() => setCount(c => c + 1)} />
+            <div className="lcall">
+              <div className="lhead">
+                <span className="pic"><PhoneCall size={15} /></span>
+                <div>
+                  <div className="t1">Live call · Sarah</div>
+                  <div className="t2">00:47 · listening</div>
+                </div>
+                <span className="eq"><i /><i /><i /><i /></span>
+              </div>
+              <div className="lbody">
+                <div className="lb ai" style={{ animationDelay: '.4s' }}>
+                  GigGrab — what role are you filling today?
+                </div>
+                <div className="lb me" style={{ animationDelay: '1.4s' }}>
+                  Two forklift drivers in Manchester. Nights, £14/hr.
+                </div>
+                <span className="ldots"><i /><i /><i /></span>
+              </div>
+              <div className="lpool">
+                <div className="ph">
+                  <b>Top vetted candidates</b>
+                  <span className="new">3 new</span>
+                </div>
+                {[
+                  { n: 'Marcus T. — Forklift Operator', m: '6 yrs · FLT licence · Manchester · nights', s: '96%', dl: '3s' },
+                  { n: 'Rachel O. — Forklift Operator', m: '3 yrs · counterbalance + reach · available now', s: '92%', dl: '3.5s' },
+                  { n: 'Tomasz N. — Warehouse Operative', m: '4 yrs · FLT in training · Salford', s: '88%', dl: '4s' },
+                ].map(v => (
+                  <div className="vrow" key={v.n} style={{ animationDelay: v.dl }}>
+                    <div>
+                      <div className="vn">{v.n}</div>
+                      <div className="vm">{v.m}</div>
+                    </div>
+                    <span className="vs">{v.s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -555,9 +661,18 @@ export default function LandingPage({
       {/* PRODUCT STORY */}
       <section className="sec how">
         <div className="wrap">
-          <h2>You paste a job. Sarah does the rest.</h2>
-          <p className="hsub">Watch what happens the moment a campaign goes live.</p>
+          <h2>One call. Sarah does the rest.</h2>
+          <p className="hsub">Watch what happens the moment you hang up.</p>
           <ProductStory />
+        </div>
+      </section>
+
+      {/* LIVE WORKER POOL — odometer */}
+      <section className="sec pool">
+        <div className="wrap stage">
+          <Odometer value={count} start={8412} />
+          <div className="label"><b>workers ready to take your call</b> across London right now</div>
+          <HeroFeed onQualified={() => setCount(c => c + 1)} />
         </div>
       </section>
 
@@ -565,13 +680,14 @@ export default function LandingPage({
       <section className="wrap band">
         <div className="band-in">
           <div>
-            <h2>Need workers?</h2>
-            <p>Launch a campaign in minutes and start receiving qualified candidates.</p>
+            <h2>Need workers this week?</h2>
+            <p>Call the hotline — Sarah answers 24/7 and your campaign starts on the call.</p>
           </div>
           <div className="band-btns">
-            <button className="primary" onClick={startHiring}>
-              Start hiring <span className="arr"><ArrowRight size={16} /></span>
-            </button>
+            <a className="primary" href="tel:+442045718821">
+              <Phone size={15} fill="currentColor" strokeWidth={0} />&nbsp; +44 20 4571 8821
+              <span className="arr"><ArrowRight size={16} /></span>
+            </a>
           </div>
         </div>
       </section>
