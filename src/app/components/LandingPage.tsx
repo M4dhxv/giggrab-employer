@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import {
   ArrowRight, Check, HardHat, Package, Factory, Truck,
   Heart, UtensilsCrossed, ShoppingBag, Megaphone, PhoneCall,
-  ClipboardCheck, UserCheck, Bot, MessageSquare, Mic, Globe, Zap, Phone,
+  ClipboardCheck, UserCheck, Bot, MessageSquare, Mic, Globe, Zap,
 } from 'lucide-react';
 
 /*
@@ -612,12 +612,12 @@ export default function LandingPage({
         <div className="hgrid">
           {/* left: headline above hotline card */}
           <div>
-            <span className="kicker"><span className="d" />Recruiter hotline · Vetted worker pool</span>
+            <span className="kicker"><span className="d" />Recruiter hotline · Qualified worker pool</span>
 
             <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
             <p className="sub">
               No job ads. No CV piles. Talk to Sarah for five minutes — she writes
-              the job spec, <b>calls vetted workers</b>, and sends you a ranked
+              the job spec, <b>calls qualified workers</b>, and sends you a ranked
               shortlist within hours.
             </p>
 
@@ -625,10 +625,6 @@ export default function LandingPage({
               <div className="hlabel"><span className="ld" />24/7 recruiter hotline</div>
               <div className="hnum">+44 20 4571 8821</div>
               <div className="hbtns">
-                <a className="callbtn" href="tel:+442045718821">
-                  <Phone size={16} fill="currentColor" strokeWidth={0} />
-                  Tap to call
-                </a>
                 <button className="cta" onClick={startHiring}>
                   Start hiring <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
                 </button>
@@ -666,7 +662,7 @@ export default function LandingPage({
               <div className="ltasks">
                 {[
                   { t: 'Job spec written — Forklift Operator', in: '3.4s', ok: '4.3s' },
-                  { t: '38 vetted matches found nearby', in: '4.6s', ok: '5.5s' },
+                  { t: '38 qualified matches found nearby', in: '4.6s', ok: '5.5s' },
                   { t: 'Calling the top 5 right now', in: '5.8s', ok: '6.7s' },
                 ].map(task => (
                   <div className="lt" key={task.t} style={{ '--in': task.in, '--ok': task.ok } as React.CSSProperties}>
@@ -680,7 +676,7 @@ export default function LandingPage({
               </div>
               <div className="lpool">
                 <div className="ph">
-                  <b>Top vetted candidates</b>
+                  <b>Top qualified candidates</b>
                   <span className="new" style={{ animation: 'ggpop .3s 7.9s both' }}>3 new</span>
                 </div>
                 {[
@@ -728,10 +724,9 @@ export default function LandingPage({
             <p>Call the hotline — Sarah answers 24/7 and your campaign starts on the call.</p>
           </div>
           <div className="band-btns">
-            <a className="primary" href="tel:+442045718821">
-              <Phone size={15} fill="currentColor" strokeWidth={0} />&nbsp; +44 20 4571 8821
-              <span className="arr"><ArrowRight size={16} /></span>
-            </a>
+            <button className="primary" onClick={startHiring}>
+              Start hiring <span className="arr"><ArrowRight size={16} /></span>
+            </button>
           </div>
         </div>
       </section>
