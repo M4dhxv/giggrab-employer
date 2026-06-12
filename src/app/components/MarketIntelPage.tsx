@@ -153,8 +153,8 @@ export default function MarketIntelPage() {
             }}
           >
             {isBulk
-              ? `Set up acquisition (${selected.size} role${selected.size !== 1 ? 's' : ''})`
-              : 'Set up worker acquisition'}
+              ? `Start matching workers (${selected.size} role${selected.size !== 1 ? 's' : ''})`
+              : 'Start matching workers'}
           </Button>
           <p className="text-sm text-gray-400 mt-3">No spend yet — you choose a plan and budget next.</p>
         </div>
