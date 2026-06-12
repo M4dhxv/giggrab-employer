@@ -1,3 +1,34 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* ── GigGrab motion utilities (150–300ms, ease-out, professional) ── */
+
+@keyframes gg-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.gg-in { animation: gg-in 0.3s cubic-bezier(0, 0, 0.2, 1) both; }
+.gg-d1 { animation-delay: 0.05s; }
+.gg-d2 { animation-delay: 0.12s; }
+.gg-d3 { animation-delay: 0.19s; }
+.gg-d4 { animation-delay: 0.26s; }
+.gg-d5 { animation-delay: 0.33s; }
+
+.gg-lift { transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out; }
+.gg-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -14px rgba(15, 23, 42, 0.18); }
+
+@keyframes gg-ring {
+  0%   { transform: scale(0.55); opacity: 0.9; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes gg-pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gg-in { animation: none !important; }
+  .gg-lift, .gg-lift:hover { transition: none; transform: none; box-shadow: none; }
+}

@@ -1007,7 +1007,7 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
         <div className="flex-1 overflow-y-auto">
           {matched.length === 0
             ? <div className="py-16 text-center text-sm text-gray-400">No candidates match your filters.</div>
-            : matched.map((c, i) => <CandidateRow key={c.id} candidate={c} onClick={() => onOpenCandidate(c)} last={i === matched.length - 1} />)
+            : matched.map((c, i) => <CandidateRow key={c.id} candidate={c} index={i} onClick={() => onOpenCandidate(c)} last={i === matched.length - 1} />)
           }
         </div>
       </div>
@@ -1035,10 +1035,10 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
 
 // ─── Candidate row ───────────────────────────────────────────────────────────
 
-function CandidateRow({ candidate: c, onClick, last }: { candidate: Candidate; onClick: () => void; last: boolean }) {
+function CandidateRow({ candidate: c, onClick, last, index = 0 }: { candidate: Candidate; onClick: () => void; last: boolean; index?: number }) {
   const s = STATUS_STYLE[c.status] || STATUS_STYLE.Review;
   return (
-    <div onClick={onClick} className={`flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors ${last ? '' : 'border-b border-gray-100'}`}>
+    <div onClick={onClick} className={`flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors gg-in ${last ? '' : 'border-b border-gray-100'}`} style={{ animationDelay: `${Math.min(index * 0.04, 0.3)}s` }}>
       <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm shrink-0" style={{ backgroundColor: c.color, fontWeight: 700 }}>{c.initials}</div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
@@ -1448,7 +1448,7 @@ function CandidatesView({ candidates, statusFilter, onStatusFilter, search, onSe
         </div>
       </div>
       <div className="bg-white rounded-xl border border-gray-100">
-        {filtered.map((c, i) => <CandidateRow key={c.id} candidate={c} onClick={() => onOpenCandidate(c)} last={i === filtered.length - 1} />)}
+        {filtered.map((c, i) => <CandidateRow key={c.id} candidate={c} index={i} onClick={() => onOpenCandidate(c)} last={i === filtered.length - 1} />)}
         {filtered.length === 0 && <div className="py-16 text-center text-sm text-gray-400">No candidates match your filters.</div>}
       </div>
     </div>

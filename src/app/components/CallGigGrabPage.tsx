@@ -62,14 +62,14 @@ export default function CallGigGrabPage() {
       <Header />
       <div className="flex-1 px-6 py-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl mb-2">Call GigGrab</h1>
-            <p className="text-gray-600">Describe your hiring needs. We'll build your job description in real-time.</p>
+          <div className="mb-6 text-center gg-in">
+            <h1 className="text-3xl mb-2">You're on with Sarah</h1>
+            <p className="text-gray-600">Talk normally — your job spec is being written in real time.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Left: Live Transcript */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 gg-in gg-d1">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b">
                 <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center relative">
                   <PhoneCall className="w-5 h-5 text-white" />
@@ -89,7 +89,7 @@ export default function CallGigGrabPage() {
                 {messages.map((msg, i) => (
                   <div
                     key={i}
-                    className={`${msg.speaker === 'GigGrab' ? 'text-left' : 'text-right'}`}
+                    className={`gg-in ${msg.speaker === 'GigGrab' ? 'text-left' : 'text-right'}`}
                   >
                     <div className="text-xs text-gray-500 mb-1">
                       {msg.speaker}
@@ -117,7 +117,7 @@ export default function CallGigGrabPage() {
             </div>
 
             {/* Right: Live Job Description Builder */}
-            <div className="bg-white rounded-xl border-2 border-[#10b981] p-6">
+            <div className="bg-white rounded-xl border-2 border-[#10b981] p-6 gg-in gg-d2">
               <h3 className="text-lg mb-1">Job Description</h3>
               <p className="text-sm text-gray-500 mb-6">Auto-generated during conversation</p>
 

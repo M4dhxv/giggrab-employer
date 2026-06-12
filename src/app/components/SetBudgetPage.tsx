@@ -58,7 +58,7 @@ export default function SetBudgetPage() {
       <Header />
       <div className="flex-1 px-6 py-12">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
+          <div className="mb-8 gg-in">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-4xl">Set your daily budget</h1>
               <span className="flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-600">
@@ -75,7 +75,7 @@ export default function SetBudgetPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl p-8 border border-gray-200 mb-6">
+              <div className="bg-white rounded-xl p-8 border border-gray-200 mb-6 gg-in gg-d1">
                 <h3 className="text-lg mb-6">Daily Budget</h3>
 
                 {plan === 'free' ? (
@@ -189,7 +189,7 @@ export default function SetBudgetPage() {
 
             {/* Recommendation Panel */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl p-6 border-2 border-[#10b981] sticky top-6">
+              <div className="bg-white rounded-xl p-6 border-2 border-[#10b981] sticky top-6 gg-in gg-d3">
                 <div className="flex items-center gap-2 mb-1">
                   <div className="w-7 h-7 rounded-full bg-[#10b981] flex items-center justify-center">
                     <Check className="w-4 h-4 text-white" />

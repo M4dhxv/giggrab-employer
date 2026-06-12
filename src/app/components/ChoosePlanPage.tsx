@@ -72,7 +72,7 @@ export default function ChoosePlanPage() {
       <Header />
       <div className="flex-1 px-6 py-12">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-10">
+          <div className="mb-10 gg-in">
             <h1 className="text-4xl mb-2">Launch your hiring campaign</h1>
             <p className="text-gray-600">
               Choose how hard Sarah works for you. She acquires, screens and qualifies — you review outcomes.
@@ -80,12 +80,13 @@ export default function ChoosePlanPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {plans.map((promo) => (
+            {plans.map((promo, pi) => (
               <div
                 key={promo.id}
-                className={`bg-white rounded-xl p-8 border-2 flex flex-col relative ${
+                className={`bg-white rounded-xl p-8 border-2 flex flex-col relative gg-in gg-lift ${
                   promo.highlighted ? 'border-[#10b981]' : 'border-gray-200'
                 }`}
+                style={{ animationDelay: `${0.1 + pi * 0.08}s` }}
               >
                 {promo.badge && (
                   <div

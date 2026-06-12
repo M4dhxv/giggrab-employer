@@ -1,110 +1,69 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, TextField, Tabs, Tab } from '@mui/material';
-import { Link2, PhoneCall } from 'lucide-react';
+import { PhoneCall, PhoneOutgoing, ShieldCheck, Globe, Zap } from 'lucide-react';
+
+const CALLING_CSS = `
+@keyframes cj-ring { 0% { transform: scale(.55); opacity: .9; } 100% { transform: scale(2.1); opacity: 0; } }
+@keyframes cj-shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .cj-anim { animation: none !important; } }
+`;
+
+const CALL_STATES = ['Connecting…', 'Ringing…', 'Sarah is calling you'];
 
 export default function CreateJobPage() {
   const navigate = useNavigate();
-  const [method, setMethod] = useState<'paste' | 'call' | null>(null);
-  const [importTab, setImportTab] = useState<'single' | 'bulk'>('single');
-  const [jobUrl, setJobUrl] = useState('');
+  const [phone, setPhone] = useState('');
+  const [calling, setCalling] = useState(false);
+  const [callState, setCallState] = useState(0);
 
-  const handleImport = () => {
-    if (jobUrl) {
-      navigate(`/market-intel?type=${importTab}`);
-    }
+  const valid = phone.replace(/\D/g, '').length >= 9;
+
+  // Once the call is placed: connect → ring → "picked up" → transcript page
+  useEffect(() => {
+    if (!calling) return;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const step = reduced ? 250 : 1100;
+    const t1 = setTimeout(() => setCallState(1), step);
+    const t2 = setTimeout(() => setCallState(2), step * 2);
+    const t3 = setTimeout(() => navigate('/call-giggrab'), step * 3);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [calling, navigate]);
+
+  const requestCallback = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (valid) setCalling(true);
   };
 
-  const handleStartCall = () => {
-    navigate('/call-giggrab');
-  };
-
-  if (!method) {
+  if (calling) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <style>{CALLING_CSS}</style>
         <Header />
-        <div className="flex-1 flex items-center justify-center px-6 py-12">
-          <div className="max-w-4xl w-full">
-            <h1 className="text-4xl mb-12 text-center">How would you like to create your job?</h1>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Paste a Link */}
-              <div
-                onClick={() => setMethod('paste')}
-                className="border-2 border-gray-200 rounded-xl p-8 hover:border-[#10b981] cursor-pointer transition-all hover:shadow-lg"
-              >
-                <div className="w-12 h-12 rounded-lg bg-[#10b981]/10 flex items-center justify-center mb-4">
-                  <Link2 className="w-6 h-6 text-[#10b981]" />
-                </div>
-                <h3 className="text-2xl mb-3">Paste a Job Link</h3>
-                <p className="text-gray-600 mb-4">Import existing jobs from:</p>
-                <ul className="text-sm text-gray-600 space-y-2">
-                  <li>• LinkedIn</li>
-                  <li>• Indeed</li>
-                  <li>• Reed</li>
-                  <li>• Totaljobs</li>
-                  <li>• Company Careers Page</li>
-                </ul>
-              </div>
-
-              {/* Call GigGrab */}
-              <div
-                onClick={() => setMethod('call')}
-                className="border-2 border-gray-200 rounded-xl p-8 hover:border-[#10b981] cursor-pointer transition-all hover:shadow-lg"
-              >
-                <div className="w-12 h-12 rounded-lg bg-[#10b981]/10 flex items-center justify-center mb-4">
-                  <PhoneCall className="w-6 h-6 text-[#10b981]" />
-                </div>
-                <h3 className="text-2xl mb-3">Call GigGrab</h3>
-                <p className="text-gray-600 mb-4">Describe your hiring needs over a phone call.</p>
-                <p className="text-sm text-gray-600">GigGrab builds the job description automatically.</p>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center gg-in">
+            <div className="relative w-24 h-24 mx-auto mb-8">
+              <span className="cj-anim absolute inset-0 rounded-full border-2 border-[#10b981]" style={{ animation: 'cj-ring 1.6s ease-out infinite' }} />
+              <span className="cj-anim absolute inset-0 rounded-full border-2 border-[#10b981]" style={{ animation: 'cj-ring 1.6s .55s ease-out infinite' }} />
+              <div className="absolute inset-0 rounded-full bg-[#10b981] flex items-center justify-center shadow-lg shadow-emerald-200">
+                <PhoneOutgoing className="cj-anim w-9 h-9 text-white" style={{ animation: callState === 1 ? 'cj-shake 1s infinite' : undefined }} />
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
-  if (method === 'call') {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center px-6 py-12">
-          <div className="max-w-2xl w-full text-center">
-            <button
-              onClick={() => setMethod(null)}
-              className="text-gray-600 mb-8 hover:text-gray-900"
-            >
-              ← Back
-            </button>
+            <h1 className="text-2xl mb-1" key={callState} style={{ animation: 'gg-in .25s both' }}>
+              {CALL_STATES[callState]}
+            </h1>
+            <p className="text-gray-500 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>{phone}</p>
 
-            <div className="w-16 h-16 rounded-2xl bg-[#10b981]/10 flex items-center justify-center mx-auto mb-6">
-              <PhoneCall className="w-8 h-8 text-[#10b981]" />
+            <div className="flex items-center justify-center gap-1.5">
+              {[0, 1, 2].map(i => (
+                <span
+                  key={i}
+                  className="h-1 rounded-full transition-all duration-300"
+                  style={{ width: 28, backgroundColor: i <= callState ? '#10b981' : '#e5e7eb' }}
+                />
+              ))}
             </div>
-
-            <h1 className="text-4xl mb-4">Call GigGrab</h1>
-            <p className="text-xl text-gray-600 mb-12">
-              Describe your hiring needs over the phone. We'll build your job description in real-time.
-            </p>
-
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              onClick={handleStartCall}
-              sx={{
-                textTransform: 'none',
-                fontSize: '1.125rem',
-                py: 2,
-                backgroundColor: '#10b981',
-                '&:hover': {
-                  backgroundColor: '#059669'
-                }
-              }}
-            >
-              Start Call
-            </Button>
+            <p className="text-xs text-gray-400 mt-6">Pick up — Sarah builds your job spec on the call.</p>
           </div>
         </div>
       </div>
@@ -112,118 +71,47 @@ export default function CreateJobPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="max-w-3xl w-full">
-          <button
-            onClick={() => setMethod(null)}
-            className="text-gray-600 mb-8 hover:text-gray-900"
-          >
-            ← Back
-          </button>
-
-          <h1 className="text-4xl mb-8 text-center">Paste a Job Link</h1>
-
-          <Tabs
-            value={importTab}
-            onChange={(_, newValue) => setImportTab(newValue)}
-            sx={{
-              mb: 4,
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontSize: '1rem',
-              },
-              '& .Mui-selected': {
-                color: '#10b981',
-              },
-              '& .MuiTabs-indicator': {
-                backgroundColor: '#10b981',
-              }
-            }}
-          >
-            <Tab label="Single Job" value="single" />
-            <Tab label="Bulk Import" value="bulk" />
-          </Tabs>
-
-          {importTab === 'single' ? (
-            <div>
-              <p className="text-gray-600 mb-6">
-                Paste one job URL. We'll automatically extract job details.
-              </p>
-              <p className="text-sm text-gray-500 mb-4">Example:</p>
-              <ul className="text-sm text-gray-500 mb-6 space-y-1">
-                <li>• LinkedIn job posting</li>
-                <li>• Indeed job posting</li>
-                <li>• Company careers page</li>
-              </ul>
-              <TextField
-                fullWidth
-                placeholder="https://uk.indeed.com/viewjob?jk=..."
-                value={jobUrl}
-                onChange={(e) => setJobUrl(e.target.value)}
-                sx={{
-                  mb: 3,
-                  '& .MuiOutlinedInput-root': {
-                    fontSize: '1.125rem',
-                    '& fieldset': {
-                      borderColor: '#e5e7eb',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#10b981',
-                    },
-                  }
-                }}
-              />
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8 gg-in">
+            <div className="w-14 h-14 rounded-2xl bg-[#10b981]/10 flex items-center justify-center mx-auto mb-5">
+              <PhoneCall className="w-7 h-7 text-[#10b981]" />
             </div>
-          ) : (
-            <div>
-              <p className="text-gray-600 mb-6">
-                Paste your careers page URL. GigGrab will automatically discover all jobs.
-              </p>
-              <p className="text-sm text-gray-500 mb-4">Example:</p>
-              <ul className="text-sm text-gray-500 mb-6 space-y-1">
-                <li>• https://company.com/careers</li>
-              </ul>
-              <TextField
-                fullWidth
-                placeholder="https://company.com/careers"
-                value={jobUrl}
-                onChange={(e) => setJobUrl(e.target.value)}
-                sx={{
-                  mb: 3,
-                  '& .MuiOutlinedInput-root': {
-                    fontSize: '1.125rem',
-                    '& fieldset': {
-                      borderColor: '#e5e7eb',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#10b981',
-                    },
-                  }
-                }}
-              />
-            </div>
-          )}
+            <h1 className="text-3xl mb-2">Sarah will call you</h1>
+            <p className="text-gray-500">
+              Drop your number — Sarah calls back in seconds and writes your job spec while you talk.
+            </p>
+          </div>
 
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            onClick={handleImport}
-            disabled={!jobUrl}
-            sx={{
-              textTransform: 'none',
-              fontSize: '1.125rem',
-              py: 2,
-              backgroundColor: '#10b981',
-              '&:hover': {
-                backgroundColor: '#059669'
-              }
-            }}
-          >
-            {importTab === 'single' ? 'Import Job' : 'Import Jobs'}
-          </Button>
+          <form onSubmit={requestCallback} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm gg-in gg-d2">
+            <label className="block text-xs text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>Your phone number</label>
+            <input
+              type="tel"
+              autoFocus
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              placeholder="+44 7700 900123"
+              className="w-full text-lg border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#10b981] focus:ring-2 focus:ring-emerald-100 transition-all mb-4"
+              style={{ fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums' }}
+            />
+            <button
+              type="submit"
+              disabled={!valid}
+              className="w-full flex items-center justify-center gap-2 bg-[#10b981] hover:bg-[#059669] active:scale-[.99] disabled:opacity-40 disabled:hover:bg-[#10b981] text-white rounded-xl py-3.5 text-base transition-all"
+              style={{ fontWeight: 700 }}
+            >
+              <PhoneOutgoing className="w-4 h-4" />
+              Request my callback
+            </button>
+          </form>
+
+          <div className="flex items-center justify-center gap-5 mt-6 text-xs text-gray-400 gg-in gg-d3">
+            <span className="flex items-center gap-1.5"><Zap className="w-3.5 h-3.5 text-[#10b981]" />Calls back in seconds</span>
+            <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 text-[#10b981]" />32 languages</span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-[#10b981]" />Free call</span>
+          </div>
         </div>
       </div>
     </div>
@@ -232,7 +120,7 @@ export default function CreateJobPage() {
 
 function Header() {
   return (
-    <header className="border-b border-gray-200">
+    <header className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="text-2xl text-[#10b981]">GigGrab</div>
       </div>

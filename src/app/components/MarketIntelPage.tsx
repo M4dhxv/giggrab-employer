@@ -93,27 +93,28 @@ export default function MarketIntelPage() {
       <Header />
       <div className="flex-1 px-6 py-12">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-2 text-sm text-[#059669] mb-2">
+          <div className="flex items-center gap-2 text-sm text-[#059669] mb-2 gg-in">
             <Bot className="w-4 h-4" />
             <span>Market intelligence from the GigGrab worker network</span>
           </div>
-          <h1 className="text-4xl mb-2">The workers are already here</h1>
-          <p className="text-gray-600 mb-8">
+          <h1 className="text-4xl mb-2 gg-in gg-d1">The workers are already here</h1>
+          <p className="text-gray-600 mb-8 gg-in gg-d2">
             {isBulk
               ? 'Sarah checked availability for every role you imported. Pick the ones to launch.'
               : 'Sarah checked availability for your role. Here’s the market right now.'}
           </p>
 
           <div className="space-y-4 mb-8">
-            {roles.map(role => {
+            {roles.map((role, ri) => {
               const isSelected = selected.has(role.id);
               return (
                 <div
                   key={role.id}
                   onClick={isBulk ? () => toggle(role.id) : undefined}
-                  className={`bg-white rounded-xl border-2 p-6 transition-all ${
+                  className={`bg-white rounded-xl border-2 p-6 gg-in gg-lift ${
                     isBulk ? 'cursor-pointer' : ''
                   } ${isSelected ? 'border-[#10b981] shadow-md' : 'border-gray-200 hover:border-gray-300'}`}
+                  style={{ animationDelay: `${0.15 + ri * 0.08}s` }}
                 >
                   <div className="flex items-start gap-3 mb-5">
                     {isBulk && (
