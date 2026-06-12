@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { PhoneCall, PhoneOutgoing, ShieldCheck, Globe, Zap } from 'lucide-react';
+import { PhoneCall, PhoneOutgoing, ShieldCheck, Globe, Zap, ChevronDown } from 'lucide-react';
+
+// All 32 languages Sarah speaks — the call runs fully in the chosen one.
+const LANGUAGES = [
+  'English', 'Polish', 'Romanian', 'Spanish', 'Portuguese', 'Urdu', 'Hindi',
+  'Punjabi', 'Bengali', 'Gujarati', 'Arabic', 'French', 'Italian', 'German',
+  'Bulgarian', 'Lithuanian', 'Latvian', 'Hungarian', 'Czech', 'Slovak',
+  'Ukrainian', 'Russian', 'Turkish', 'Greek', 'Albanian', 'Somali', 'Tigrinya',
+  'Amharic', 'Tagalog', 'Vietnamese', 'Mandarin', 'Cantonese',
+];
 
 const CALLING_CSS = `
 @keyframes cj-ring { 0% { transform: scale(.55); opacity: .9; } 100% { transform: scale(2.1); opacity: 0; } }
@@ -13,6 +22,7 @@ const CALL_STATES = ['Connecting…', 'Ringing…', 'Sarah is calling you'];
 export default function CreateJobPage() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
+  const [language, setLanguage] = useState('English');
   const [calling, setCalling] = useState(false);
   const [callState, setCallState] = useState(0);
 
@@ -52,7 +62,9 @@ export default function CreateJobPage() {
             <h1 className="text-2xl mb-1" key={callState} style={{ animation: 'gg-in .25s both' }}>
               {CALL_STATES[callState]}
             </h1>
-            <p className="text-gray-500 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>{phone}</p>
+            <p className="text-gray-500 mb-6" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              {phone} · in {language}
+            </p>
 
             <div className="flex items-center justify-center gap-1.5">
               {[0, 1, 2].map(i => (
@@ -96,6 +108,22 @@ export default function CreateJobPage() {
               className="w-full text-lg border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#10b981] focus:ring-2 focus:ring-emerald-100 transition-all mb-4"
               style={{ fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums' }}
             />
+
+            <label className="block text-xs text-gray-500 mb-1.5" style={{ fontWeight: 500 }}>
+              Call language <span className="text-gray-400" style={{ fontWeight: 400 }}>— Sarah speaks all 32, AI-powered</span>
+            </label>
+            <div className="relative mb-4">
+              <Globe className="w-4 h-4 text-[#10b981] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value)}
+                className="w-full appearance-none border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-base outline-none focus:border-[#10b981] focus:ring-2 focus:ring-emerald-100 transition-all bg-white cursor-pointer"
+                style={{ fontFamily: 'inherit' }}
+              >
+                {LANGUAGES.map(l => <option key={l}>{l}</option>)}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
             <button
               type="submit"
               disabled={!valid}
@@ -103,7 +131,7 @@ export default function CreateJobPage() {
               style={{ fontWeight: 700 }}
             >
               <PhoneOutgoing className="w-4 h-4" />
-              Request my callback
+              Request callback
             </button>
           </form>
 

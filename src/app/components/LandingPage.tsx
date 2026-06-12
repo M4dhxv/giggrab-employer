@@ -644,7 +644,7 @@ export default function LandingPage({
               <div className="hnum">+44 20 4571 8821</div>
               <div className="hbtns">
                 <button className="cta" onClick={startHiring}>
-                  Start hiring <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
+                  Request a callback <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
                 </button>
               </div>
               <div className="hmeta">
@@ -752,7 +752,7 @@ export default function LandingPage({
           </div>
           <div className="band-btns">
             <button className="primary" onClick={startHiring}>
-              Start hiring <span className="arr"><ArrowRight size={16} /></span>
+              Request a callback <span className="arr"><ArrowRight size={16} /></span>
             </button>
           </div>
         </div>
