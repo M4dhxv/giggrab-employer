@@ -64,7 +64,7 @@ const CSS = `
 
 /* hotline card */
 .gg .hcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px 26px;
-  box-shadow:0 22px 44px -32px rgba(15,23,42,.35);margin-bottom:30px;max-width:470px}
+  box-shadow:0 22px 44px -32px rgba(15,23,42,.35);margin-top:30px;max-width:470px}
 .gg .hlabel{display:flex;align-items:center;gap:8px;font-size:.68rem;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;color:var(--gray-500)}
 .gg .hlabel .ld{width:7px;height:7px;border-radius:50%;background:var(--em);position:relative}
@@ -86,9 +86,34 @@ const CSS = `
 .gg .hmeta span{display:inline-flex;align-items:center;gap:6px}
 .gg .hmeta svg{color:var(--em)}
 
-/* live call demo */
-.gg .lcall{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;
-  width:100%;max-width:430px;box-shadow:0 28px 56px -36px rgba(15,23,42,.4)}
+/* live call demo — elite agentic card */
+.gg .stage{position:relative}
+.gg .glow{position:absolute;width:440px;height:440px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(16,185,129,.18),transparent 62%);filter:blur(12px);z-index:0}
+.gg .lcall{position:relative;z-index:1;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+  border:1px solid rgba(15,23,42,.08);border-radius:22px;overflow:visible;width:100%;max-width:430px;
+  box-shadow:0 1px 2px rgba(15,23,42,.05),0 24px 48px -26px rgba(15,23,42,.28),0 56px 100px -52px rgba(16,185,129,.3);
+  animation:ggfloat 7s ease-in-out infinite}
+@keyframes ggfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.gg .lcall>:first-child{border-radius:22px 22px 0 0}
+.gg .lcall>:last-child{border-radius:0 0 22px 22px}
+.gg .lchip{position:absolute;top:-15px;right:-13px;z-index:3;display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;
+  padding:7px 13px;font-size:.7rem;font-weight:700;color:var(--gray-900);
+  box-shadow:0 12px 26px -14px rgba(15,23,42,.35);animation:ggrise .5s .2s both}
+.gg .lchip .cd{width:7px;height:7px;border-radius:50%;background:var(--em);animation:ggblnk 1.3s infinite}
+@keyframes ggblnk{0%,100%{opacity:1}50%{opacity:.25}}
+.gg .ltasks{padding:2px 16px 14px;display:flex;flex-direction:column;gap:7px}
+.gg .lt{display:flex;align-items:center;gap:9px;font-size:.76rem;font-weight:600;color:var(--gray-600);
+  background:#fafafa;border:1px solid var(--line-2);border-radius:11px;padding:7px 11px;
+  animation:ggrise .4s var(--in) both}
+.gg .lt .st{position:relative;width:15px;height:15px;flex-shrink:0}
+.gg .lt .sp{position:absolute;inset:1px;border-radius:50%;border:2px solid var(--em);border-top-color:transparent;
+  animation:ggspin .8s linear infinite,gghide .15s var(--ok) forwards}
+.gg .lt .ok{position:absolute;inset:0;border-radius:50%;background:var(--em);color:#fff;
+  display:grid;place-items:center;animation:ggpop .25s var(--ok) both}
+@keyframes ggspin{to{transform:rotate(360deg)}}
+@keyframes gghide{to{opacity:0;visibility:hidden}}
 .gg .lhead{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line-2)}
 .gg .lhead .pic{width:34px;height:34px;border-radius:50%;background:var(--em);color:#fff;
   display:grid;place-items:center;flex-shrink:0}
@@ -104,7 +129,7 @@ const CSS = `
 .gg .lb.ai{background:var(--em-tint);color:#065f46;border-radius:4px 14px 14px 14px;align-self:flex-start}
 .gg .lb.me{background:var(--gray-900);color:#fff;border-radius:14px 4px 14px 14px;align-self:flex-end}
 .gg .ldots{display:inline-flex;gap:4px;background:#f3f4f6;border-radius:14px;padding:11px 13px;
-  align-self:flex-start;animation:ggrise .4s 2.4s both}
+  align-self:flex-start;animation:ggrise .4s 2.4s both,gghide .25s 3.4s forwards}
 .gg .ldots i{width:5px;height:5px;border-radius:50%;background:#9ca3af;animation:ggdot 1.2s infinite}
 .gg .ldots i:nth-child(2){animation-delay:.2s}.gg .ldots i:nth-child(3){animation-delay:.4s}
 @keyframes ggdot{0%,100%{opacity:.3}50%{opacity:1}}
@@ -585,9 +610,16 @@ export default function LandingPage({
       {/* HERO — recruiter hotline */}
       <section className="wrap hero">
         <div className="hgrid">
-          {/* left: hotline card + headline */}
+          {/* left: headline above hotline card */}
           <div>
             <span className="kicker"><span className="d" />Recruiter hotline · Vetted worker pool</span>
+
+            <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
+            <p className="sub">
+              No job ads. No CV piles. Talk to Sarah for five minutes — she writes
+              the job spec, <b>calls vetted workers</b>, and sends you a ranked
+              shortlist within hours.
+            </p>
 
             <div className="hcard">
               <div className="hlabel"><span className="ld" />24/7 recruiter hotline</div>
@@ -597,7 +629,9 @@ export default function LandingPage({
                   <Phone size={16} fill="currentColor" strokeWidth={0} />
                   Tap to call
                 </a>
-                <button className="callalt" onClick={startHiring}>Start online instead</button>
+                <button className="cta" onClick={startHiring}>
+                  Start hiring <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
+                </button>
               </div>
               <div className="hmeta">
                 <span><Globe size={13} />32 languages</span>
@@ -605,18 +639,13 @@ export default function LandingPage({
                 <span><Zap size={13} />Avg. 5-min intake</span>
               </div>
             </div>
-
-            <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
-            <p className="sub">
-              No job ads. No CV piles. Talk to Sarah for five minutes — she writes
-              the job spec, <b>calls vetted workers</b>, and sends you a ranked
-              shortlist within hours.
-            </p>
           </div>
 
-          {/* right: live call demo */}
+          {/* right: live agentic call demo */}
           <div className="stage">
+            <div className="glow" />
             <div className="lcall">
+              <span className="lchip"><span className="cd" />Sarah is working</span>
               <div className="lhead">
                 <span className="pic"><PhoneCall size={15} /></span>
                 <div>
@@ -634,15 +663,30 @@ export default function LandingPage({
                 </div>
                 <span className="ldots"><i /><i /><i /></span>
               </div>
+              <div className="ltasks">
+                {[
+                  { t: 'Job spec written — Forklift Operator', in: '3.4s', ok: '4.3s' },
+                  { t: '38 vetted matches found nearby', in: '4.6s', ok: '5.5s' },
+                  { t: 'Calling the top 5 right now', in: '5.8s', ok: '6.7s' },
+                ].map(task => (
+                  <div className="lt" key={task.t} style={{ '--in': task.in, '--ok': task.ok } as React.CSSProperties}>
+                    <span className="st">
+                      <span className="sp" />
+                      <span className="ok"><Check size={9} strokeWidth={4} /></span>
+                    </span>
+                    {task.t}
+                  </div>
+                ))}
+              </div>
               <div className="lpool">
                 <div className="ph">
                   <b>Top vetted candidates</b>
-                  <span className="new">3 new</span>
+                  <span className="new" style={{ animation: 'ggpop .3s 7.9s both' }}>3 new</span>
                 </div>
                 {[
-                  { n: 'Marcus T. — Forklift Operator', m: '6 yrs · FLT licence · Manchester · nights', s: '96%', dl: '3s' },
-                  { n: 'Rachel O. — Forklift Operator', m: '3 yrs · counterbalance + reach · available now', s: '92%', dl: '3.5s' },
-                  { n: 'Tomasz N. — Warehouse Operative', m: '4 yrs · FLT in training · Salford', s: '88%', dl: '4s' },
+                  { n: 'Marcus T. — Forklift Operator', m: '6 yrs · FLT licence · Manchester · nights', s: '96%', dl: '6.9s' },
+                  { n: 'Rachel O. — Forklift Operator', m: '3 yrs · counterbalance + reach · available now', s: '92%', dl: '7.3s' },
+                  { n: 'Tomasz N. — Warehouse Operative', m: '4 yrs · FLT in training · Salford', s: '88%', dl: '7.7s' },
                 ].map(v => (
                   <div className="vrow" key={v.n} style={{ animationDelay: v.dl }}>
                     <div>
