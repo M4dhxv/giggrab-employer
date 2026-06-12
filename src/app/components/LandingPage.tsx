@@ -179,6 +179,24 @@ const CSS = `
   display:grid;place-items:center}
 .gg .ind-item span{font-size:.72rem;font-weight:500}
 
+/* macbook-style browser frame */
+.gg .mac{border-radius:18px;border:1px solid var(--line);overflow:hidden;background:#fff;
+  box-shadow:0 2px 6px rgba(15,23,42,.05),0 48px 90px -44px rgba(15,23,42,.45)}
+.gg .macbar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:#f6f7f9;
+  border-bottom:1px solid var(--line)}
+.gg .dots3{display:flex;gap:7px;width:47px;flex-shrink:0}
+.gg .dots3 i{width:11px;height:11px;border-radius:50%}
+.gg .dots3 i:nth-child(1){background:#ff5f57}
+.gg .dots3 i:nth-child(2){background:#febc2e}
+.gg .dots3 i:nth-child(3){background:#28c840}
+.gg .macurl{flex:1;display:flex;justify-content:center;min-width:0}
+.gg .macurl span{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:500;
+  color:var(--gray-500);background:#fff;border:1px solid var(--line);border-radius:8px;
+  padding:5px 16px;max-width:320px;width:100%;justify-content:center;white-space:nowrap}
+.gg .macurl .mdot{width:6px;height:6px;border-radius:50%;background:var(--em);flex-shrink:0;animation:ggblnk 1.4s infinite}
+.gg .macpad{padding:26px;background:#fbfcfd}
+@media(max-width:640px){.gg .macpad{padding:14px}}
+
 /* product story */
 .gg .how{padding:76px 0}
 .gg .how h2{text-align:center;font-size:1.75rem;font-weight:700;margin-bottom:10px;letter-spacing:-.02em}
@@ -698,12 +716,21 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* PRODUCT STORY */}
+      {/* PRODUCT STORY — in a MacBook-style browser frame */}
       <section className="sec how">
         <div className="wrap">
           <h2>One call. Sarah does the rest.</h2>
           <p className="hsub">Watch what happens the moment you hang up.</p>
-          <ProductStory />
+          <div className="mac">
+            <div className="macbar">
+              <span className="dots3"><i /><i /><i /></span>
+              <span className="macurl"><span><span className="mdot" />app.giggrab.io · Sarah is live</span></span>
+              <span style={{ width: 47, flexShrink: 0 }} />
+            </div>
+            <div className="macpad">
+              <ProductStory />
+            </div>
+          </div>
         </div>
       </section>
 
