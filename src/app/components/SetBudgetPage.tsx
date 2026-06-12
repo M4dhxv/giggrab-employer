@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { Button, Slider } from '@mui/material';
+import { Button, Slider, Checkbox, FormControlLabel } from '@mui/material';
 import { TrendingUp, Clock, Users, Star, Check, Zap, Timer } from 'lucide-react';
 
 const PLAN_CONFIG = {
@@ -48,6 +48,7 @@ export default function SetBudgetPage() {
   const config = PLAN_CONFIG[plan] || PLAN_CONFIG.standard;
 
   const [dailyBudget, setDailyBudget] = useState(config.default);
+  const [agreed, setAgreed] = useState(false);
   const estimates = getEstimates(plan, dailyBudget);
 
   const planIcon = plan === 'free' ? <Star className="w-4 h-4" /> : <Zap className="w-4 h-4" />;
@@ -148,10 +149,31 @@ export default function SetBudgetPage() {
                 </div>
               </div>
 
+              <div className="mb-4">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={agreed}
+                      onChange={(e) => setAgreed(e.target.checked)}
+                      sx={{ color: '#10b981', '&.Mui-checked': { color: '#10b981' } }}
+                    />
+                  }
+                  label={
+                    <span className="text-sm text-gray-700">
+                      I agree to the{' '}
+                      <a href="#" className="text-[#10b981] hover:underline" onClick={e => e.stopPropagation()}>
+                        GigGrab Terms of Service
+                      </a>
+                    </span>
+                  }
+                />
+              </div>
+
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate('/launch')}
+                onClick={() => navigate('/dashboard')}
+                disabled={!agreed}
                 sx={{
                   textTransform: 'none',
                   fontSize: '1rem',
@@ -161,7 +183,7 @@ export default function SetBudgetPage() {
                   '&:hover': { backgroundColor: '#059669' },
                 }}
               >
-                Continue to Launch
+                Launch Campaign
               </Button>
             </div>
 

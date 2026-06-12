@@ -5,7 +5,6 @@ import MarketIntelPage from './components/MarketIntelPage';
 import CallGigGrabPage from './components/CallGigGrabPage';
 import ChoosePlanPage from './components/ChoosePlanPage';
 import SetBudgetPage from './components/SetBudgetPage';
-import ReviewLaunchPage from './components/ReviewLaunchPage';
 import DashboardPage from './components/DashboardPage';
 
 export default function App() {
@@ -19,7 +18,6 @@ export default function App() {
           <Route path="/call-giggrab" element={<CallGigGrabPage />} />
           <Route path="/choose-plan" element={<ChoosePlanPage />} />
           <Route path="/set-budget" element={<SetBudgetPage />} />
-          <Route path="/launch" element={<ReviewLaunchPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
