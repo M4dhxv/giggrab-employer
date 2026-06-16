@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { PhoneCall, PhoneIncoming, ShieldCheck, Globe, Zap, ChevronDown, Check, ArrowRight } from 'lucide-react';
 import { WorkerHeader } from './WorkerLandingPage';
 
@@ -22,6 +22,8 @@ const CALL_STATES = ['Connecting…', 'Ringing…', 'Sarah is calling you'];
 
 export default function WorkerStartPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isUpdate = searchParams.get('mode') === 'update';
   const [phone, setPhone] = useState('');
   const [language, setLanguage] = useState('English');
   const [consent, setConsent] = useState(true);
@@ -31,16 +33,20 @@ export default function WorkerStartPage() {
 
   const valid = phone.replace(/\D/g, '').length >= 9 && consent;
 
-  // Once the call is placed: connect → ring → "picked up" → live interview
+  // Once the call is placed: connect → ring → "picked up"
+  // update mode → live transcript + CV editor; normal mode → simple done screen
   useEffect(() => {
     if (!calling) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const step = reduced ? 250 : 1100;
     const t1 = setTimeout(() => setCallState(1), step);
     const t2 = setTimeout(() => setCallState(2), step * 2);
-    const t3 = setTimeout(() => setCallDone(true), step * 3);
+    const t3 = setTimeout(() => {
+      if (isUpdate) navigate('/worker/call');
+      else setCallDone(true);
+    }, step * 3);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [calling, navigate]);
+  }, [calling, navigate, isUpdate]);
 
   const requestCallback = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +109,7 @@ export default function WorkerStartPage() {
                 <span key={i} className="h-1 rounded-full transition-all duration-300" style={{ width: 28, backgroundColor: i <= callState ? '#10b981' : '#e5e7eb' }} />
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-6">Pick up — Sarah builds your profile while you talk.</p>
+            <p className="text-xs text-gray-400 mt-6">{isUpdate ? 'Pick up — Sarah will update your CV while you talk.' : 'Pick up — Sarah builds your profile while you talk.'}</p>
           </div>
         </div>
       </div>
@@ -119,9 +125,11 @@ export default function WorkerStartPage() {
             <div className="w-14 h-14 rounded-2xl bg-[#10b981]/10 flex items-center justify-center mx-auto mb-5">
               <PhoneCall className="w-7 h-7 text-[#10b981]" />
             </div>
-            <h1 className="text-3xl mb-2">Sarah will call you</h1>
+            <h1 className="text-3xl mb-2">{isUpdate ? 'Update your CV with Sarah' : 'Sarah will call you'}</h1>
             <p className="text-gray-500">
-              Drop your number — Sarah calls back in seconds and builds your profile while you talk. No CV, no forms.
+              {isUpdate
+                ? 'Drop your number — Sarah calls back and updates your profile while you talk. Your existing CV is kept.'
+                : 'Drop your number — Sarah calls back in seconds and builds your profile while you talk. No CV, no forms.'}
             </p>
           </div>
 
