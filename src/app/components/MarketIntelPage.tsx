@@ -97,7 +97,7 @@ export default function MarketIntelPage() {
             <Bot className="w-4 h-4" />
             <span>Market intelligence from the GigGrab worker network</span>
           </div>
-          <h1 className="text-4xl mb-2 gg-in gg-d1">The workers are already here</h1>
+          <h1 className="text-4xl mb-2 gg-in gg-d1">Your worker pool is ready</h1>
           <p className="text-gray-600 mb-8 gg-in gg-d2">
             {isBulk
               ? 'Sarah checked availability for every role you imported. Pick the ones to launch.'

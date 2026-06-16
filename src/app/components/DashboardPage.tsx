@@ -73,6 +73,8 @@ interface Job {
   daysToFill: number;
   postedAt: string;
   salary: string;
+  imported?: boolean;
+  workerReach?: number;
 }
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
@@ -610,14 +612,14 @@ function ActionPanel({ kind, candidates, onClose }: {
 
 // ─── ImportPanel: Sarah pulls jobs from a careers page / job post link ──────
 
-interface PulledJob { title: string; location: string; salary: string }
+interface PulledJob { title: string; location: string; salary: string; workerReach: number }
 
 const IMPORT_RESULTS: PulledJob[] = [
-  { title: 'Picker / Packer',  location: 'Manchester, UK', salary: '£11–13/hr' },
-  { title: 'Delivery Driver',  location: 'Salford, UK',    salary: '£13–15/hr' },
-  { title: 'Cleaner',          location: 'Manchester, UK', salary: '£11–12/hr' },
-  { title: 'Security Officer', location: 'Trafford, UK',   salary: '£12–14/hr' },
-  { title: 'Kitchen Porter',   location: 'Manchester, UK', salary: '£11/hr' },
+  { title: 'Picker / Packer',  location: 'Manchester, UK', salary: '£11–13/hr', workerReach: 580 },
+  { title: 'Delivery Driver',  location: 'Salford, UK',    salary: '£13–15/hr', workerReach: 320 },
+  { title: 'Cleaner',          location: 'Manchester, UK', salary: '£11–12/hr', workerReach: 420 },
+  { title: 'Security Officer', location: 'Trafford, UK',   salary: '£12–14/hr', workerReach: 190 },
+  { title: 'Kitchen Porter',   location: 'Manchester, UK', salary: '£11/hr',    workerReach: 260 },
 ];
 
 let importSeq = 10;
@@ -997,10 +999,12 @@ export default function DashboardPage() {
       budget: 0, totalSpend: 0, candidates: 0, qualified: 0,
       awaitingReview: 0, interviews: 0, daysToFill: 14,
       postedAt: 'just now', salary: p.salary,
+      imported: true, workerReach: p.workerReach,
     }))]);
+    setView('jobs');
     pushToast({
       title: `${pulled.length} job${pulled.length !== 1 ? 's' : ''} imported`,
-      body: 'Sarah is sizing the worker pool for each role.',
+      body: 'Start a campaign for any role to reach workers now.',
     });
   };
 
@@ -1133,6 +1137,7 @@ export default function DashboardPage() {
             jobs={jobs}
             onToggleStatus={id => updateJob(id, { status: jobs.find(j => j.id === id)?.status === 'Active' ? 'Paused' : 'Active' })}
             onSelectJob={id => { setSelectedJobId(id); setView('dashboard'); }}
+            onStartCampaign={() => navigate('/choose-plan')}
           />
         )}
         {view === 'candidates' && (
@@ -1610,49 +1615,95 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
 
 // ─── Jobs view ───────────────────────────────────────────────────────────────
 
-function JobsView({ jobs, onToggleStatus, onSelectJob }: {
+function JobsView({ jobs, onToggleStatus, onSelectJob, onStartCampaign }: {
   jobs: Job[];
   onToggleStatus: (id: string) => void;
   onSelectJob: (id: string) => void;
+  onStartCampaign: (job: Job) => void;
 }) {
   const [filter, setFilter] = useState('All');
-  const filtered = filter === 'All' ? jobs : jobs.filter(j => j.status === filter);
+  const importedJobs = jobs.filter(j => j.imported);
+  const activeJobs = jobs.filter(j => !j.imported);
+  const filtered = filter === 'All' ? activeJobs : activeJobs.filter(j => j.status === filter);
 
   return (
-    <div className="flex-1 px-8 py-7">
-      <div className="mb-6">
-        <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Campaigns</h1>
-        <p className="text-sm text-gray-400">{jobs.length} hiring campaigns</p>
-      </div>
-      <div className="flex gap-2 mb-5">
-        {['All', 'Active', 'Paused', 'Closed'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-lg text-xs transition-colors" style={{ fontWeight: 600, backgroundColor: filter === f ? '#10b981' : 'white', color: filter === f ? 'white' : '#6b7280', border: filter === f ? 'none' : '1px solid #e5e7eb' }}>
-            {f}
-          </button>
-        ))}
-      </div>
-      <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-        {filtered.map(job => (
-          <div key={job.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>{job.title}</span>
-                <span className="inline-block rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: job.status === 'Active' ? '#f0fdf4' : job.status === 'Paused' ? '#fef9c3' : '#f3f4f6', color: job.status === 'Active' ? '#15803d' : job.status === 'Paused' ? '#92400e' : '#6b7280', fontWeight: 600 }}>{job.status}</span>
-                <span className="inline-block rounded-full px-2 py-0.5 text-xs bg-purple-50 text-purple-700" style={{ fontWeight: 600 }}>{job.promotion}</span>
-              </div>
-              <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary} · £{job.budget}/day</div>
-              <div className="flex gap-4 text-xs">
-                <span style={{ color: '#15803d', fontWeight: 700 }}>{job.qualified} qualified</span>
-                <span className="text-gray-400">{job.awaitingReview} awaiting review</span>
-                <span className="text-gray-400">{job.candidates} total</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button onClick={() => onSelectJob(job.id)} className="text-xs text-[#10b981] border border-[#a7f3d0] hover:bg-[#f0fdf4] px-3 py-1.5 rounded-lg transition-colors" style={{ fontWeight: 600 }}>View</button>
-              <button onClick={() => onToggleStatus(job.id)} className="text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors" style={{ fontWeight: 500 }}>{job.status === 'Active' ? 'Pause' : 'Resume'}</button>
-            </div>
+    <div className="flex-1 px-8 py-7 overflow-y-auto">
+      {/* Imported jobs — ready to launch */}
+      {importedJobs.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-gray-900" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Ready to launch</h2>
+            <span className="inline-block rounded-full px-2 py-0.5 text-xs bg-amber-50 text-amber-700" style={{ fontWeight: 600 }}>{importedJobs.length} imported</span>
           </div>
-        ))}
+          <p className="text-xs text-gray-400 mb-4">Jobs imported by Sarah — set a budget to start reaching workers.</p>
+          <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+            {importedJobs.map(job => (
+              <div key={job.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors gg-in">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>{job.title}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary}</div>
+                  {job.workerReach && (
+                    <div className="flex gap-4 text-xs">
+                      <span style={{ color: '#15803d', fontWeight: 700 }}>~{job.workerReach.toLocaleString()} workers available</span>
+                      <span className="text-gray-400">Set a budget to launch</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => onStartCampaign(job)}
+                    className="text-xs text-white bg-[#10b981] hover:bg-[#059669] px-4 py-1.5 rounded-lg transition-colors"
+                    style={{ fontWeight: 600 }}
+                  >
+                    Start Campaign
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active campaigns */}
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Campaigns</h1>
+            <p className="text-sm text-gray-400">{activeJobs.length} hiring campaigns</p>
+          </div>
+          <div className="flex gap-2">
+            {['All', 'Active', 'Paused', 'Closed'].map(f => (
+              <button key={f} onClick={() => setFilter(f)} className="px-3 py-1.5 rounded-lg text-xs transition-colors" style={{ fontWeight: 600, backgroundColor: filter === f ? '#10b981' : 'white', color: filter === f ? 'white' : '#6b7280', border: filter === f ? 'none' : '1px solid #e5e7eb' }}>
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
+          {filtered.map(job => (
+            <div key={job.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm text-gray-900" style={{ fontWeight: 700 }}>{job.title}</span>
+                  <span className="inline-block rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: job.status === 'Active' ? '#f0fdf4' : job.status === 'Paused' ? '#fef9c3' : '#f3f4f6', color: job.status === 'Active' ? '#15803d' : job.status === 'Paused' ? '#92400e' : '#6b7280', fontWeight: 600 }}>{job.status}</span>
+                  <span className="inline-block rounded-full px-2 py-0.5 text-xs bg-purple-50 text-purple-700" style={{ fontWeight: 600 }}>{job.promotion}</span>
+                </div>
+                <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary} · £{job.budget}/day</div>
+                <div className="flex gap-4 text-xs">
+                  <span style={{ color: '#15803d', fontWeight: 700 }}>{job.qualified} qualified</span>
+                  <span className="text-gray-400">{job.awaitingReview} awaiting review</span>
+                  <span className="text-gray-400">{job.candidates} total</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => onSelectJob(job.id)} className="text-xs text-[#10b981] border border-[#a7f3d0] hover:bg-[#f0fdf4] px-3 py-1.5 rounded-lg transition-colors" style={{ fontWeight: 600 }}>View</button>
+                <button onClick={() => onToggleStatus(job.id)} className="text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors" style={{ fontWeight: 500 }}>{job.status === 'Active' ? 'Pause' : 'Resume'}</button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

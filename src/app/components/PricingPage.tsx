@@ -90,6 +90,7 @@ export default function PricingPage() {
             </div>
             <div className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-2">Starter</div>
             <div className="mb-1">
+              <span className="text-sm font-medium text-gray-400">Starts from </span>
               <span className="text-4xl font-extrabold text-gray-900">£20</span>
               <span className="text-xl text-gray-400 font-medium"> /day</span>
             </div>
@@ -142,22 +143,9 @@ export default function PricingPage() {
             >
               <Phone className="w-4 h-4" /> Book a call with sales <ArrowRight className="w-4 h-4" />
             </button>
-            <p className="text-xs text-white/30 text-center mt-3">We call you — no form to fill.</p>
           </div>
         </div>
 
-        <div className="mt-8 bg-[#f0fdf4] border border-[#a7f3d0] rounded-2xl p-5 text-center gg-in">
-          <p className="text-sm text-gray-700">
-            Not sure which plan?{' '}
-            <button
-              onClick={() => navigate('/post-job')}
-              className="text-[#059669] font-bold hover:underline"
-            >
-              Start with Starter
-            </button>{' '}
-            — no upfront cost, Sarah works from day one.
-          </p>
-        </div>
       </section>
 
       <section className="bg-gray-50 border-t border-gray-100 py-14">
