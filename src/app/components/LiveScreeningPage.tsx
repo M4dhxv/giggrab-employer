@@ -194,7 +194,7 @@ function PageHeader() {
     <header className="bg-white border-b border-gray-200">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/employer')}
           className="text-xl font-extrabold text-[#10b981] tracking-tight"
         >
           GigGrab

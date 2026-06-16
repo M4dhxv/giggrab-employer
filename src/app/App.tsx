@@ -23,7 +23,8 @@ export default function App() {
     <Router>
       <div className="min-h-screen bg-white">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<WorkerLandingPage />} />
+          <Route path="/employer" element={<LandingPage />} />
           <Route path="/post-job" element={<CreateJobPage />} />
           <Route path="/market-intel" element={<MarketIntelPage />} />
           <Route path="/call-giggrab" element={<CallGigGrabPage />} />
@@ -41,7 +42,7 @@ export default function App() {
           <Route path="/enterprise" element={<EnterpriseOnboardingPage />} />
 
           {/* Worker (candidate) side */}
-          <Route path="/worker" element={<WorkerLandingPage />} />
+          <Route path="/worker" element={<Navigate to="/" replace />} />
           <Route path="/worker/get-started" element={<WorkerGetStartedPage />} />
           <Route path="/worker/start" element={<WorkerStartPage />} />
           <Route path="/worker/call" element={<WorkerCallPage />} />

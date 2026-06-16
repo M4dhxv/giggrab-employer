@@ -621,7 +621,7 @@ export default function LandingPage({
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <button className="login" onClick={() => navigate('/worker')}>For workers</button>
+            <button className="login" onClick={() => navigate('/')}>For workers</button>
             <button className="login">Log in</button>
           </div>
         </div>

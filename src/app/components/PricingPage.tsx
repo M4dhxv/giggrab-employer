@@ -46,14 +46,14 @@ export default function PricingPage() {
       <header className="border-b border-gray-100 sticky top-0 bg-white/85 backdrop-blur z-50">
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/employer')}
             className="text-xl font-extrabold text-[#10b981] tracking-tight"
           >
             GigGrab
           </button>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => navigate('/worker')}
+              onClick={() => navigate('/')}
               className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50"
             >
               For workers
@@ -165,7 +165,7 @@ export default function PricingPage() {
       <footer className="bg-white border-t border-gray-100">
         <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-gray-400">
           <span>© GigGrab</span>
-          <button onClick={() => navigate('/worker')} className="hover:text-gray-700">
+          <button onClick={() => navigate('/')} className="hover:text-gray-700">
             For workers →
           </button>
         </div>

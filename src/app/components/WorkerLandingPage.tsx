@@ -64,7 +64,7 @@ export default function WorkerLandingPage() {
           <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             {/* Logo */}
             <button
-              onClick={() => navigate('/worker')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 group"
             >
               <div className="w-8 h-8 rounded-lg bg-[#4ade80] flex items-center justify-center">
@@ -176,7 +176,7 @@ export default function WorkerLandingPage() {
       <footer style={{ background: '#0a0a0a', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between text-xs text-white/30">
           <span>© GigGrab</span>
-          <button onClick={() => navigate('/')} className="hover:text-white/70 transition-colors">For employers →</button>
+          <button onClick={() => navigate('/employer')} className="hover:text-white/70 transition-colors">For employers →</button>
         </div>
       </footer>
     </div>
@@ -188,14 +188,14 @@ export function WorkerHeader() {
   return (
     <header className="bg-white/85 backdrop-blur border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
-        <button onClick={() => navigate('/worker')} className="flex items-center gap-2">
+        <button onClick={() => navigate('/')} className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md bg-[#4ade80] flex items-center justify-center">
             <span className="text-black font-extrabold text-xs">G</span>
           </div>
           <span className="text-gray-900 font-bold text-base tracking-tight">GigGrab for Workers</span>
         </button>
         <div className="flex items-center gap-1">
-          <button onClick={() => navigate('/')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>
+          <button onClick={() => navigate('/employer')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>
           <button onClick={() => navigate('/worker/dashboard')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log in</button>
         </div>
       </div>

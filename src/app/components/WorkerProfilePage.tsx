@@ -60,7 +60,7 @@ export default function WorkerProfilePage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
         <div className="mb-6 flex items-center justify-between gg-in">
           <div>
-            <button onClick={() => navigate('/worker')} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
+            <button onClick={() => navigate('/')} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">Your profile</h1>
           </div>
           <button
