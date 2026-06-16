@@ -139,9 +139,9 @@ export default function ChoosePlanPage() {
                   size="large"
                   onClick={() => {
                     if (promo.id === 'premium') {
-                      window.location.href = 'mailto:sales@giggrab.com?subject=GigGrab%20Enterprise';
+                      navigate('/enterprise');
                     } else {
-                      navigate(`/set-budget?plan=${promo.id}`);
+                      navigate('/live-screening');
                     }
                   }}
                   sx={{

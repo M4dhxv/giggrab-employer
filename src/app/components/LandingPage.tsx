@@ -618,10 +618,13 @@ export default function LandingPage({
             <span className="logo">GigGrab</span>
             <div className="links">
               <button>How it works</button><button>Industries</button>
-              <button>Resources</button><button>About us</button>
+              <button onClick={() => navigate('/pricing')}>Pricing</button><button>About us</button>
             </div>
           </div>
-          <button className="login">Log in</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <button className="login" onClick={() => navigate('/worker')}>For workers</button>
+            <button className="login">Log in</button>
+          </div>
         </div>
       </header>
 
