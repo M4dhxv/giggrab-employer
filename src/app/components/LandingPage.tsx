@@ -632,12 +632,12 @@ export default function LandingPage({
         <div className="hgrid">
           {/* left: headline + CTA */}
           <div>
-            <span className="kicker"><span className="d" />AI hiring agent · Qualified worker pool</span>
+            <span className="kicker"><span className="d" />Recruiter hotline · Qualified worker pool</span>
 
-            <h1>Post a job.<br /><span className="g">Sarah staffs it.</span></h1>
+            <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
             <p className="sub">
-              No job boards. No CV piles. Tell Sarah what you need — she writes
-              the job spec, <b>calls and qualifies workers</b>, and delivers a ranked
+              No job ads. No CV piles. Talk to Sarah for five minutes — she writes
+              the job spec, <b>calls qualified workers</b>, and sends you a ranked
               shortlist within hours.
             </p>
 
