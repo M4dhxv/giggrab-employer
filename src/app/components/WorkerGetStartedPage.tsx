@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Upload, PhoneIncoming, Globe, ChevronDown, ArrowRight, FileText, Check } from 'lucide-react';
+import { Upload, PhoneIncoming, Globe, ChevronDown, ArrowRight, FileText } from 'lucide-react';
 import { WorkerHeader } from './WorkerLandingPage';
 
 const LANGUAGES = [
@@ -31,7 +31,6 @@ export default function WorkerGetStartedPage() {
   const [consent, setConsent] = useState(true);
   const [calling, setCalling] = useState(false);
   const [callState, setCallState] = useState(0);
-  const [callDone, setCallDone] = useState(false);
 
   const phoneValid = phone.replace(/\D/g, '').length >= 9 && consent;
 
@@ -56,36 +55,7 @@ export default function WorkerGetStartedPage() {
     const step = reduced ? 250 : 1100;
     setTimeout(() => setCallState(1), step);
     setTimeout(() => setCallState(2), step * 2);
-    setTimeout(() => setCallDone(true), step * 3);
-  }
-
-  if (callDone) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <WorkerHeader />
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="text-center gg-in max-w-sm w-full">
-            <div className="w-16 h-16 rounded-full bg-[#10b981] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
-              <Check className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Sarah has your profile!</h1>
-            <p className="text-gray-500 text-sm mb-8">Ready to match you to live roles near you.</p>
-            <button
-              onClick={() => navigate('/worker/dashboard')}
-              className="w-full flex items-center justify-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-xl py-3.5 font-bold text-sm mb-4 transition-all"
-            >
-              See my matches <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => { setCalling(false); setCallDone(false); setCallState(0); }}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              Ask Sarah to call back for more info
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    setTimeout(() => navigate('/worker/call'), step * 3);
   }
 
   if (calling) {
