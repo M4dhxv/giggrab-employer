@@ -121,14 +121,108 @@ const JOBS_DATA = [
 ];
 
 const CANDIDATES_DATA = [
-  { id: 1, name: "Marcus Okafor", initials: "MO", score: 94, role: "Site Operative", availability: "Immediate", languages: ["English"], qualifications: ["CSCS Card", "Driving Licence"], lastInteraction: "2 mins ago", status: "interview-ready", color: "#16A34A" },
-  { id: 2, name: "Agnieszka Kowal", initials: "AK", score: 91, role: "Cleaning Operative", availability: "48 hrs", languages: ["Polish", "English"], qualifications: ["CSCS Card", "2+ Yrs"], lastInteraction: "14 mins ago", status: "qualified", color: "#15803D" },
-  { id: 3, name: "Deon Petersen", initials: "DP", score: 87, role: "Forklift Operator", availability: "1 week", languages: ["English"], qualifications: ["CSCS Card", "Forklift"], lastInteraction: "1 hr ago", status: "qualified", color: "#166534" },
-  { id: 4, name: "Maria Santos", initials: "MS", score: 82, role: "General Labourer", availability: "Immediate", languages: ["Portuguese", "English"], qualifications: ["CSCS Card"], lastInteraction: "3 hrs ago", status: "qualified", color: "#4D7C0F" },
-  { id: 5, name: "Fatima Al-Hassan", initials: "FA", score: 88, role: "Warehouse Operative", availability: "Immediate", languages: ["Arabic", "English"], qualifications: ["CSCS Card", "Forklift"], lastInteraction: "5 hrs ago", status: "interview-ready", color: "#065F46" },
-  { id: 6, name: "James Thornton", initials: "JT", score: 74, role: "Site Operative", availability: "2 weeks", languages: ["English"], qualifications: ["Driving Licence"], lastInteraction: "Yesterday", status: "screening", color: "#6B7280" },
-  { id: 7, name: "Priya Sharma", initials: "PS", score: 79, role: "Cleaning Operative", availability: "3 days", languages: ["Hindi", "English"], qualifications: ["CSCS Card"], lastInteraction: "Yesterday", status: "qualified", color: "#7C3AED" },
-  { id: 8, name: "Tom Hughes", initials: "TH", score: 65, role: "General Labourer", availability: "1 week", languages: ["English", "Welsh"], qualifications: [], lastInteraction: "2 days ago", status: "screening", color: "#B45309" },
+  { id: 1, name: "Marcus Okafor", initials: "MO", score: 94, job: "Site Operative", role: "Site Operative", availability: "Immediate", languages: ["English"], qualifications: ["CSCS Card", "Driving Licence"], lastInteraction: "2 mins ago", status: "interview-ready", color: "#16A34A",
+    summary: "Marcus has 6 years on commercial groundworks sites and holds a valid CSCS card. He's immediately available, reliable on nights and weekends, and has managed small teams before.",
+    scoreReasons: ["CSCS Card verified ✓", "Available immediately ✓", "6+ years relevant experience ✓", "Driving licence ✓", "Willing to work nights ✓"],
+    gaps: ["No forklift licence (not required for this role)"],
+    transcript: [
+      { role: "sarah", text: "Hi Marcus, I'm Sarah calling about the Site Operative role in London. Do you have a few minutes?" },
+      { role: "candidate", text: "Yes, go ahead." },
+      { role: "sarah", text: "Great. Do you hold a valid CSCS card?" },
+      { role: "candidate", text: "Yes, green labourer card, renewed last year." },
+      { role: "sarah", text: "Perfect. Are you available to start immediately?" },
+      { role: "candidate", text: "Yes I'm available from Monday." },
+      { role: "sarah", text: "Excellent. Are you comfortable working nights and weekends?" },
+      { role: "candidate", text: "Nights are fine, weekends occasionally." },
+    ]
+  },
+  { id: 2, name: "Agnieszka Kowal", initials: "AK", score: 91, job: "Cleaning Operative", role: "Cleaning Operative", availability: "48 hrs", languages: ["Polish", "English"], qualifications: ["CSCS Card", "2+ Yrs"], lastInteraction: "14 mins ago", status: "qualified", color: "#15803D",
+    summary: "Agnieszka brings 3 years of commercial cleaning experience and is bilingual in Polish and English. Available within 48 hours with her own transport.",
+    scoreReasons: ["2+ years cleaning experience ✓", "Available within 48 hours ✓", "Bilingual ✓", "Own transport ✓"],
+    gaps: ["Not immediately available (48 hrs)", "No DBS check on file"],
+    transcript: [
+      { role: "sarah", text: "Hi Agnieszka, I'm Sarah calling about the Cleaning Operative role in Birmingham. Do you have a moment?" },
+      { role: "candidate", text: "Yes, of course." },
+      { role: "sarah", text: "How long have you been working in commercial cleaning?" },
+      { role: "candidate", text: "Three years. Offices and schools mainly." },
+      { role: "sarah", text: "Do you have your own transport?" },
+      { role: "candidate", text: "Yes, I have a car." },
+    ]
+  },
+  { id: 3, name: "Deon Petersen", initials: "DP", score: 87, job: "Forklift Operator", role: "Forklift Operator", availability: "1 week", languages: ["English"], qualifications: ["CSCS Card", "Forklift"], lastInteraction: "1 hr ago", status: "qualified", color: "#166534",
+    summary: "Deon holds a valid counterbalance forklift licence and has 4 years of warehouse logistics experience. Available in one week — slight delay on availability holds back a higher score.",
+    scoreReasons: ["Forklift licence (counterbalance) ✓", "4 years warehouse experience ✓", "CSCS Card ✓"],
+    gaps: ["Not immediately available (1 week notice)", "Reach truck licence not held"],
+    transcript: [
+      { role: "sarah", text: "Hi Deon, calling about the Forklift Operator role in Manchester. Do you hold a valid forklift licence?" },
+      { role: "candidate", text: "Yes, counterbalance. Had it for four years." },
+      { role: "sarah", text: "Great. When could you start?" },
+      { role: "candidate", text: "I need to give a week's notice at my current place." },
+      { role: "sarah", text: "Understood. Do you also hold a reach truck licence?" },
+      { role: "candidate", text: "No, just counterbalance." },
+    ]
+  },
+  { id: 4, name: "Maria Santos", initials: "MS", score: 82, job: "General Labourer", role: "General Labourer", availability: "Immediate", languages: ["Portuguese", "English"], qualifications: ["CSCS Card"], lastInteraction: "3 hrs ago", status: "qualified", color: "#4D7C0F",
+    summary: "Maria is immediately available and trilingual. She holds a CSCS card but no driving licence, which limits site mobility slightly.",
+    scoreReasons: ["CSCS Card ✓", "Available immediately ✓", "Bilingual Portuguese/English ✓"],
+    gaps: ["No driving licence", "Less than 2 years experience"],
+    transcript: [
+      { role: "sarah", text: "Hi Maria, I'm Sarah calling about a General Labourer role in London. Do you have a CSCS card?" },
+      { role: "candidate", text: "Yes, I have the green card." },
+      { role: "sarah", text: "How much labouring experience do you have?" },
+      { role: "candidate", text: "About 18 months on residential sites." },
+      { role: "sarah", text: "Do you drive?" },
+      { role: "candidate", text: "No, but I can get public transport easily." },
+    ]
+  },
+  { id: 5, name: "Fatima Al-Hassan", initials: "FA", score: 88, job: "Warehouse Operative", role: "Warehouse Operative", availability: "Immediate", languages: ["Arabic", "English"], qualifications: ["CSCS Card", "Forklift"], lastInteraction: "5 hrs ago", status: "interview-ready", color: "#065F46",
+    summary: "Fatima is an ideal match — forklift certified, immediately available, and bilingual. High score reflects strong alignment with all key criteria.",
+    scoreReasons: ["Forklift licence ✓", "Available immediately ✓", "Bilingual Arabic/English ✓", "CSCS Card ✓"],
+    gaps: ["Prefers day shifts only"],
+    transcript: [
+      { role: "sarah", text: "Hi Fatima, I'm calling about the Warehouse Operative role in Leeds. Do you have a forklift licence?" },
+      { role: "candidate", text: "Yes, counterbalance and reach truck." },
+      { role: "sarah", text: "Excellent. Are you available immediately?" },
+      { role: "candidate", text: "Yes, I'm free now." },
+      { role: "sarah", text: "Can you work shifts including evenings?" },
+      { role: "candidate", text: "I prefer days but can do early evenings if needed." },
+    ]
+  },
+  { id: 6, name: "James Thornton", initials: "JT", score: 74, job: "Site Operative", role: "Site Operative", availability: "2 weeks", languages: ["English"], qualifications: ["Driving Licence"], lastInteraction: "Yesterday", status: "screening", color: "#6B7280",
+    summary: "James has driving licence and some site experience but is missing a CSCS card and is not available for two weeks. Currently still in screening.",
+    scoreReasons: ["Driving licence ✓", "Willing to obtain CSCS card ✓"],
+    gaps: ["No CSCS Card (critical requirement)", "2 weeks until available", "Limited site experience"],
+    transcript: [
+      { role: "sarah", text: "Hi James, calling about a Site Operative role in London. Do you have a CSCS card?" },
+      { role: "candidate", text: "Not yet but I'm planning to get one." },
+      { role: "sarah", text: "When could you start if offered the role?" },
+      { role: "candidate", text: "About two weeks. I'm finishing another job." },
+    ]
+  },
+  { id: 7, name: "Priya Sharma", initials: "PS", score: 79, job: "Cleaning Operative", role: "Cleaning Operative", availability: "3 days", languages: ["Hindi", "English"], qualifications: ["CSCS Card"], lastInteraction: "Yesterday", status: "qualified", color: "#7C3AED",
+    summary: "Priya has solid cleaning experience and is trilingual, but slightly lower score due to 3-day delay on availability.",
+    scoreReasons: ["CSCS Card ✓", "2+ years cleaning experience ✓", "Bilingual Hindi/English ✓"],
+    gaps: ["Not immediately available (3 days)", "No commercial kitchen experience"],
+    transcript: [
+      { role: "sarah", text: "Hi Priya, calling about the Cleaning Operative role. How long have you been in the industry?" },
+      { role: "candidate", text: "About two and a half years." },
+      { role: "sarah", text: "Are you available to start soon?" },
+      { role: "candidate", text: "I need three days to finish my current placement." },
+    ]
+  },
+  { id: 8, name: "Tom Hughes", initials: "TH", score: 65, job: "General Labourer", role: "General Labourer", availability: "1 week", languages: ["English", "Welsh"], qualifications: [], lastInteraction: "2 days ago", status: "screening", color: "#B45309",
+    summary: "Tom is in early screening. Missing CSCS card, limited experience, and not available for a week. Needs follow-up before advancing.",
+    scoreReasons: ["Willing to work flexible hours ✓", "Local to the area ✓"],
+    gaps: ["No CSCS Card", "No relevant qualifications", "Less than 6 months experience", "1 week until available"],
+    transcript: [
+      { role: "sarah", text: "Hi Tom, calling about a General Labourer role. Do you have any construction site experience?" },
+      { role: "candidate", text: "A little. I did some work with a mate last summer." },
+      { role: "sarah", text: "Do you have a CSCS card?" },
+      { role: "candidate", text: "Not yet. Is that essential?" },
+      { role: "sarah", text: "It is for this role. When could you start?" },
+      { role: "candidate", text: "About a week, maybe two." },
+    ]
+  },
 ];
 
 const CALL_LOGS_DATA = [
@@ -298,80 +392,99 @@ function LoginScreen({ onNext }: { onNext: () => void }) {
   const [showEmail, setShowEmail] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white p-8" style={font}>
-      <div className="w-full max-w-sm">
-        <div className="flex items-center gap-2.5 justify-center mb-10">
-          <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-600/25">
-            <Mic size={20} className="text-white" />
-          </div>
-          <span className="text-2xl font-bold text-gray-900 tracking-tight">Sarah</span>
-        </div>
-
-        <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">Welcome back</h1>
-        <p className="text-lg text-gray-500 text-center mb-10">Sign in to your account</p>
-
-        <div className="space-y-3">
-          <button
-            onClick={onNext}
-            className="w-full flex items-center gap-3.5 bg-white border-2 border-gray-200 rounded-xl px-5 py-4 text-base font-semibold text-gray-800 hover:border-green-400 hover:bg-green-50 transition-all"
-          >
-            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Continue with Google
-          </button>
-
-          <button
-            onClick={onNext}
-            className="w-full flex items-center gap-3.5 bg-white border-2 border-gray-200 rounded-xl px-5 py-4 text-base font-semibold text-gray-800 hover:border-green-400 hover:bg-green-50 transition-all"
-          >
-            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="#f25022" d="M1 1h10v10H1z" />
-              <path fill="#00a4ef" d="M13 1h10v10H13z" />
-              <path fill="#7fba00" d="M1 13h10v10H1z" />
-              <path fill="#ffb900" d="M13 13h10v10H13z" />
-            </svg>
-            Continue with Microsoft
-          </button>
-
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-sm text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          {showEmail ? (
-            <div className="space-y-3">
-              <input
-                type="email"
-                placeholder="Work email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoFocus
-                className="w-full border-2 border-gray-200 rounded-xl px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-400 transition-all"
-              />
-              <Btn onClick={onNext} className="w-full" size="lg">
-                Continue <ArrowRight size={18} />
-              </Btn>
+    <div className="min-h-screen flex" style={font}>
+      {/* Left — green value panel */}
+      <div className="hidden lg:flex lg:w-[52%] bg-green-700 flex-col justify-between p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 20%, #fff 0%, transparent 60%), radial-gradient(circle at 80% 80%, #fff 0%, transparent 50%)' }} />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 mb-16">
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              <Mic size={18} className="text-white" />
             </div>
-          ) : (
-            <button
-              onClick={() => setShowEmail(true)}
-              className="w-full bg-gray-900 text-white rounded-xl px-5 py-4 text-base font-semibold hover:bg-green-700 transition-all"
-            >
-              Continue with Email
-            </button>
-          )}
+            <span className="text-xl font-bold text-white tracking-tight">GigGrab Enterprise</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white leading-tight mb-5">
+            Your own dedicated<br />AI hiring hotline.
+          </h1>
+          <p className="text-green-100 text-lg leading-relaxed mb-10 max-w-md">
+            Sarah answers every candidate call, screens and qualifies in 32 languages, and delivers interview-ready shortlists — under your brand, 24/7.
+          </p>
+          <div className="space-y-4">
+            {[
+              { icon: <Phone size={16} />, text: "White-label number — candidates call your brand" },
+              { icon: <Zap size={16} />, text: "ATS integration — Greenhouse, Ashby, Lever and more" },
+              { icon: <Users size={16} />, text: "Multi-location hiring across all your sites" },
+              { icon: <BarChart2 size={16} />, text: "Full call transcripts, scores and interview summaries" },
+            ].map((f) => (
+              <div key={f.text} className="flex items-center gap-3 text-green-100 text-sm">
+                <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">{f.icon}</div>
+                {f.text}
+              </div>
+            ))}
+          </div>
         </div>
+        <div className="relative z-10 bg-white/10 rounded-2xl p-5 border border-white/20">
+          <p className="text-white text-sm leading-relaxed italic mb-3">
+            "We went from 40 hours of recruiter time per week to under 5. Sarah handles every inbound call and only escalates the ones worth our time."
+          </p>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-white font-bold text-xs">JR</div>
+            <div>
+              <div className="text-white text-xs font-semibold">James Richardson</div>
+              <div className="text-green-200 text-xs">Head of Talent, Acme Construction</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <p className="text-sm text-gray-400 text-center mt-8">
-          By continuing, you agree to our{" "}
-          <span className="underline cursor-pointer text-gray-600">Terms</span> and{" "}
-          <span className="underline cursor-pointer text-gray-600">Privacy Policy</span>.
-        </p>
+      {/* Right — login form */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-white p-8">
+        <div className="w-full max-w-sm">
+          <div className="flex items-center gap-2.5 justify-center mb-10 lg:hidden">
+            <div className="w-10 h-10 rounded-2xl bg-green-600 flex items-center justify-center shadow-lg shadow-green-600/25">
+              <Mic size={20} className="text-white" />
+            </div>
+            <span className="text-2xl font-bold text-gray-900 tracking-tight">GigGrab Enterprise</span>
+          </div>
+
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-2">Welcome back</h2>
+          <p className="text-lg text-gray-500 text-center mb-10">Sign in to your account</p>
+
+          <div className="space-y-3">
+            <button onClick={onNext} className="w-full flex items-center gap-3.5 bg-white border-2 border-gray-200 rounded-xl px-5 py-4 text-base font-semibold text-gray-800 hover:border-green-400 hover:bg-green-50 transition-all">
+              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Continue with Google
+            </button>
+            <button onClick={onNext} className="w-full flex items-center gap-3.5 bg-white border-2 border-gray-200 rounded-xl px-5 py-4 text-base font-semibold text-gray-800 hover:border-green-400 hover:bg-green-50 transition-all">
+              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+                <path fill="#f25022" d="M1 1h10v10H1z" /><path fill="#00a4ef" d="M13 1h10v10H13z" />
+                <path fill="#7fba00" d="M1 13h10v10H1z" /><path fill="#ffb900" d="M13 13h10v10H13z" />
+              </svg>
+              Continue with Microsoft
+            </button>
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 h-px bg-gray-200" /><span className="text-sm text-gray-400">or</span><div className="flex-1 h-px bg-gray-200" />
+            </div>
+            {showEmail ? (
+              <div className="space-y-3">
+                <input type="email" placeholder="Work email address" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus className="w-full border-2 border-gray-200 rounded-xl px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-400 transition-all" />
+                <Btn onClick={onNext} className="w-full" size="lg">Continue <ArrowRight size={18} /></Btn>
+              </div>
+            ) : (
+              <button onClick={() => setShowEmail(true)} className="w-full bg-gray-900 text-white rounded-xl px-5 py-4 text-base font-semibold hover:bg-green-700 transition-all">Continue with Email</button>
+            )}
+          </div>
+          <p className="text-sm text-gray-400 text-center mt-8">
+            By continuing, you agree to our{" "}
+            <span className="underline cursor-pointer text-gray-600">Terms</span> and{" "}
+            <span className="underline cursor-pointer text-gray-600">Privacy Policy</span>.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -777,51 +890,83 @@ function ATSImportedScreen({
 
 // ─── 8. Screening Config ─────────────────────────────────────
 
-const DEFAULT_QUESTIONS = [
-  "Do you have a CSCS card?",
-  "Are you available for night shifts?",
-  "Do you have cleaning experience?",
-  "Are you able to travel to site?",
-];
+const DEFAULT_QUESTIONS: Record<string, string[]> = {
+  "Site Operative": [
+    "Do you hold a valid CSCS card?",
+    "Are you available for early morning starts (6am)?",
+    "Do you have PPE (boots, hi-vis, hard hat)?",
+    "Are you able to travel to site?",
+  ],
+  "Cleaning Operative": [
+    "Do you have commercial cleaning experience?",
+    "Are you available for night shifts?",
+    "Do you have a DBS certificate?",
+    "Can you use floor buffers and industrial equipment?",
+  ],
+  "Forklift Operator": [
+    "Do you hold a valid counterbalance forklift licence?",
+    "How many years of warehouse experience do you have?",
+    "Are you available for weekend shifts?",
+    "Do you have a valid driving licence?",
+  ],
+  "General Labourer": [
+    "Are you available for immediate start?",
+    "Are you comfortable with heavy lifting (25kg+)?",
+    "Do you have your own transport?",
+    "Any previous labouring or site experience?",
+  ],
+  "Warehouse Operative": [
+    "Do you have at least 6 months warehouse experience?",
+    "Are you available for rotating shifts?",
+    "Can you operate a hand pallet truck?",
+    "Do you have a valid right to work in the UK?",
+  ],
+  "Security Guard": [
+    "Do you hold a valid SIA Door Supervisor or Security Guarding licence?",
+    "Are you available for overnight and weekend shifts?",
+    "Have you worked in retail or corporate security before?",
+    "Do you have a valid first aid certificate?",
+  ],
+};
 
-type ChatMsg = { role: "sarah" | "user"; text: string };
+const CALL_LANGUAGES = [
+  { code: "en-GB", label: "English (UK)" },
+  { code: "en-US", label: "English (US)" },
+  { code: "pl", label: "Polish" },
+  { code: "pt", label: "Portuguese" },
+  { code: "ar", label: "Arabic" },
+  { code: "ur", label: "Urdu" },
+  { code: "hi", label: "Hindi" },
+  { code: "ro", label: "Romanian" },
+];
 
 function ScreeningScreen({ onNext }: { onNext: () => void }) {
   const [mode, setMode] = useState<"manual" | "sarah" | null>(null);
-  const [questions, setQuestions] = useState(DEFAULT_QUESTIONS);
+
+  // manual sub-steps: "job" → "questions"
+  const [manualStep, setManualStep] = useState<"job" | "questions">("job");
+  const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [newQ, setNewQ] = useState("");
-  const [chat, setChat] = useState<ChatMsg[]>([
-    { role: "sarah", text: "Hi! Tell me about the role and what you need from candidates — requirements, qualifications, shift availability, anything important." },
-  ]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatStep, setChatStep] = useState(0);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const sendMessage = () => {
-    if (!chatInput.trim()) return;
-    const userMsg = chatInput.trim();
-    setChatInput("");
-    setChat((p) => [...p, { role: "user", text: userMsg }]);
+  // sarah sub-steps: "phone" → "confirm"
+  const [sarahStep, setSarahStep] = useState<"phone" | "confirm">("phone");
+  const [sarahPhone, setSarahPhone] = useState("");
+  const [sarahLang, setSarahLang] = useState("en-GB");
 
-    if (chatStep === 0) {
-      setTimeout(() => {
-        setChat((p) => [...p, {
-          role: "sarah",
-          text: "Got it. Based on what you've told me, I'll screen candidates on those requirements. Is there anything else — specific certifications, transport, or availability windows?",
-        }]);
-        setChatStep(1);
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setChat((p) => [...p, {
-          role: "sarah",
-          text: `Perfect. I've built your screening questions and qualification criteria. I'll ask all incoming candidates these questions automatically and only surface the ones who meet your requirements.`,
-        }]);
-        setChatStep(2);
-      }, 1000);
-    }
-    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  const jobNames = Object.keys(DEFAULT_QUESTIONS);
+
+  const pickJob = (job: string) => {
+    setSelectedJob(job);
+    setQuestions(DEFAULT_QUESTIONS[job]);
+    setManualStep("questions");
   };
+
+  const canContinue = mode === "manual"
+    ? manualStep === "questions"
+    : mode === "sarah"
+    ? sarahStep === "confirm"
+    : false;
 
   return (
     <OnboardingShell
@@ -833,10 +978,11 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
         <h2 className="text-4xl font-bold text-gray-900 mb-2">Set up screening</h2>
         <p className="text-lg text-gray-500 mb-8">How would you like to define your screening questions?</p>
 
-        {!mode ? (
+        {/* ── Mode selection ── */}
+        {!mode && (
           <div className="grid grid-cols-1 gap-4 mb-8">
             <button
-              onClick={() => setMode("manual")}
+              onClick={() => { setMode("manual"); setManualStep("job"); }}
               className="flex items-start gap-5 p-6 rounded-2xl border-2 border-gray-200 bg-white hover:border-green-400 hover:bg-green-50 text-left transition-all group"
             >
               <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-green-100 flex items-center justify-center flex-shrink-0 transition-all">
@@ -844,137 +990,163 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
               </div>
               <div>
                 <div className="text-xl font-bold text-gray-900 mb-1">Add questions manually</div>
-                <div className="text-base text-gray-500 leading-relaxed">
-                  Write your own screening questions. We have already imported 6 questions from your ATS.
-                </div>
+                <div className="text-base text-gray-500 leading-relaxed">Select a job and write your own screening questions per role.</div>
               </div>
             </button>
 
             <button
-              onClick={() => setMode("sarah")}
+              onClick={() => { setMode("sarah"); setSarahStep("phone"); }}
               className="flex items-start gap-5 p-6 rounded-2xl border-2 border-gray-200 bg-white hover:border-green-400 hover:bg-green-50 text-left transition-all group relative overflow-hidden"
             >
-              <div className="absolute top-4 right-4 text-xs font-bold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
-                Recommended
-              </div>
+              <div className="absolute top-4 right-4 text-xs font-bold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">Recommended</div>
               <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-green-100 flex items-center justify-center flex-shrink-0 transition-all">
                 <Mic size={22} className="text-gray-600 group-hover:text-green-700" />
               </div>
               <div>
                 <div className="text-xl font-bold text-gray-900 mb-1">Talk with Sarah</div>
-                <div className="text-base text-gray-500 leading-relaxed">
-                  Have a short conversation. Sarah builds your screening questions, qualification logic, and candidate requirements automatically.
-                </div>
+                <div className="text-base text-gray-500 leading-relaxed">Sarah calls you, asks about each role, and builds screening criteria automatically.</div>
               </div>
             </button>
           </div>
-        ) : mode === "manual" ? (
+        )}
+
+        {/* ── Manual: job selector ── */}
+        {mode === "manual" && manualStep === "job" && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold text-gray-900">Select a job to configure</h3>
+              <button onClick={() => setMode(null)} className="text-sm text-gray-500 hover:text-gray-900">← Back</button>
+            </div>
+            <div className="grid grid-cols-1 gap-2.5">
+              {jobNames.map((job) => (
+                <button
+                  key={job}
+                  onClick={() => pickJob(job)}
+                  className="flex items-center justify-between px-5 py-4 rounded-xl border-2 border-gray-200 bg-white hover:border-green-400 hover:bg-green-50 text-left transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                      <Briefcase size={16} className="text-green-700" />
+                    </div>
+                    <span className="text-base font-semibold text-gray-900">{job}</span>
+                  </div>
+                  <ChevronRight size={18} className="text-gray-400" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Manual: questions editor ── */}
+        {mode === "manual" && manualStep === "questions" && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Screening questions</h3>
-              <button onClick={() => setMode(null)} className="text-sm text-gray-500 hover:text-gray-900">
-                ← Back
-              </button>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Screening questions</h3>
+                <p className="text-sm text-gray-500 mt-0.5">{selectedJob}</p>
+              </div>
+              <button onClick={() => setManualStep("job")} className="text-sm text-gray-500 hover:text-gray-900">← Change job</button>
             </div>
-
             <div className="space-y-2.5 mb-4">
               {questions.map((q, i) => (
                 <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
+                  <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
                   <span className="text-base text-gray-800 flex-1 leading-snug">{q}</span>
-                  <button onClick={() => setQuestions((p) => p.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 transition-colors">
-                    <X size={14} />
-                  </button>
+                  <button onClick={() => setQuestions((p) => p.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 transition-colors"><X size={14} /></button>
                 </div>
               ))}
             </div>
-
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2">
               <input
                 value={newQ}
                 onChange={(e) => setNewQ(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newQ.trim()) {
-                    setQuestions((p) => [...p, newQ.trim()]);
-                    setNewQ("");
-                  }
-                }}
+                onKeyDown={(e) => { if (e.key === "Enter" && newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); } }}
                 placeholder="Add a question…"
                 className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all"
               />
               <button
-                onClick={() => {
-                  if (newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); }
-                }}
+                onClick={() => { if (newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); } }}
                 className="bg-green-600 text-white rounded-xl px-4 py-3 hover:bg-green-700 transition-all"
               >
                 <Plus size={18} />
               </button>
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* ── Sarah: phone + language ── */}
+        {mode === "sarah" && sarahStep === "phone" && (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-5">
               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <GreenDot pulse />
-                Talk with Sarah
+                <GreenDot pulse /> Sarah will call you
               </h3>
-              <button onClick={() => setMode(null)} className="text-sm text-gray-500 hover:text-gray-900">
-                ← Back
+              <button onClick={() => setMode(null)} className="text-sm text-gray-500 hover:text-gray-900">← Back</button>
+            </div>
+            <p className="text-base text-gray-500 mb-6">
+              Sarah calls you and asks about each role — requirements, qualifications, shifts. She then builds your screening criteria automatically.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Your phone number</label>
+                <input
+                  type="tel"
+                  value={sarahPhone}
+                  onChange={(e) => setSarahPhone(e.target.value)}
+                  placeholder="+44 7700 900000"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-green-400 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Call language</label>
+                <select
+                  value={sarahLang}
+                  onChange={(e) => setSarahLang(e.target.value)}
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-green-400 transition-all bg-white"
+                >
+                  {CALL_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={() => sarahPhone.trim() && setSarahStep("confirm")}
+                disabled={!sarahPhone.trim()}
+                className="w-full bg-green-600 text-white rounded-xl py-3.5 font-semibold text-base hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                <Phone size={18} /> Call me now
               </button>
             </div>
-
-            <div className="bg-gray-50 rounded-2xl border border-gray-200 mb-3 h-64 overflow-y-auto p-4 space-y-3">
-              {chat.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  {msg.role === "sarah" && (
-                    <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
-                      <Mic size={12} className="text-white" />
-                    </div>
-                  )}
-                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-green-600 text-white rounded-tr-sm"
-                      : "bg-white border border-gray-200 text-gray-800 rounded-tl-sm"
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-
-            {chatStep < 2 ? (
-              <div className="flex gap-2">
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  placeholder="Describe your requirements…"
-                  className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all"
-                />
-                <button onClick={sendMessage} className="bg-green-600 text-white rounded-xl px-4 py-3 hover:bg-green-700 transition-all">
-                  <Send size={18} />
-                </button>
-              </div>
-            ) : (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-base text-green-800 font-medium flex items-center gap-2">
-                <Check size={16} className="text-green-600" />
-                Sarah has generated your screening questions and qualification criteria.
-              </div>
-            )}
           </div>
         )}
 
-        <Btn
-          onClick={onNext}
-          disabled={!mode}
-          className="w-full"
-          size="lg"
-        >
-          {mode ? "Save and continue" : "Choose an option to continue"}
+        {/* ── Sarah: confirm ── */}
+        {mode === "sarah" && sarahStep === "confirm" && (
+          <div className="mb-8">
+            <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center mb-6 mx-auto shadow-xl shadow-green-600/25 relative">
+              <Phone size={26} className="text-white" />
+              <span className="absolute inset-0 rounded-full border-2 border-green-400 animate-ping" />
+            </div>
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Sarah is calling you</h3>
+              <p className="text-base text-gray-500">Calling <span className="font-semibold text-gray-800">{sarahPhone}</span> now. Pick up and describe your roles — she handles the rest.</p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
+              {["Sarah will ask about each open role", "She builds screening questions per job automatically", "You review and approve before going live"].map((s, i) => (
+                <div key={i} className="flex items-center gap-3 text-sm text-green-800">
+                  <div className="w-5 h-5 rounded-full bg-green-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{i + 1}</div>
+                  {s}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setSarahStep("phone")} className="w-full text-center py-3 text-sm text-gray-500 hover:text-gray-900 mt-3">
+              ← Change number
+            </button>
+          </div>
+        )}
+
+        <Btn onClick={onNext} disabled={!canContinue} className="w-full" size="lg">
+          {canContinue ? "Save and continue" : "Choose an option to continue"}
           <ArrowRight size={18} />
         </Btn>
       </div>
@@ -1413,9 +1585,153 @@ function JobsPage() {
 
 // ─── Dashboard: Candidates ────────────────────────────────────
 
+type Candidate = typeof CANDIDATES_DATA[number];
+
+function CandidateDetail({ c, onClose }: { c: Candidate; onClose: () => void }) {
+  const [detailTab, setDetailTab] = useState<"summary" | "score" | "transcript">("summary");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={onClose}>
+      <div
+        className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-4 p-5 border-b border-gray-100">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: c.color }}>
+            {c.initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-lg font-bold text-gray-900">{c.name}</span>
+              <span className="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">
+                {c.status === "interview-ready" ? "Interview Ready" : c.status === "qualified" ? "Qualified" : "Screening"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5 flex-wrap">
+              <span className="flex items-center gap-1"><Briefcase size={12} /><span className="font-semibold text-green-700">{c.job}</span></span>
+              <span>·</span>
+              <span className="flex items-center gap-1"><Clock size={12} />{c.availability}</span>
+              <span>·</span>
+              <span>{c.languages.join(", ")}</span>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className="text-3xl font-bold text-gray-900">{c.score}<span className="text-base text-gray-400 font-normal">%</span></div>
+            <div className="text-xs text-gray-400">match score</div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 ml-1"><X size={20} /></button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100 px-5">
+          {(["summary", "score", "transcript"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setDetailTab(t)}
+              className={`py-3 px-4 text-sm font-semibold border-b-2 transition-all ${
+                detailTab === t ? "border-green-600 text-green-700" : "border-transparent text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              {t === "summary" ? "Interview Summary" : t === "score" ? "Score Breakdown" : "Call Transcript"}
+            </button>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {detailTab === "summary" && (
+            <div>
+              <p className="text-base text-gray-700 leading-relaxed mb-5">{c.summary}</p>
+              <div className="space-y-3">
+                {c.qualifications.map((q) => (
+                  <div key={q} className="flex items-center gap-2 text-sm">
+                    <CheckCircle size={15} className="text-green-600 flex-shrink-0" />
+                    <span className="text-gray-700">{q}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {detailTab === "score" && (
+            <div>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl font-bold text-green-700">{c.score}%</span>
+                </div>
+                <div>
+                  <div className="text-base font-bold text-gray-900">Why {c.score}%?</div>
+                  <div className="text-sm text-gray-500">Sarah scored this candidate based on your screening criteria.</div>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <div className="text-sm font-bold text-green-700 mb-2">What scored well</div>
+                <div className="space-y-2">
+                  {(c.scoreReasons ?? []).map((r, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-sm">
+                      <Check size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700">{r}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {(c.gaps ?? []).length > 0 && (
+                <div>
+                  <div className="text-sm font-bold text-amber-600 mb-2">What they lack</div>
+                  <div className="space-y-2">
+                    {(c.gaps ?? []).map((g, i) => (
+                      <div key={i} className="flex items-start gap-2.5 text-sm">
+                        <span className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{g}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {detailTab === "transcript" && (
+            <div className="space-y-3">
+              {(c.transcript ?? []).map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === "candidate" ? "justify-end" : "justify-start"}`}>
+                  {msg.role === "sarah" && (
+                    <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <Mic size={12} className="text-white" />
+                    </div>
+                  )}
+                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                    msg.role === "candidate"
+                      ? "bg-gray-100 text-gray-800 rounded-tr-sm"
+                      : "bg-green-50 border border-green-200 text-gray-800 rounded-tl-sm"
+                  }`}>
+                    {msg.role === "sarah" && <div className="text-xs font-bold text-green-600 mb-1">Sarah</div>}
+                    {msg.role === "candidate" && <div className="text-xs font-bold text-gray-500 mb-1">{c.name}</div>}
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="flex gap-2 p-4 border-t border-gray-100">
+          <Btn size="sm" className="flex-1">Book interview</Btn>
+          <Btn variant="secondary" size="sm" className="flex-1">Send to hiring manager</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CandidatesPage() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Candidate | null>(null);
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
     "interview-ready": { label: "Interview Ready", cls: "bg-green-100 text-green-700" },
@@ -1426,12 +1742,15 @@ function CandidatesPage() {
   const filtered = CANDIDATES_DATA.filter((c) => {
     const matchStatus = filter === "all" || c.status === filter;
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.role.toLowerCase().includes(search.toLowerCase());
+      c.role.toLowerCase().includes(search.toLowerCase()) ||
+      c.job.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
 
   return (
     <div className="p-4 sm:p-6">
+      {selected && <CandidateDetail c={selected} onClose={() => setSelected(null)} />}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Candidates</h2>
@@ -1466,20 +1785,26 @@ function CandidatesPage() {
           {filtered.map((c) => {
             const sm = statusMeta[c.status];
             return (
-              <div key={c.id} className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group">
+              <div
+                key={c.id}
+                onClick={() => setSelected(c)}
+                className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group"
+              >
                 <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: c.color }}>
                   {c.initials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-base font-bold text-gray-900">{c.name}</span>
                     <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${sm.cls}`}>{sm.label}</span>
+                    <span className="text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Briefcase size={10} />{c.job}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
-                    <span>{c.role}</span>
                     <span className="flex items-center gap-1"><Clock size={12} />{c.availability}</span>
                     <span>{c.languages.join(", ")}</span>
-                    {c.qualifications.map((q) => (
+                    {c.qualifications.slice(0, 2).map((q) => (
                       <span key={q} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md text-xs">{q}</span>
                     ))}
                   </div>
@@ -1614,9 +1939,25 @@ function CallLogsPage() {
 
 // ─── Dashboard: Settings ─────────────────────────────────────
 
+const SARAH_VOICES = [
+  { id: "us-male", label: "American Male", flag: "🇺🇸" },
+  { id: "us-female", label: "American Female", flag: "🇺🇸" },
+  { id: "gb-male", label: "British Male", flag: "🇬🇧" },
+  { id: "gb-female", label: "British Female", flag: "🇬🇧" },
+  { id: "au-female", label: "Australian Female", flag: "🇦🇺" },
+  { id: "au-male", label: "Australian Male", flag: "🇦🇺" },
+  { id: "ie-female", label: "Irish Female", flag: "🇮🇪" },
+  { id: "ca-female", label: "Canadian Female", flag: "🇨🇦" },
+];
+
 function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: string | null }) {
   const [tab, setTab] = useState<"hotline" | "ats" | "sarah" | "screening" | "team">("hotline");
-  const [questions, setQuestions] = useState(DEFAULT_QUESTIONS);
+  const [selectedVoice, setSelectedVoice] = useState("gb-female");
+
+  // Screening tab state
+  const jobNames = Object.keys(DEFAULT_QUESTIONS);
+  const [screeningJob, setScreeningJob] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [newQ, setNewQ] = useState("");
 
   const TABS = [
@@ -1727,22 +2068,44 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
           {tab === "sarah" && (
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-5">Sarah Configuration</h3>
-              <div className="space-y-4">
-                {[
-                  { label: "Company name", value: "Acme Construction Ltd" },
-                  { label: "Hiring locations", value: "London, Birmingham, Manchester" },
-                  { label: "Languages", value: "English, Polish, Portuguese" },
-                  { label: "Business hours", value: "Mon–Fri 7am–7pm, Sat 8am–4pm" },
-                  { label: "After-hours behaviour", value: "Take voicemail, call back next day" },
-                ].map((f) => (
-                  <div key={f.label}>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">{f.label}</label>
-                    <input
-                      defaultValue={f.value}
-                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-green-400 transition-all"
-                    />
+              <div className="space-y-6">
+                {/* Voice selector */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Sarah's voice</label>
+                  <p className="text-xs text-gray-500 mb-3">Choose the voice candidates hear when Sarah calls them.</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {SARAH_VOICES.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => setSelectedVoice(v.id)}
+                        className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all text-center ${
+                          selectedVoice === v.id
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-200 bg-white hover:border-green-300"
+                        }`}
+                      >
+                        <span className="text-xl">{v.flag}</span>
+                        <span className={`text-xs font-semibold leading-tight ${selectedVoice === v.id ? "text-green-700" : "text-gray-700"}`}>{v.label}</span>
+                        {selectedVoice === v.id && <span className="text-[10px] text-green-600 font-bold">Selected</span>}
+                      </button>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                <div className="border-t border-gray-100 pt-5 space-y-4">
+                  {[
+                    { label: "Company name", value: "Acme Construction Ltd" },
+                    { label: "Hiring locations", value: "London, Birmingham, Manchester" },
+                    { label: "Languages Sarah speaks", value: "English, Polish, Portuguese" },
+                    { label: "Business hours", value: "Mon–Fri 7am–7pm, Sat 8am–4pm" },
+                    { label: "After-hours behaviour", value: "Take voicemail, call back next day" },
+                  ].map((f) => (
+                    <div key={f.label}>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">{f.label}</label>
+                      <input defaultValue={f.value} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 focus:outline-none focus:border-green-400 transition-all" />
+                    </div>
+                  ))}
+                </div>
                 <Btn size="sm">Save changes</Btn>
               </div>
             </div>
@@ -1750,37 +2113,66 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
 
           {tab === "screening" && (
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-5">Screening Questions</h3>
-              <div className="space-y-2.5 mb-4">
-                {questions.map((q, i) => (
-                  <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                    <span className="text-base text-gray-800 flex-1">{q}</span>
-                    <button onClick={() => setQuestions((p) => p.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 transition-colors">
-                      <X size={14} />
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Screening Questions</h3>
+              <p className="text-sm text-gray-500 mb-5">Select a job to view and edit its screening questions.</p>
+
+              {/* Job selector */}
+              <div className="mb-5">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Job</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {jobNames.map((job) => (
+                    <button
+                      key={job}
+                      onClick={() => {
+                        setScreeningJob(job);
+                        setQuestions([...DEFAULT_QUESTIONS[job]]);
+                      }}
+                      className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                        screeningJob === job
+                          ? "border-green-500 bg-green-50 text-green-800"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-green-300"
+                      }`}
+                    >
+                      <Briefcase size={15} className={screeningJob === job ? "text-green-600" : "text-gray-400"} />
+                      <span className="text-sm font-semibold leading-tight">{job}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {screeningJob && (
+                <>
+                  <div className="space-y-2.5 mb-4">
+                    {questions.map((q, i) => (
+                      <div key={i} className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <span className="w-6 h-6 rounded-lg bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                        <span className="text-base text-gray-800 flex-1">{q}</span>
+                        <button onClick={() => setQuestions((p) => p.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      value={newQ}
+                      onChange={(e) => setNewQ(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); } }}
+                      placeholder="Add a new question…"
+                      className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all"
+                    />
+                    <button
+                      onClick={() => { if (newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); } }}
+                      className="bg-green-600 text-white rounded-xl px-4 py-3 hover:bg-green-700 transition-all"
+                    >
+                      <Plus size={18} />
                     </button>
                   </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  value={newQ}
-                  onChange={(e) => setNewQ(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newQ.trim()) {
-                      setQuestions((p) => [...p, newQ.trim()]); setNewQ("");
-                    }
-                  }}
-                  placeholder="Add a new question…"
-                  className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all"
-                />
-                <button
-                  onClick={() => { if (newQ.trim()) { setQuestions((p) => [...p, newQ.trim()]); setNewQ(""); } }}
-                  className="bg-green-600 text-white rounded-xl px-4 py-3 hover:bg-green-700 transition-all"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
+                  <div className="mt-4">
+                    <Btn size="sm">Save questions for {screeningJob}</Btn>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
