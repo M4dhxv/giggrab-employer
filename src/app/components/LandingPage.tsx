@@ -621,12 +621,8 @@ export default function LandingPage({
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <button
-              onClick={startHiring}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--em)', color: '#fff', border: 'none', fontFamily: 'inherit', fontSize: '.82rem', fontWeight: 700, padding: '9px 18px', borderRadius: 12, cursor: 'pointer', transition: '.18s' }}
-            >
-              Request a callback
-            </button>
+            <button className="login" onClick={() => navigate('/worker')}>For workers</button>
+            <button className="login">Log in</button>
           </div>
         </div>
       </header>
