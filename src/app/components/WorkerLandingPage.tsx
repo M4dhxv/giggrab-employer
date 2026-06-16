@@ -76,7 +76,7 @@ export default function WorkerLandingPage() {
             {/* Nav links */}
             <nav className="flex items-center gap-6">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/employer')}
                 className="text-white/75 hover:text-white text-sm font-medium transition-colors"
               >
                 For Employers
