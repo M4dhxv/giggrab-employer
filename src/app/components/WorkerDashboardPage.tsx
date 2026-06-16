@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Phone, Check, Search, X, ChevronDown, Star } from 'lucide-react';
+import { Phone, Check, Search, X, Star, ArrowRight } from 'lucide-react';
 import { WorkerHeader } from './WorkerLandingPage';
 
 /*
@@ -27,6 +27,9 @@ type Job = {
   why: string;
   description: string;
   mustHaves: string[];
+  mustHavesMet: boolean[];
+  cvStrengths: string[];
+  cvGaps: string[];
   tags: LocationFilter[];
   typeTag: TypeFilter[];
 };
@@ -39,6 +42,9 @@ const JOBS: Job[] = [
     why: 'Exact trade + valid counterbalance licence, 8 min from you, nights you said you prefer.',
     description: 'Operating counterbalance forklifts in a busy distribution centre. Nights team, permanent contract, overtime available.',
     mustHaves: ['Valid counterbalance licence', 'Steel-toe boots'],
+    mustHavesMet: [true, false],
+    cvStrengths: ['Counterbalance licence — exact match on the core requirement', '6 years warehouse & forklift experience at DHL and XPO', 'Night-shift availability stated on your profile', 'Trafford Park is 8 min from your listed location'],
+    cvGaps: ['Steel-toe boots not listed — easy to add if you have them'],
     tags: ['near'], typeTag: ['fulltime', 'nights'],
   },
   {
@@ -48,6 +54,9 @@ const JOBS: Job[] = [
     why: 'Same role as your last job at DHL — picking & loading experience maps directly.',
     description: 'Picking, packing, and loading in a temperature-controlled warehouse. Rotating shifts, permanent role.',
     mustHaves: ['Warehouse experience', 'Reliable attendance'],
+    mustHavesMet: [true, true],
+    cvStrengths: ['2 years at DHL doing exactly this role — picking, packing, loading', 'Counterbalance licence adds extra value beyond the job spec', 'No zero-hours preference matches their permanent contract offer'],
+    cvGaps: ['Rotating shifts not explicitly mentioned — worth clarifying you\'re open to them'],
     tags: ['near'], typeTag: ['fulltime'],
   },
   {
@@ -57,6 +66,9 @@ const JOBS: Job[] = [
     why: 'You drove reach trucks at XPO before — strong fit and pay above your stated floor.',
     description: 'Day shift reach truck driving in a high-bay warehouse. Permanent contract with pension.',
     mustHaves: ['Reach truck licence', 'MHE experience'],
+    mustHavesMet: [false, true],
+    cvStrengths: ['XPO Logistics experience — you\'ve worked at this exact employer', 'Reach truck operation listed in your XPO role (2019–2023)', '£14/hr exceeds your stated £13/hr floor', 'Inbound goods and stock replenishment matches the spec exactly'],
+    cvGaps: ['Reach truck licence not listed separately on CV — clarify if still valid, as it may have expired since XPO'],
     tags: ['near'], typeTag: ['fulltime'],
   },
   {
@@ -66,6 +78,9 @@ const JOBS: Job[] = [
     why: 'Night shift preference matched, consistent guaranteed hours, no zero-hours.',
     description: 'Part-time nights in a fulfilment centre. Fixed hours, weekly pay, no zero-hours contract.',
     mustHaves: ['Flexible nights availability'],
+    mustHavesMet: [true],
+    cvStrengths: ['Night-shift availability stated — matches the shift pattern exactly', 'No zero-hours requirement matches their fixed-hours guarantee', 'Warehouse picking experience from DHL role'],
+    cvGaps: ['No Amazon induction records or fulfilment-centre-specific certs on CV', 'Haydock is at the edge of your 30-min travel range — worth flagging'],
     tags: [], typeTag: ['parttime', 'nights'],
   },
   {
@@ -75,6 +90,9 @@ const JOBS: Job[] = [
     why: 'Within your travel range and weekend hours match your availability.',
     description: 'Receiving and checking inbound stock at a modern fulfilment centre. Weekend shifts, part-time.',
     mustHaves: [],
+    mustHavesMet: [],
+    cvStrengths: ['Weekend availability listed on your profile', 'General warehouse experience is transferable to goods-in work'],
+    cvGaps: ['No goods-in or stock-receiving experience specifically mentioned on CV', 'COSHH or inbound handling awareness not listed — common in goods-in roles'],
     tags: [], typeTag: ['parttime'],
   },
   {
@@ -84,6 +102,9 @@ const JOBS: Job[] = [
     why: 'Flexible hours, pays above your floor, van provided. No forklift needed.',
     description: 'Parcel delivery driver on Manchester routes. Van provided, flexible start times, self-employed basis.',
     mustHaves: ['Full UK driving licence', 'Own phone'],
+    mustHavesMet: [false, true],
+    cvStrengths: ['Pay ceiling of £17/hr is well above your £13/hr floor', 'Flexible start times match your stated availability', 'Manchester routes are local to your location'],
+    cvGaps: ['Full UK driving licence not listed on your CV — add it if you have one', 'No delivery or van driving experience in your work history'],
     tags: ['remote'], typeTag: ['fulltime'],
   },
 ];
@@ -100,8 +121,8 @@ export default function WorkerDashboardPage() {
   const [viewFilter, setView] = useState<ViewFilter>('all');
   const [applied, setApplied] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [scores, setScores] = useState<Set<string>>(new Set());
+  const [detailJob, setDetailJob] = useState<Job | null>(null);
 
   const list = useMemo(() => {
     let out = JOBS;
@@ -121,7 +142,6 @@ export default function WorkerDashboardPage() {
 
   const apply = (id: string) => setApplied(prev => new Set([...prev, id]));
   const toggleSaved = (id: string) => setSaved(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
-  const toggleExpanded = (id: string) => setExpanded(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const toggleScore = (id: string) => setScores(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
 
   const modeBanner = (() => {
@@ -223,7 +243,6 @@ export default function WorkerDashboardPage() {
                 {list.map(job => {
                   const isApplied = applied.has(job.id);
                   const isSaved = saved.has(job.id);
-                  const isExpanded = expanded.has(job.id);
                   const hasScore = scores.has(job.id);
                   return (
                     <article
@@ -262,8 +281,8 @@ export default function WorkerDashboardPage() {
                           <a href={`tel:${HOTLINE.replace(/\s/g, '')}`} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 sm:flex-initial">
                             <Phone className="w-3.5 h-3.5" /> Call
                           </a>
-                          <button onClick={() => toggleExpanded(job.id)} className="inline-flex h-10 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 sm:flex-initial">
-                            {isExpanded ? 'Hide' : 'View details'} <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          <button onClick={() => setDetailJob(job)} className="inline-flex h-10 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 sm:flex-initial">
+                            View details <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                           {!hasScore && (
                             <button onClick={() => toggleScore(job.id)} className="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-emerald-100 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800 sm:flex-initial">
@@ -293,23 +312,6 @@ export default function WorkerDashboardPage() {
                         </div>
                       )}
 
-                      {/* Expanded details */}
-                      {isExpanded && (
-                        <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white p-4 space-y-4 text-sm gg-in">
-                          <DetailRow label="Role" value={job.description} />
-                          {job.mustHaves.length > 0 && (
-                            <div>
-                              <p className="font-mono text-[10px] font-semibold uppercase text-gray-400 tracking-wider mb-1.5">Must-haves</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {job.mustHaves.map(m => (
-                                  <span key={m} className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800">{m}</span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       {/* Applied confirmation */}
                       {isApplied && (
                         <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3.5 py-3 text-sm text-emerald-900 gg-in">
@@ -324,6 +326,123 @@ export default function WorkerDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Job detail modal */}
+      {detailJob && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 gg-in" onClick={() => setDetailJob(null)}>
+          <div
+            className="bg-white w-full sm:max-w-2xl sm:rounded-2xl max-h-[92vh] overflow-y-auto shadow-2xl"
+            style={{ borderRadius: '1.25rem 1.25rem 0 0' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Sticky header */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10" style={{ borderRadius: '1.25rem 1.25rem 0 0' }}>
+              <div>
+                <h2 className="font-bold text-gray-900 text-base leading-tight">{detailJob.title}</h2>
+                <p className="text-sm text-gray-500">{detailJob.company}</p>
+              </div>
+              <button onClick={() => setDetailJob(null)} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Meta card */}
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                <span>{detailJob.location}</span>
+                <span className="text-gray-300">·</span>
+                <span className="font-semibold text-gray-900">{detailJob.pay}</span>
+                <span className="text-gray-300">·</span>
+                <span>{detailJob.shift}</span>
+                {detailJob.source === 'giggrab' && <span className="ml-auto rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800">GigGrab exclusive</span>}
+              </div>
+
+              {/* Match score + why */}
+              <div className="rounded-xl border border-emerald-100 bg-white p-4 flex items-start gap-4">
+                <ScoreRing value={detailJob.matchPct} size={64} />
+                <div>
+                  <p className="font-mono text-[10px] font-semibold uppercase text-gray-400 tracking-wider mb-1">Why you match</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{detailJob.why}</p>
+                </div>
+              </div>
+
+              {/* Two-column: strengths + gaps */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 mb-3">Your CV stands out here</p>
+                  <ul className="space-y-2">
+                    {detailJob.cvStrengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-emerald-900">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-amber-700 mb-3">What you're missing</p>
+                  {detailJob.cvGaps.length > 0 ? (
+                    <ul className="space-y-2">
+                      {detailJob.cvGaps.map((g, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-amber-900">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                          {g}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-amber-700">Nothing significant — you meet all requirements.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Role description */}
+              <div className="rounded-xl border border-gray-100 bg-white p-4">
+                <p className="font-mono text-[10px] font-semibold uppercase text-gray-400 tracking-wider mb-2">Role</p>
+                <p className="text-sm text-gray-700 leading-relaxed">{detailJob.description}</p>
+              </div>
+
+              {/* Must-haves checklist */}
+              {detailJob.mustHaves.length > 0 && (
+                <div className="rounded-xl border border-gray-100 bg-white p-4">
+                  <p className="font-mono text-[10px] font-semibold uppercase text-gray-400 tracking-wider mb-3">Must-haves</p>
+                  <div className="space-y-2">
+                    {detailJob.mustHaves.map((m, i) => {
+                      const met = detailJob.mustHavesMet[i];
+                      return (
+                        <div key={m} className={`flex items-center gap-2.5 text-sm rounded-lg px-3 py-2 ${met ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}>
+                          {met
+                            ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            : <span className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 shrink-0" />
+                          }
+                          <span>{m}</span>
+                          {!met && <span className="ml-auto text-[11px] text-amber-600 font-medium">Add to profile</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-3 pt-1">
+                {applied.has(detailJob.id) ? (
+                  <span className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-bold text-white" style={{ background: '#059669' }}>
+                    <Check className="w-4 h-4" /> Applied
+                  </span>
+                ) : (
+                  <button onClick={() => { apply(detailJob.id); setDetailJob(null); }} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition-all" style={{ background: '#10b981' }}>
+                    Apply now <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
+                <a href={`tel:${HOTLINE.replace(/\s/g, '')}`} className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700">
+                  <Phone className="w-4 h-4" /> Call Sarah
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

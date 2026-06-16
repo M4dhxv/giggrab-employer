@@ -630,30 +630,27 @@ export default function LandingPage({
       {/* HERO — recruiter hotline */}
       <section className="wrap hero">
         <div className="hgrid">
-          {/* left: headline above hotline card */}
+          {/* left: headline + CTA */}
           <div>
-            <span className="kicker"><span className="d" />Recruiter hotline · Qualified worker pool</span>
+            <span className="kicker"><span className="d" />AI hiring agent · Qualified worker pool</span>
 
-            <h1>Call this number.<br /><span className="g">We staff your role.</span></h1>
+            <h1>Post a job.<br /><span className="g">Sarah staffs it.</span></h1>
             <p className="sub">
-              No job ads. No CV piles. Talk to Sarah for five minutes — she writes
-              the job spec, <b>calls qualified workers</b>, and sends you a ranked
+              No job boards. No CV piles. Tell Sarah what you need — she writes
+              the job spec, <b>calls and qualifies workers</b>, and delivers a ranked
               shortlist within hours.
             </p>
 
-            <div className="hcard">
-              <div className="hlabel"><span className="ld" />24/7 recruiter hotline</div>
-              <div className="hnum">+44 20 4571 8821</div>
-              <div className="hbtns">
-                <button className="cta" onClick={startHiring}>
-                  Request a callback <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
-                </button>
-              </div>
-              <div className="hmeta">
-                <span><Globe size={13} />32 languages</span>
-                <span><Check size={13} />Free to call</span>
-                <span><Zap size={13} />Avg. 5-min intake</span>
-              </div>
+            <div className="cta-row">
+              <button className="cta" onClick={startHiring}>
+                Post a job <span className="arr" style={{ width: 34, height: 34 }}><ArrowRight size={15} strokeWidth={2.5} /></span>
+              </button>
+            </div>
+            <p className="trust">Free to start · Sarah calls you back in seconds</p>
+            <div className="hmeta" style={{ marginTop: 20, paddingTop: 0, borderTop: 'none' }}>
+              <span><Globe size={13} />32 languages</span>
+              <span><Check size={13} />No subscription</span>
+              <span><Zap size={13} />Avg. 5-min intake</span>
             </div>
           </div>
 

@@ -91,10 +91,35 @@ export default function CreateJobPage() {
             <div className="w-14 h-14 rounded-2xl bg-[#10b981]/10 flex items-center justify-center mx-auto mb-5">
               <PhoneCall className="w-7 h-7 text-[#10b981]" />
             </div>
-            <h1 className="text-3xl mb-2">Sarah will call you</h1>
+            <h1 className="text-3xl mb-2">Post a job with Sarah</h1>
             <p className="text-gray-500">
-              Drop your number — Sarah calls back in seconds and writes your job spec while you talk.
+              Drop your number and Sarah calls you back in seconds — she writes your job spec while you talk.
             </p>
+          </div>
+
+          {/* Direct call option */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm mb-4 gg-in gg-d1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Or call Sarah directly</p>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <a
+                href="tel:+442045718821"
+                className="text-2xl font-extrabold tracking-tight text-gray-900 hover:text-[#10b981] transition-colors"
+                style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '.02em' }}
+              >
+                +44 20 4571 8821
+              </a>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#059669] bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                Live 24/7
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Sarah answers — tell her the role and she gets started immediately.</p>
+          </div>
+
+          <div className="flex items-center gap-3 my-4 gg-in gg-d1">
+            <span className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs font-medium text-gray-400">or request a callback</span>
+            <span className="flex-1 h-px bg-gray-200" />
           </div>
 
           <form onSubmit={requestCallback} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm gg-in gg-d2">

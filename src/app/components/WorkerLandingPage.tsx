@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import {
   ArrowRight, Phone, Mic, Sparkles, Send,
   HardHat, Package, Heart, UtensilsCrossed, Truck, Sparkle,
@@ -185,6 +185,8 @@ export default function WorkerLandingPage() {
 
 export function WorkerHeader() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isLoggedIn = location.pathname === '/worker/dashboard' || location.pathname.startsWith('/worker/profile');
   return (
     <header className="bg-white/85 backdrop-blur border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
@@ -195,8 +197,14 @@ export function WorkerHeader() {
           <span className="text-gray-900 font-bold text-base tracking-tight">GigGrab for Workers</span>
         </button>
         <div className="flex items-center gap-1">
-          <button onClick={() => navigate('/employer')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>
-          <button onClick={() => navigate('/worker/dashboard')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log in</button>
+          {isLoggedIn ? (
+            <button onClick={() => navigate('/')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log out</button>
+          ) : (
+            <>
+              <button onClick={() => navigate('/employer')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>
+              <button onClick={() => navigate('/worker/dashboard')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log in</button>
+            </>
+          )}
         </div>
       </div>
     </header>

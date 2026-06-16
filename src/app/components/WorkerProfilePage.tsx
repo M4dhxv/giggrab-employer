@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Phone, Download, ArrowRight, RefreshCw } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router';
+import { Phone, Download, ArrowRight, RefreshCw, PhoneIncoming, FileText } from 'lucide-react';
 import { WorkerHeader } from './WorkerLandingPage';
 
 /*
@@ -38,6 +38,8 @@ const PROFILE = {
 
 export default function WorkerProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isCvUpload = searchParams.get('via') === 'cv';
   const [turns, setTurns] = useState<Turn[]>(INITIAL_TURNS);
   const [extras, setExtras] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
@@ -71,8 +73,18 @@ export default function WorkerProfilePage() {
           </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2" style={{ minHeight: 560 }}>
-          {/* Conversation pane */}
+        {isCvUpload && (
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 gg-in">
+            <FileText className="w-4 h-4 text-[#059669] shrink-0" />
+            <p className="text-sm text-emerald-900">
+              <strong>Profile extracted from your CV</strong> · Structured by Sarah AI · Add anything missing below
+            </p>
+          </div>
+        )}
+
+        <div className={`grid gap-6 ${isCvUpload ? '' : 'lg:grid-cols-2'}`} style={{ minHeight: 560 }}>
+          {/* Conversation pane — only for phone-call users */}
+          {!isCvUpload && (
           <section className="flex flex-col rounded-2xl border border-gray-200 bg-white gg-in gg-d1">
             <header className="border-b border-gray-100 px-6 py-4">
               <h2 className="text-sm font-semibold text-gray-900">Conversation</h2>
@@ -101,6 +113,7 @@ export default function WorkerProfilePage() {
               </div>
             </form>
           </section>
+          )}
 
           {/* CV preview pane */}
           <section className="flex flex-col rounded-2xl border border-gray-200 bg-white gg-in gg-d2">
@@ -170,12 +183,20 @@ export default function WorkerProfilePage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3 gg-in">
-          <button onClick={() => navigate('/worker/start')} className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
-            <RefreshCw className="w-4 h-4" /> Call again
-          </button>
-          <a href="tel:+442045718822" className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
-            <Phone className="w-4 h-4" /> Talk to Sarah
-          </a>
+          {isCvUpload ? (
+            <button onClick={() => navigate('/worker/start')} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800 hover:border-emerald-300 transition-all">
+              <PhoneIncoming className="w-4 h-4" /> Request a callback from Sarah to update CV
+            </button>
+          ) : (
+            <>
+              <button onClick={() => navigate('/worker/start')} className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
+                <RefreshCw className="w-4 h-4" /> Call again
+              </button>
+              <a href="tel:+442045718822" className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
+                <Phone className="w-4 h-4" /> Talk to Sarah
+              </a>
+            </>
+          )}
         </div>
       </main>
     </div>
