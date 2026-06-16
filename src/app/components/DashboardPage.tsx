@@ -1142,7 +1142,11 @@ export default function DashboardPage() {
         )}
         {view === 'candidates' && (
           <CandidatesView
-            candidates={candidatePool}
+            candidates={filteredCandidates}
+            allCandidates={candidatePool}
+            jobs={jobs}
+            selectedJobId={selectedJobId}
+            onSelectJob={id => { setSelectedJobId(id); setStatusFilter('All'); setSearch(''); }}
             statusFilter={statusFilter} onStatusFilter={setStatusFilter}
             search={search} onSearch={setSearch}
             onOpenCandidate={openProfile}
@@ -1711,8 +1715,10 @@ function JobsView({ jobs, onToggleStatus, onSelectJob, onStartCampaign }: {
 
 // ─── Candidates view ─────────────────────────────────────────────────────────
 
-function CandidatesView({ candidates, statusFilter, onStatusFilter, search, onSearch, onOpenCandidate }: {
-  candidates: Candidate[]; statusFilter: string; onStatusFilter: (s: string) => void;
+function CandidatesView({ candidates, allCandidates, jobs, selectedJobId, onSelectJob, statusFilter, onStatusFilter, search, onSearch, onOpenCandidate }: {
+  candidates: Candidate[]; allCandidates: Candidate[]; jobs: Job[];
+  selectedJobId: string; onSelectJob: (id: string) => void;
+  statusFilter: string; onStatusFilter: (s: string) => void;
   search: string; onSearch: (s: string) => void; onOpenCandidate: (c: Candidate) => void;
 }) {
   const filtered = candidates.filter(c => {
@@ -1722,10 +1728,26 @@ function CandidatesView({ candidates, statusFilter, onStatusFilter, search, onSe
 
   return (
     <div className="flex-1 px-8 py-7">
+      {/* Job chips */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
+        {jobs.map(job => {
+          const active = job.id === selectedJobId;
+          const count = allCandidates.filter(c => c.jobId === job.id).length;
+          return (
+            <button key={job.id} onClick={() => onSelectJob(job.id)}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition-all shrink-0"
+              style={{ backgroundColor: active ? '#f0fdf4' : '#fff', borderColor: active ? '#10b981' : '#e5e7eb', color: active ? '#059669' : '#6b7280', fontWeight: active ? 700 : 500 }}
+            >
+              {job.title} <span style={{ color: active ? '#15803d' : '#9ca3af', fontWeight: 600 }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-gray-900 mb-0.5" style={{ fontSize: '1.35rem', fontWeight: 700 }}>Candidates</h1>
-          <p className="text-sm text-gray-400">{filtered.length} candidates</p>
+          <p className="text-sm text-gray-400">{filtered.length} for <span style={{ fontWeight: 600, color: '#10b981' }}>{jobs.find(j => j.id === selectedJobId)?.title ?? 'all roles'}</span></p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">

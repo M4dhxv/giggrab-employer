@@ -1325,7 +1325,7 @@ function DashboardShell({
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className="flex-1 overflow-hidden min-h-0">{children}</div>
       </div>
     </div>
   );
@@ -1342,34 +1342,20 @@ const ACTIVITY_META: Record<string, { cls: string; icon: React.ReactNode }> = {
   sarah: { cls: "bg-green-100 text-green-700", icon: <Mic size={13} /> },
 };
 
-function DashboardHome({ atsName }: { atsName: string | null }) {
+function DashboardHome({
+  selectedJobName,
+  onSelectJob,
+}: {
+  selectedJobName: string;
+  onSelectJob: (job: string) => void;
+}) {
+  const [chatInput, setChatInput] = useState("");
   const [activity, setActivity] = useState<ActivityItem[]>(INITIAL_ACTIVITY);
-  const [running, setRunning] = useState<string | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<typeof CANDIDATES_DATA[number] | null>(null);
 
-  const handleAction = (key: string) => {
-    if (running) return;
-    setRunning(key);
-    const seq = SARAH_ACTION_SEQUENCES[key];
-    const id = Date.now().toString();
-
-    seq.forEach(({ text, delay, running: r }, i) => {
-      setTimeout(() => {
-        setActivity((prev) => {
-          const filtered = prev.filter((a) => !a.running);
-          const newItem: ActivityItem = { id: `${id}-${i}`, text, time: "Just now", type: "sarah", running: r };
-          return [newItem, ...filtered];
-        });
-        if (!r) setRunning(null);
-      }, delay);
-    });
-  };
-
-  const ACTIONS = [
-    { key: "call-top", label: "Call Top Candidates", icon: <PhoneCall size={15} /> },
-    { key: "find-more", label: "Find More Candidates", icon: <Search size={15} /> },
-    { key: "reactivate", label: "Reactivate Candidates", icon: <RefreshCw size={15} /> },
-    { key: "schedule", label: "Schedule Interviews", icon: <Calendar size={15} /> },
-  ];
+  const filteredCandidates = [...CANDIDATES_DATA]
+    .filter((c) => c.job === selectedJobName)
+    .sort((a, b) => b.score - a.score);
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
     "interview-ready": { label: "Interview Ready", cls: "bg-green-100 text-green-700" },
@@ -1377,56 +1363,94 @@ function DashboardHome({ atsName }: { atsName: string | null }) {
     screening: { label: "Screening", cls: "bg-amber-100 text-amber-700" },
   };
 
+  const handleSend = () => {
+    if (!chatInput.trim()) return;
+    const text = chatInput.trim();
+    setChatInput("");
+    const id = Date.now().toString();
+    setActivity((prev) => [
+      { id, text: `Sarah: processing "${text}"…`, time: "Just now", type: "sarah", running: true },
+      ...prev,
+    ]);
+    setTimeout(() => {
+      setActivity((prev) =>
+        prev.map((a) =>
+          a.id === id ? { ...a, running: false, text: `Done: "${text}" — 3 candidates found` } : a
+        )
+      );
+    }, 2000);
+  };
+
   return (
-    <div className="p-4 sm:p-6 space-y-5">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        {[
-          { label: "Sarah Status", value: "Active", sub: "Hotline live · 24/7", icon: <Mic size={18} />, iconCls: "bg-green-100 text-green-600", trend: "Online" },
-          { label: "Calls Today", value: "34", sub: "+12 from yesterday", icon: <PhoneCall size={18} />, iconCls: "bg-blue-100 text-blue-600", trend: "+54%" },
-          { label: "Qualified Today", value: "6", sub: "of 14 screened", icon: <Users size={18} />, iconCls: "bg-purple-100 text-purple-600", trend: "43%" },
-          { label: "Interview Ready", value: "2", sub: "Scheduled tomorrow", icon: <Star size={18} />, iconCls: "bg-amber-100 text-amber-600", trend: "↑ 2" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-sm transition-shadow">
-            <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.iconCls}`}>{s.icon}</div>
-              <span className="text-xs font-bold text-green-700 bg-green-50 px-2 py-1 rounded-full">{s.trend}</span>
-            </div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
-            <div className="text-sm font-semibold text-gray-500">{s.label}</div>
-            <div className="text-xs text-green-600 mt-1">{s.sub}</div>
-          </div>
-        ))}
+    <div className="h-full flex flex-col min-h-0 bg-[#F9FAFB]">
+      {selectedCandidate && (
+        <CandidateDetail c={selectedCandidate} onClose={() => setSelectedCandidate(null)} />
+      )}
+
+      {/* Greeting */}
+      <div className="px-6 pt-5 pb-3 shrink-0">
+        <h1 className="text-lg font-bold text-gray-900 mb-0.5">Good morning, Alex 👋</h1>
+        <p className="text-sm text-gray-400">
+          Sarah is live on your hotline — {JOBS_DATA.filter((j) => j.qualified > 0).length} active roles with candidates ready.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-5">
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <Users size={16} className="text-gray-500" />
-              Candidate Pipeline
-            </h2>
-            <div className="flex items-center gap-1.5">
-              {[{ label: "Best match" }, { label: "Interview ready" }, { label: "Recently qualified" }].map((f) => (
-                <span key={f.label} className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{f.label}</span>
-              ))}
-            </div>
-          </div>
+      {/* Job chips */}
+      <div className="flex gap-2 overflow-x-auto px-6 pb-3 shrink-0">
+        {JOBS_DATA.map((job) => {
+          const active = job.title === selectedJobName;
+          const count = CANDIDATES_DATA.filter((c) => c.job === job.title).length;
+          return (
+            <button
+              key={job.id}
+              onClick={() => onSelectJob(job.title)}
+              className="flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs whitespace-nowrap transition-all shrink-0"
+              style={{
+                backgroundColor: active ? "#f0fdf4" : "#fff",
+                borderColor: active ? "#16A34A" : "#e5e7eb",
+                color: active ? "#15803d" : "#6b7280",
+                fontWeight: active ? 700 : 500,
+              }}
+            >
+              {job.title}
+              <span style={{ color: active ? "#15803d" : "#9ca3af", fontWeight: 600 }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
 
-          <div className="divide-y divide-gray-50">
-            {CANDIDATES_DATA.slice(0, 6).map((c) => {
-              const sm = statusMeta[c.status];
+      {/* Candidate list */}
+      <div className="flex-1 min-h-0 mx-6 flex flex-col bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
+          <span className="text-sm font-bold text-gray-900">
+            Matched candidates
+            <span className="text-gray-300 ml-1.5 font-normal">{filteredCandidates.length}</span>
+          </span>
+          <span className="text-xs text-gray-400 flex items-center gap-1">
+            <Briefcase size={12} /> {selectedJobName}
+          </span>
+        </div>
+        <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+          {filteredCandidates.length === 0 ? (
+            <div className="py-16 text-center text-sm text-gray-400">No candidates matched for this role yet.</div>
+          ) : (
+            filteredCandidates.map((c) => {
+              const sm = statusMeta[c.status as keyof typeof statusMeta];
               return (
-                <div key={c.name} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer group">
+                <div
+                  key={c.id}
+                  onClick={() => setSelectedCandidate(c)}
+                  className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors cursor-pointer group"
+                >
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: c.color }}>
                     {c.initials}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                       <span className="text-sm font-bold text-gray-900">{c.name}</span>
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${sm.cls}`}>{sm.label}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>{c.role}</span>
+                    <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1"><Clock size={10} />{c.availability}</span>
                       <span>{c.languages.join(", ")}</span>
                       {c.qualifications.map((q) => (
@@ -1441,77 +1465,38 @@ function DashboardHome({ atsName }: { atsName: string | null }) {
                   <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500 flex-shrink-0 transition-colors" />
                 </div>
               );
-            })}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <h2 className="text-sm font-bold text-gray-900">Sarah Actions</h2>
-            </div>
-            <div className="p-3 space-y-2">
-              {ACTIONS.map((a) => (
-                <button
-                  key={a.key}
-                  onClick={() => handleAction(a.key)}
-                  disabled={!!running}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-3 rounded-xl border text-sm font-semibold transition-all text-left ${
-                    running === a.key
-                      ? "border-green-400 bg-green-50 text-green-700"
-                      : "border-gray-200 text-gray-700 hover:border-green-300 hover:bg-green-50 hover:text-green-700 disabled:opacity-50"
-                  }`}
-                >
-                  {running === a.key
-                    ? <div className="w-4 h-4 rounded-full border-2 border-green-600 border-t-transparent animate-spin flex-shrink-0" />
-                    : <span className="flex-shrink-0">{a.icon}</span>
-                  }
-                  {a.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
-              <Activity size={14} className="text-green-600" />
-              <h2 className="text-sm font-bold text-gray-900">Sarah Activity</h2>
-            </div>
-            <div className="p-3 space-y-3 max-h-64 overflow-y-auto">
-              {activity.map((item) => {
-                const meta = ACTIVITY_META[item.type] ?? ACTIVITY_META.sarah;
-                return (
-                  <div key={item.id} className={`flex items-start gap-2.5 ${item.running ? "opacity-70" : ""}`}>
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${meta.cls}`}>
-                      {item.running
-                        ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        : meta.icon
-                      }
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-800 leading-snug font-medium">{item.text}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{item.time}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {atsName && (
-            <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-bold text-gray-700">{atsName}</span>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-xs text-green-600 font-semibold">Connected</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400">Last synced 2 minutes ago</p>
-            </div>
+            })
           )}
         </div>
+      </div>
+
+      {/* Agent command bar */}
+      <div className="px-6 py-3 shrink-0">
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3 focus-within:border-green-500 transition-all shadow-sm">
+          <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+            <Mic size={10} className="text-white" />
+          </div>
+          <input
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder='Tell Sarah what to do — "call top candidates", "find more in Manchester"…'
+            className="flex-1 text-sm outline-none text-gray-700 placeholder:text-gray-400 bg-transparent"
+          />
+          <button
+            onClick={handleSend}
+            disabled={!chatInput.trim()}
+            className="w-7 h-7 rounded-lg bg-green-600 text-white flex items-center justify-center disabled:opacity-30 hover:bg-green-700 transition-all"
+          >
+            <Send size={13} />
+          </button>
+        </div>
+        {activity[0]?.running && (
+          <p className="text-xs text-green-700 mt-2 flex items-center gap-1.5 px-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            {activity[0].text}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1519,12 +1504,67 @@ function DashboardHome({ atsName }: { atsName: string | null }) {
 
 // ─── Dashboard: Jobs ─────────────────────────────────────────
 
-function JobsPage() {
+function JobsPage({ onSelectJob }: { onSelectJob: (job: string) => void }) {
   const categories = [...new Set(JOBS_DATA.map((j) => j.category))];
   const [filter, setFilter] = useState("All");
+  const [postJobOpen, setPostJobOpen] = useState(false);
+  const [postPhone, setPostPhone] = useState("");
+  const [postLang, setPostLang] = useState("en-GB");
+  const [postStep, setPostStep] = useState<"form" | "calling">("form");
   const filtered = filter === "All" ? JOBS_DATA : JOBS_DATA.filter((j) => j.category === filter);
 
   return (
+    <div className="h-full overflow-y-auto">
+    {postJobOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => { setPostJobOpen(false); setPostStep("form"); }}>
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">Post a new job with Sarah</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Sarah calls you to define the role and screening criteria.</p>
+            </div>
+            <button onClick={() => { setPostJobOpen(false); setPostStep("form"); }} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+          </div>
+          {postStep === "form" ? (
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Your phone number</label>
+                <input type="tel" value={postPhone} onChange={(e) => setPostPhone(e.target.value)} placeholder="+44 7700 900000" className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Call language</label>
+                <select value={postLang} onChange={(e) => setPostLang(e.target.value)} className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all bg-white">
+                  {CALL_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                </select>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800 space-y-1.5">
+                <p className="font-semibold">What happens on the call:</p>
+                {["Sarah asks about the role requirements", "She builds screening questions per role", "Your job goes live in minutes — no form to fill"].map((s) => (
+                  <div key={s} className="flex items-center gap-2"><Check size={13} className="text-green-600" />{s}</div>
+                ))}
+              </div>
+              <button
+                onClick={() => postPhone.trim() && setPostStep("calling")}
+                disabled={!postPhone.trim()}
+                className="w-full bg-green-600 text-white rounded-xl py-3.5 font-semibold hover:bg-green-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+              >
+                <Phone size={16} /> Call me now
+              </button>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center mx-auto mb-5 shadow-xl shadow-green-600/25 relative">
+                <Phone size={26} className="text-white" />
+                <span className="absolute inset-0 rounded-full border-2 border-green-400 animate-ping" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Sarah is calling you</h3>
+              <p className="text-base text-gray-500">Calling <span className="font-semibold text-gray-800">{postPhone}</span> — pick up and describe your new role.</p>
+              <button onClick={() => { setPostJobOpen(false); setPostStep("form"); }} className="mt-6 text-sm text-gray-500 hover:text-gray-900">Done</button>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
     <div className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
@@ -1532,6 +1572,12 @@ function JobsPage() {
           <p className="text-base text-gray-500 mt-0.5">Imported from your ATS · {JOBS_DATA.length} roles</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setPostJobOpen(true)}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition-all"
+          >
+            <Plus size={15} /> Post new job with Sarah
+          </button>
           {["All", ...categories].map((c) => (
             <button
               key={c}
@@ -1548,7 +1594,7 @@ function JobsPage() {
 
       <div className="space-y-3">
         {filtered.map((job) => (
-          <div key={job.id} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-sm transition-shadow cursor-pointer group">
+          <div key={job.id} onClick={() => onSelectJob(job.title)} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-sm transition-shadow cursor-pointer group">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-1.5">
@@ -1560,7 +1606,7 @@ function JobsPage() {
                   <span className="flex items-center gap-1.5"><Hash size={14} />{job.openings} openings</span>
                   <span className="flex items-center gap-1.5"><Clock size={14} />Last activity {job.lastActivity}</span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3.5 py-2">
                     <Users size={14} className="text-green-600" />
                     <span className="text-sm font-bold text-green-700">{job.qualified} qualified</span>
@@ -1580,6 +1626,7 @@ function JobsPage() {
         ))}
       </div>
     </div>
+    </div>
   );
 }
 
@@ -1588,104 +1635,109 @@ function JobsPage() {
 type Candidate = typeof CANDIDATES_DATA[number];
 
 function CandidateDetail({ c, onClose }: { c: Candidate; onClose: () => void }) {
-  const [detailTab, setDetailTab] = useState<"summary" | "score" | "transcript">("summary");
+  const [detailTab, setDetailTab] = useState<"summary" | "score" | "transcript" | "resume">("summary");
+
+  const statusLabel = c.status === "interview-ready" ? "Interview Ready" : c.status === "qualified" ? "Qualified" : "Screening";
+  const statusCls = c.status === "interview-ready" ? "bg-green-100 text-green-700" : c.status === "qualified" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700";
+
+  // AI-generated resume block based on candidate data
+  const aiResume = {
+    headline: `${c.role} — ${c.languages.join(" / ")} speaker`,
+    about: c.summary,
+    experience: [
+      { title: c.role, company: "Previous employer", period: "2022–Present", bullets: (c.scoreReasons ?? []).slice(0, 3).map((r) => r.replace(" ✓", "")) },
+    ],
+    skills: [...c.qualifications, ...c.languages, "Reliable", "Team player"],
+    availability: c.availability,
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={onClose}>
-      <div
-        className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+
         {/* Header */}
-        <div className="flex items-center gap-4 p-5 border-b border-gray-100">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ backgroundColor: c.color }}>
+        <div className="flex items-start gap-4 p-5 border-b border-gray-100">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0" style={{ backgroundColor: c.color }}>
             {c.initials}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-lg font-bold text-gray-900">{c.name}</span>
-              <span className="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">
-                {c.status === "interview-ready" ? "Interview Ready" : c.status === "qualified" ? "Qualified" : "Screening"}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="text-xl font-bold text-gray-900">{c.name}</span>
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusCls}`}>{statusLabel}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5 flex-wrap">
-              <span className="flex items-center gap-1"><Briefcase size={12} /><span className="font-semibold text-green-700">{c.job}</span></span>
+            <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+              <span className="flex items-center gap-1 font-semibold text-green-700"><Briefcase size={12} />{c.job}</span>
               <span>·</span>
               <span className="flex items-center gap-1"><Clock size={12} />{c.availability}</span>
               <span>·</span>
               <span>{c.languages.join(", ")}</span>
             </div>
+            {c.qualifications.length > 0 && (
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                {c.qualifications.map((q) => (
+                  <span key={q} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{q}</span>
+                ))}
+              </div>
+            )}
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-3xl font-bold text-gray-900">{c.score}<span className="text-base text-gray-400 font-normal">%</span></div>
             <div className="text-xs text-gray-400">match score</div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 ml-1"><X size={20} /></button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 ml-1 flex-shrink-0"><X size={20} /></button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 px-5">
-          {(["summary", "score", "transcript"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setDetailTab(t)}
-              className={`py-3 px-4 text-sm font-semibold border-b-2 transition-all ${
-                detailTab === t ? "border-green-600 text-green-700" : "border-transparent text-gray-500 hover:text-gray-900"
-              }`}
+        <div className="flex border-b border-gray-100 overflow-x-auto">
+          {(["summary", "score", "transcript", "resume"] as const).map((t) => (
+            <button key={t} onClick={() => setDetailTab(t)}
+              className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${detailTab === t ? "border-green-600 text-green-700" : "border-transparent text-gray-500 hover:text-gray-900"}`}
             >
-              {t === "summary" ? "Interview Summary" : t === "score" ? "Score Breakdown" : "Call Transcript"}
+              {t === "summary" ? "Summary" : t === "score" ? "Score" : t === "transcript" ? "Transcript" : "Resume"}
             </button>
           ))}
         </div>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5">
+
+          {/* ── Summary ── */}
           {detailTab === "summary" && (
-            <div>
-              <p className="text-base text-gray-700 leading-relaxed mb-5">{c.summary}</p>
-              <div className="space-y-3">
-                {c.qualifications.map((q) => (
-                  <div key={q} className="flex items-center gap-2 text-sm">
-                    <CheckCircle size={15} className="text-green-600 flex-shrink-0" />
-                    <span className="text-gray-700">{q}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {detailTab === "score" && (
-            <div>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl font-bold text-green-700">{c.score}%</span>
+            <div className="space-y-5">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Mic size={12} /> Sarah's interview summary
                 </div>
-                <div>
-                  <div className="text-base font-bold text-gray-900">Why {c.score}%?</div>
-                  <div className="text-sm text-gray-500">Sarah scored this candidate based on your screening criteria.</div>
-                </div>
+                <p className="text-sm text-gray-800 leading-relaxed">{c.summary}</p>
               </div>
 
-              <div className="mb-5">
-                <div className="text-sm font-bold text-green-700 mb-2">What scored well</div>
-                <div className="space-y-2">
-                  {(c.scoreReasons ?? []).map((r, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-sm">
-                      <Check size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">{r}</span>
+              <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Quick stats</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: "Match score", value: `${c.score}%`, color: c.score >= 85 ? "text-green-700" : c.score >= 70 ? "text-amber-700" : "text-red-600" },
+                    { label: "Availability", value: c.availability },
+                    { label: "Languages", value: c.languages.join(", ") },
+                    { label: "Last contact", value: c.lastInteraction },
+                    { label: "Status", value: statusLabel },
+                    { label: "Qualifications", value: c.qualifications.length > 0 ? c.qualifications.join(", ") : "None listed" },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                      <div className="text-xs text-gray-400 font-medium mb-1">{s.label}</div>
+                      <div className={`text-sm font-bold ${(s as { color?: string }).color ?? "text-gray-900"}`}>{s.value}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {(c.gaps ?? []).length > 0 && (
-                <div>
-                  <div className="text-sm font-bold text-amber-600 mb-2">What they lack</div>
-                  <div className="space-y-2">
-                    {(c.gaps ?? []).map((g, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-sm">
+              {c.gaps && c.gaps.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2">Watch points</div>
+                  <div className="space-y-1.5">
+                    {c.gaps.map((g, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
                         <span className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{g}</span>
+                        {g}
                       </div>
                     ))}
                   </div>
@@ -1694,31 +1746,146 @@ function CandidateDetail({ c, onClose }: { c: Candidate; onClose: () => void }) 
             </div>
           )}
 
-          {detailTab === "transcript" && (
-            <div className="space-y-3">
-              {(c.transcript ?? []).map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "candidate" ? "justify-end" : "justify-start"}`}>
-                  {msg.role === "sarah" && (
-                    <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
-                      <Mic size={12} className="text-white" />
+          {/* ── Score breakdown ── */}
+          {detailTab === "score" && (
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 border-4" style={{ borderColor: c.score >= 85 ? "#16A34A" : c.score >= 70 ? "#d97706" : "#dc2626" }}>
+                  <span className="text-xl font-extrabold" style={{ color: c.score >= 85 ? "#16A34A" : c.score >= 70 ? "#d97706" : "#dc2626" }}>{c.score}%</span>
+                </div>
+                <div>
+                  <div className="text-base font-bold text-gray-900">Why {c.score}%?</div>
+                  <div className="text-sm text-gray-500 mt-0.5">Sarah scored this candidate against your screening criteria for <span className="font-semibold">{c.job}</span>.</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2.5">What scored well</div>
+                <div className="space-y-2">
+                  {(c.scoreReasons ?? []).map((r, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-100 text-sm">
+                      <Check size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-800">{r}</span>
                     </div>
-                  )}
-                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === "candidate"
-                      ? "bg-gray-100 text-gray-800 rounded-tr-sm"
-                      : "bg-green-50 border border-green-200 text-gray-800 rounded-tl-sm"
-                  }`}>
-                    {msg.role === "sarah" && <div className="text-xs font-bold text-green-600 mb-1">Sarah</div>}
-                    {msg.role === "candidate" && <div className="text-xs font-bold text-gray-500 mb-1">{c.name}</div>}
-                    {msg.text}
+                  ))}
+                </div>
+              </div>
+
+              {(c.gaps ?? []).length > 0 && (
+                <div>
+                  <div className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2.5">What they lack</div>
+                  <div className="space-y-2">
+                    {(c.gaps ?? []).map((g, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100 text-sm">
+                        <span className="w-3.5 h-3.5 rounded-full border-2 border-amber-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-800">{g}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+            </div>
+          )}
+
+          {/* ── Transcript ── */}
+          {detailTab === "transcript" && (
+            <div>
+              <div className="flex items-center gap-2 mb-4 text-xs text-gray-400 font-medium">
+                <Mic size={13} className="text-green-600" />
+                Sarah's screening call · {c.lastInteraction}
+              </div>
+              <div className="space-y-3">
+                {(c.transcript ?? []).map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === "candidate" ? "justify-end" : "justify-start"}`}>
+                    {msg.role === "sarah" && (
+                      <div className="w-7 h-7 rounded-full bg-green-600 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                        <Mic size={12} className="text-white" />
+                      </div>
+                    )}
+                    <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === "candidate" ? "bg-gray-100 text-gray-800 rounded-tr-sm" : "bg-green-50 border border-green-200 text-gray-800 rounded-tl-sm"
+                    }`}>
+                      <div className={`text-xs font-bold mb-1 ${msg.role === "sarah" ? "text-green-600" : "text-gray-400"}`}>
+                        {msg.role === "sarah" ? "Sarah" : c.name}
+                      </div>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Resume ── */}
+          {detailTab === "resume" && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">AI-generated from screening call</span>
+                <span className="text-xs text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+                  <Mic size={10} /> Generated by Sarah
+                </span>
+              </div>
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                {/* Resume header */}
+                <div className="bg-gray-900 text-white p-5">
+                  <div className="text-xl font-bold mb-0.5">{c.name}</div>
+                  <div className="text-sm text-gray-300">{aiResume.headline}</div>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 flex-wrap">
+                    <span className="flex items-center gap-1"><Clock size={11} />Available: {c.availability}</span>
+                    <span>{c.languages.join(" · ")}</span>
+                  </div>
+                </div>
+                {/* Resume body */}
+                <div className="p-5 space-y-5 bg-white">
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">About</div>
+                    <p className="text-sm text-gray-700 leading-relaxed">{aiResume.about}</p>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Experience</div>
+                    {aiResume.experience.map((exp, i) => (
+                      <div key={i} className="mb-3">
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="text-sm font-bold text-gray-900">{exp.title}</div>
+                          <div className="text-xs text-gray-400">{exp.period}</div>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-2">{exp.company}</div>
+                        <ul className="space-y-1">
+                          {exp.bullets.map((b, j) => (
+                            <li key={j} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="text-green-500 mt-0.5">•</span>{b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  {c.qualifications.length > 0 && (
+                    <div>
+                      <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Qualifications</div>
+                      <div className="flex flex-wrap gap-2">
+                        {c.qualifications.map((q) => (
+                          <span key={q} className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold">{q}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Skills & Languages</div>
+                    <div className="flex flex-wrap gap-2">
+                      {aiResume.skills.map((s) => (
+                        <span key={s} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 text-center mt-3">Generated from Sarah's screening call · Not a submitted CV</p>
             </div>
           )}
         </div>
 
-        {/* Footer actions */}
+        {/* Footer */}
         <div className="flex gap-2 p-4 border-t border-gray-100">
           <Btn size="sm" className="flex-1">Book interview</Btn>
           <Btn variant="secondary" size="sm" className="flex-1">Send to hiring manager</Btn>
@@ -1728,7 +1895,13 @@ function CandidateDetail({ c, onClose }: { c: Candidate; onClose: () => void }) 
   );
 }
 
-function CandidatesPage() {
+function CandidatesPage({
+  selectedJobName,
+  onSelectJob,
+}: {
+  selectedJobName: string;
+  onSelectJob: (job: string) => void;
+}) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Candidate | null>(null);
@@ -1739,22 +1912,39 @@ function CandidatesPage() {
     screening: { label: "Screening", cls: "bg-amber-100 text-amber-700" },
   };
 
-  const filtered = CANDIDATES_DATA.filter((c) => {
+  const byJob = CANDIDATES_DATA.filter((c) => c.job === selectedJobName);
+  const filtered = byJob.filter((c) => {
     const matchStatus = filter === "all" || c.status === filter;
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.role.toLowerCase().includes(search.toLowerCase()) ||
-      c.job.toLowerCase().includes(search.toLowerCase());
+      c.role.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
 
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-4 sm:p-6">
       {selected && <CandidateDetail c={selected} onClose={() => setSelected(null)} />}
+
+      {/* Job chips */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
+        {JOBS_DATA.map((job) => {
+          const active = job.title === selectedJobName;
+          const count = CANDIDATES_DATA.filter((c) => c.job === job.title).length;
+          return (
+            <button key={job.id} onClick={() => onSelectJob(job.title)}
+              className="flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs whitespace-nowrap transition-all shrink-0"
+              style={{ backgroundColor: active ? "#f0fdf4" : "#fff", borderColor: active ? "#16A34A" : "#e5e7eb", color: active ? "#15803d" : "#6b7280", fontWeight: active ? 700 : 500 }}
+            >
+              {job.title} <span style={{ color: active ? "#15803d" : "#9ca3af", fontWeight: 600 }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Candidates</h2>
-          <p className="text-base text-gray-500 mt-0.5">{filtered.length} candidates in pipeline</p>
+          <p className="text-base text-gray-500 mt-0.5">{filtered.length} for <span className="font-semibold text-green-700">{selectedJobName}</span></p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
@@ -1820,6 +2010,7 @@ function CandidatesPage() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -1827,6 +2018,7 @@ function CandidatesPage() {
 
 function CallLogsPage() {
   const [filter, setFilter] = useState("all");
+  const [openLog, setOpenLog] = useState<typeof CALL_LOGS_DATA[number] | null>(null);
 
   const statusMeta: Record<string, { label: string; cls: string }> = {
     completed: { label: "Completed", cls: "bg-green-100 text-green-700" },
@@ -1853,6 +2045,63 @@ function CallLogsPage() {
   };
 
   return (
+    <div className="h-full overflow-y-auto">
+    {/* Call detail modal */}
+    {openLog && (() => {
+      const candidate = CANDIDATES_DATA.find((c) => c.name === openLog.name);
+      return (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4" onClick={() => setOpenLog(null)}>
+          <div className="bg-white w-full sm:max-w-xl sm:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 p-5 border-b border-gray-100">
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${candidate ? "" : "bg-gray-400"}`} style={candidate ? { backgroundColor: candidate.color } : {}}>
+                {candidate ? candidate.initials : "?"}
+              </div>
+              <div className="flex-1">
+                <div className="text-base font-bold text-gray-900">{openLog.name}</div>
+                <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5 flex-wrap">
+                  <span className="font-mono">{openLog.caller}</span>
+                  <span>{openLog.date} · {openLog.time}</span>
+                  <span className="font-mono">{openLog.duration}</span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusMeta[openLog.status].cls}`}>{statusMeta[openLog.status].label}</span>
+                <span className="text-xs text-gray-500">{openLog.outcome}</span>
+              </div>
+              <button onClick={() => setOpenLog(null)} className="text-gray-400 hover:text-gray-700 ml-2"><X size={18} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {candidate?.transcript ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Call transcript</p>
+                  {candidate.transcript.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === "candidate" ? "justify-end" : "justify-start"}`}>
+                      {msg.role === "sarah" && (
+                        <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                          <Mic size={11} className="text-white" />
+                        </div>
+                      )}
+                      <div className={`max-w-[80%] px-4 py-2.5 rounded-xl text-sm leading-relaxed ${
+                        msg.role === "candidate" ? "bg-gray-100 text-gray-800" : "bg-green-50 border border-green-200 text-gray-800"
+                      }`}>
+                        <div className="text-[10px] font-bold mb-1 text-gray-400">{msg.role === "sarah" ? "Sarah" : candidate.name}</div>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-gray-400">
+                  <PhoneCall size={32} className="mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">No transcript available for this call.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
     <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -1882,12 +2131,8 @@ function CallLogsPage() {
           { key: "completed", label: "Completed" },
           { key: "missed", label: "Missed" },
         ].map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              filter === f.key ? "bg-green-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-green-300"
-            }`}
+          <button key={f.key} onClick={() => setFilter(f.key)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filter === f.key ? "bg-green-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-green-300"}`}
           >
             {f.label}
           </button>
@@ -1896,43 +2141,46 @@ function CallLogsPage() {
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px]">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
-              {["Caller", "Date / Time", "Duration", "Type", "Outcome", "Status"].map((h) => (
-                <th key={h} className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((log) => {
-              const sm = statusMeta[log.status];
-              const tm = typeMeta[log.type];
-              return (
-                <tr key={log.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
-                  <td className="px-5 py-4">
-                    <div className="text-sm font-semibold text-gray-900">{log.name}</div>
-                    <div className="text-xs text-gray-400 font-mono">{log.caller}</div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="text-sm font-semibold text-gray-700">{log.date}</div>
-                    <div className="text-xs text-gray-400">{log.time}</div>
-                  </td>
-                  <td className="px-5 py-4 text-sm font-mono text-gray-600">{log.duration}</td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tm.cls}`}>{tm.label}</span>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-gray-700 font-medium">{log.outcome}</td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${sm.cls}`}>{sm.label}</span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+          <table className="w-full min-w-[600px]">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                {["Caller", "Date / Time", "Duration", "Type", "Outcome", "Status", ""].map((h) => (
+                  <th key={h} className="text-left px-5 py-3.5 text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((log) => {
+                const sm = statusMeta[log.status];
+                const tm = typeMeta[log.type];
+                const hasCandidate = CANDIDATES_DATA.some((c) => c.name === log.name);
+                return (
+                  <tr key={log.id} onClick={() => setOpenLog(log)} className="hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <td className="px-5 py-4">
+                      <div className="text-sm font-semibold text-gray-900">{log.name}</div>
+                      <div className="text-xs text-gray-400 font-mono">{log.caller}</div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="text-sm font-semibold text-gray-700">{log.date}</div>
+                      <div className="text-xs text-gray-400">{log.time}</div>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-mono text-gray-600">{log.duration}</td>
+                    <td className="px-5 py-4"><span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tm.cls}`}>{tm.label}</span></td>
+                    <td className="px-5 py-4 text-sm text-gray-700 font-medium">{log.outcome}</td>
+                    <td className="px-5 py-4"><span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${sm.cls}`}>{sm.label}</span></td>
+                    <td className="px-5 py-4">
+                      {hasCandidate && (
+                        <span className="text-xs text-green-600 font-semibold group-hover:underline">View →</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
     </div>
   );
 }
@@ -1975,6 +2223,7 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
   ];
 
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-4 sm:p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
@@ -2204,6 +2453,7 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -2217,6 +2467,9 @@ export default function EnterpriseOnboardingPage() {
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [atsName, setAtsName] = useState<string | null>(null);
   const [dashPage, setDashPage] = useState<DashPage>("home");
+  const [selectedJobName, setSelectedJobName] = useState<string>(JOBS_DATA[0].title);
+
+  const selectJob = (job: string) => setSelectedJobName(job);
 
   return (
     <>
@@ -2259,9 +2512,15 @@ export default function EnterpriseOnboardingPage() {
       )}
       {step === "dashboard" && (
         <DashboardShell activePage={dashPage} onNav={setDashPage} phoneNumber={phoneNumber}>
-          {dashPage === "home" && <DashboardHome atsName={atsName} />}
-          {dashPage === "jobs" && <JobsPage />}
-          {dashPage === "candidates" && <CandidatesPage />}
+          {dashPage === "home" && (
+            <DashboardHome selectedJobName={selectedJobName} onSelectJob={selectJob} />
+          )}
+          {dashPage === "jobs" && (
+            <JobsPage onSelectJob={(job) => { selectJob(job); setDashPage("home"); }} />
+          )}
+          {dashPage === "candidates" && (
+            <CandidatesPage selectedJobName={selectedJobName} onSelectJob={selectJob} />
+          )}
           {dashPage === "calllogs" && <CallLogsPage />}
           {dashPage === "settings" && <SettingsPage phoneNumber={phoneNumber} atsName={atsName} />}
         </DashboardShell>
