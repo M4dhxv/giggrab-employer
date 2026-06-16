@@ -5,7 +5,7 @@ import {
   Star, Clock, Briefcase, RefreshCw, X,
   ChevronRight, MessageSquare, Search, LogOut, Building,
   Send, Hash, User, Zap, MoreHorizontal,
-  MapPin, Calendar, FileText, CheckCircle,
+  MapPin, Calendar, FileText, CheckCircle, Menu,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -1062,56 +1062,85 @@ function DashboardShell({
   phoneNumber: string;
   children: React.ReactNode;
 }) {
-  return (
-    <div className="h-screen flex bg-[#F9FAFB]" style={font}>
-      <aside className="w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-        <div className="p-5 border-b border-gray-100">
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const Sidebar = () => (
+    <aside className={`
+      fixed sm:static inset-y-0 left-0 z-30
+      w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0
+      transition-transform duration-200
+      ${mobileNavOpen ? "translate-x-0" : "-translate-x-full sm:translate-x-0"}
+    `}>
+      <div className="p-5 border-b border-gray-100">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-green-600 flex items-center justify-center shadow-md shadow-green-600/20">
               <Mic size={15} className="text-white" />
             </div>
             <span className="text-gray-900 font-bold text-base">Sarah</span>
           </div>
+          <button className="sm:hidden p-1 text-gray-400 hover:text-gray-700" onClick={() => setMobileNavOpen(false)}>
+            <X size={18} />
+          </button>
         </div>
+      </div>
 
-        <div className="mx-3 mt-4 p-3.5 bg-green-50 rounded-xl border border-green-200">
-          <div className="flex items-center gap-2 mb-1.5">
-            <GreenDot pulse />
-            <span className="text-green-700 text-sm font-bold">Sarah Active</span>
-          </div>
-          <div className="text-gray-600 text-sm font-mono">{phoneNumber || "020 8123 4567"}</div>
+      <div className="mx-3 mt-4 p-3.5 bg-green-50 rounded-xl border border-green-200">
+        <div className="flex items-center gap-2 mb-1.5">
+          <GreenDot pulse />
+          <span className="text-green-700 text-sm font-bold">Sarah Active</span>
         </div>
+        <div className="text-gray-600 text-sm font-mono">{phoneNumber || "020 8123 4567"}</div>
+      </div>
 
-        <nav className="flex-1 p-3 space-y-0.5 mt-3">
-          {DASH_NAV.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => onNav(item.key as DashPage)}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-all ${
-                activePage === item.key
-                  ? "bg-green-600 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          ))}
-        </nav>
+      <nav className="flex-1 p-3 space-y-0.5 mt-3">
+        {DASH_NAV.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => { onNav(item.key as DashPage); setMobileNavOpen(false); }}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-all ${
+              activePage === item.key
+                ? "bg-green-600 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            }`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
-        <button className="flex items-center gap-3 px-6 py-4 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors border-t border-gray-100">
-          <LogOut size={16} />
-          Sign out
-        </button>
-      </aside>
+      <button className="flex items-center gap-3 px-6 py-4 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors border-t border-gray-100">
+        <LogOut size={16} />
+        Sign out
+      </button>
+    </aside>
+  );
+
+  return (
+    <div className="h-screen flex bg-[#F9FAFB]" style={font}>
+      {/* Mobile overlay */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 bg-black/40 z-20 sm:hidden" onClick={() => setMobileNavOpen(false)} />
+      )}
+
+      <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-7 py-4 flex items-center justify-between flex-shrink-0">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">
-              {DASH_NAV.find((n) => n.key === activePage)?.label}
-            </h1>
-            <p className="text-sm text-gray-500">Mon, 16 June 2025 · Acme Construction Ltd</p>
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-7 py-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              className="sm:hidden p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+              onClick={() => setMobileNavOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h1 className="text-base sm:text-lg font-bold text-gray-900">
+                {DASH_NAV.find((n) => n.key === activePage)?.label}
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Mon, 16 June 2025 · Acme Construction Ltd</p>
+            </div>
           </div>
           <div className="flex items-center gap-2.5">
             <button className="relative p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
@@ -1177,8 +1206,8 @@ function DashboardHome({ atsName }: { atsName: string | null }) {
   };
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="grid grid-cols-4 gap-4">
+    <div className="p-4 sm:p-6 space-y-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Sarah Status", value: "Active", sub: "Hotline live · 24/7", icon: <Mic size={18} />, iconCls: "bg-green-100 text-green-600", trend: "Online" },
           { label: "Calls Today", value: "34", sub: "+12 from yesterday", icon: <PhoneCall size={18} />, iconCls: "bg-blue-100 text-blue-600", trend: "+54%" },
@@ -1197,7 +1226,7 @@ function DashboardHome({ atsName }: { atsName: string | null }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-[1fr_300px] gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-5">
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -1324,13 +1353,13 @@ function JobsPage() {
   const filtered = filter === "All" ? JOBS_DATA : JOBS_DATA.filter((j) => j.category === filter);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Active Jobs</h2>
           <p className="text-base text-gray-500 mt-0.5">Imported from your ATS · {JOBS_DATA.length} roles</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {["All", ...categories].map((c) => (
             <button
               key={c}
@@ -1402,20 +1431,20 @@ function CandidatesPage() {
   });
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Candidates</h2>
           <p className="text-base text-gray-500 mt-0.5">{filtered.length} candidates in pipeline</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search candidates…"
-              className="border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm w-52 focus:outline-none focus:border-green-400 transition-all"
+              className="border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm w-full sm:w-52 focus:outline-none focus:border-green-400 transition-all"
             />
           </div>
           {["all", "interview-ready", "qualified", "screening"].map((s) => (
@@ -1499,7 +1528,7 @@ function CallLogsPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Call Logs</h2>
@@ -1507,7 +1536,7 @@ function CallLogsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           { label: "Total Calls", value: stats.total, cls: "bg-white" },
           { label: "Completed", value: stats.completed, cls: "bg-green-50" },
@@ -1521,7 +1550,7 @@ function CallLogsPage() {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         {[
           { key: "all", label: "All calls" },
           { key: "screening", label: "Screenings" },
@@ -1541,7 +1570,8 @@ function CallLogsPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[600px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
               {["Caller", "Date / Time", "Duration", "Type", "Outcome", "Status"].map((h) => (
@@ -1576,6 +1606,7 @@ function CallLogsPage() {
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
@@ -1603,19 +1634,19 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
   ];
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
         <p className="text-base text-gray-500 mt-0.5">Manage your hiring hotline and Sarah configuration</p>
       </div>
 
-      <div className="flex gap-6">
-        <div className="w-52 space-y-1 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+        <div className="sm:w-52 flex-shrink-0 flex sm:flex-col gap-1 overflow-x-auto pb-1 sm:pb-0">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key as typeof tab)}
-              className={`w-full flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all ${
+              className={`flex-shrink-0 sm:w-full flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold text-left transition-all whitespace-nowrap ${
                 tab === t.key ? "bg-green-600 text-white" : "text-gray-600 hover:bg-gray-100"
               }`}
             >

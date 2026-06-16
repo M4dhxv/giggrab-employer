@@ -85,7 +85,7 @@ export default function ReachBudgetPage() {
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Plans + slider */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-4 order-2 lg:order-1">
               {PLANS.map((plan) => (
                 <PlanCard
                   key={plan.id}
@@ -131,7 +131,7 @@ export default function ReachBudgetPage() {
             </div>
 
             {/* Recommendation panel */}
-            <div>
+            <div className="order-1 lg:order-2">
               <div className="bg-white rounded-2xl border-2 border-[#10b981] p-6 sticky top-6">
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="w-8 h-8 rounded-full bg-[#10b981] flex items-center justify-center">
