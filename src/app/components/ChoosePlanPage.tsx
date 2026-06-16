@@ -141,7 +141,7 @@ export default function ChoosePlanPage() {
                     if (promo.id === 'premium') {
                       navigate('/enterprise');
                     } else {
-                      navigate('/live-screening');
+                      navigate(`/set-budget?plan=${promo.id}`);
                     }
                   }}
                   sx={{

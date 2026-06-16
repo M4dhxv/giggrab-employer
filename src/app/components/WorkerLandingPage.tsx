@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   ArrowRight, Phone, Mic, Sparkles, Send,
@@ -45,13 +44,6 @@ const HERO_CSS = `
 export default function WorkerLandingPage() {
   const navigate = useNavigate();
   const getStarted = () => navigate('/worker/get-started');
-  const [count, setCount] = useState(2148);
-
-  useEffect(() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const b = setInterval(() => setCount((c) => c + 1), 3600);
-    return () => clearInterval(b);
-  }, []);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: 'Inter, sans-serif', background: '#0a0a0a' }}>
@@ -78,7 +70,7 @@ export default function WorkerLandingPage() {
               <div className="w-8 h-8 rounded-lg bg-[#4ade80] flex items-center justify-center">
                 <span className="text-black font-extrabold text-sm leading-none">G</span>
               </div>
-              <span className="text-white font-bold text-lg tracking-tight">GigGrab</span>
+              <span className="text-white font-bold text-lg tracking-tight">GigGrab for Workers</span>
             </button>
 
             {/* Nav links */}
@@ -88,9 +80,6 @@ export default function WorkerLandingPage() {
                 className="text-white/75 hover:text-white text-sm font-medium transition-colors"
               >
                 For Employers
-              </button>
-              <button className="text-white/75 hover:text-white text-sm font-medium transition-colors">
-                About Us
               </button>
               <button
                 onClick={() => navigate('/worker/dashboard')}
@@ -122,7 +111,7 @@ export default function WorkerLandingPage() {
           </button>
 
           <p className="wl-in wl-d3 mt-5 text-white/45 text-sm">
-            <span className="text-white/70 font-semibold tabular-nums">{count.toLocaleString()}</span> workers matched this week · Free · 32 languages
+            Free · No CV needed · 32 languages
           </p>
         </div>
 
@@ -203,7 +192,7 @@ export function WorkerHeader() {
           <div className="w-7 h-7 rounded-md bg-[#4ade80] flex items-center justify-center">
             <span className="text-black font-extrabold text-xs">G</span>
           </div>
-          <span className="text-gray-900 font-bold text-base tracking-tight">GigGrab</span>
+          <span className="text-gray-900 font-bold text-base tracking-tight">GigGrab for Workers</span>
         </button>
         <div className="flex items-center gap-1">
           <button onClick={() => navigate('/')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>

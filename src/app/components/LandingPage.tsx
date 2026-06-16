@@ -615,10 +615,9 @@ export default function LandingPage({
       <header>
         <div className="wrap nav">
           <div className="nav-l">
-            <span className="logo">GigGrab</span>
+            <span className="logo">GigGrab for Employers</span>
             <div className="links">
-              <button>How it works</button><button>Industries</button>
-              <button onClick={() => navigate('/pricing')}>Pricing</button><button>About us</button>
+              <button onClick={() => navigate('/pricing')}>Pricing</button>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -758,18 +757,6 @@ export default function LandingPage({
               Request a callback <span className="arr"><ArrowRight size={16} /></span>
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* INDUSTRIES */}
-      <section className="sec ind">
-        <div className="wrap ind-row">
-          {industries.map((i) => (
-            <div className="ind-item" key={i.label}>
-              <div className="ibox">{i.icon}</div>
-              <span>{i.label}</span>
-            </div>
-          ))}
         </div>
       </section>
 
