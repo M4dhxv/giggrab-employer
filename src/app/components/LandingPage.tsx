@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Check, Database, Send, Sparkles, Globe, Phone, ArrowRight,
-  Mic, FileText, Star, Plus, PhoneCall, MessageSquare,
+  Mic, FileText, Star, Plus, PhoneCall, DollarSign, UserCheck,
 } from "lucide-react";
 
 const GG = "#3d8c62";
@@ -32,139 +32,156 @@ const LANGUAGES = [
   "Thai","Vietnamese","Indonesian","Malay","Tagalog","Bengali","Urdu","Swahili",
 ];
 
-// ── Two-flow hero animation ───────────────────────────────────────────────────
+// ── Workflow hero animation ───────────────────────────────────────────────────
 
-const FLOW_A = [
-  { icon: <Phone size={15} />,       label: "Call Sarah",          sub: "5 min" },
-  { icon: <FileText size={15} />,    label: "JD auto-written",     sub: "Instant" },
-  { icon: <Send size={15} />,        label: "Posted to 10+ boards",sub: "Real-time" },
-  { icon: <PhoneCall size={15} />,   label: "Sarah screens inbound", sub: "24/7" },
-  { icon: <Star size={15} />,        label: "Qualified shortlist", sub: "Ranked" },
-];
+type WFStatus = "pending" | "active" | "done";
 
-const FLOW_B = [
-  { icon: <Database size={15} />,    label: "Upload CSV / ATS",    sub: "Any format" },
-  { icon: <PhoneCall size={15} />,   label: "Sarah calls each one", sub: "Automated" },
-  { icon: <Mic size={15} />,         label: "Sarah screens them",  sub: "32 languages" },
-  { icon: <MessageSquare size={15} />,label: "Detailed analysis",  sub: "Per candidate" },
-  { icon: <Star size={15} />,        label: "Qualified shortlist", sub: "Ranked" },
-];
-
-const FLOW_CSS = `
-@keyframes flow-dot {
-  0%   { left: 0%;   opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { left: 100%; opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .fd { animation: none !important; } }
-`;
-
-function FlowStep({ icon, label, sub, state }: {
-  icon: React.ReactNode; label: string; sub: string;
-  state: "done" | "active" | "pending";
-}) {
+function WFStep({ icon, label, status }: { icon: React.ReactNode; label: string; status: WFStatus }) {
   return (
-    <div className="flex flex-col items-center text-center relative" style={{ flex: 1 }}>
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition-all duration-400 border"
+    <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-500"
+      style={status === "active" ? { backgroundColor: GG_LIGHT } : status === "done" ? { backgroundColor: "#f9fafb" } : {}}>
+      <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-colors duration-500"
         style={
-          state === "active"  ? { backgroundColor: GG,         color: "white",    borderColor: GG,        boxShadow: `0 0 0 3px ${GG}22` } :
-          state === "done"    ? { backgroundColor: GG_LIGHT,   color: GG,         borderColor: "#a7f3d0"  } :
-                                { backgroundColor: "#f9fafb",  color: "#d1d5db",  borderColor: "#f3f4f6"  }
+          status === "active" ? { backgroundColor: GG, color: "white" } :
+          status === "done"   ? { backgroundColor: "#e5e7eb", color: "#9ca3af" } :
+                                { backgroundColor: "#f3f4f6", color: "#d1d5db" }
         }>
-        {icon}
+        {status === "done"
+          ? <Check size={10} strokeWidth={3} />
+          : <span className="flex items-center justify-center" style={{ width: 12, height: 12 }}>{icon}</span>}
       </div>
-      <p className="text-[11px] font-semibold leading-tight transition-colors duration-300"
-        style={{ color: state === "pending" ? "#e5e7eb" : state === "active" ? GG : "#6b7280" }}>
+      <span className="text-xs font-medium transition-colors duration-500"
+        style={{ color: status === "active" ? GG : status === "done" ? "#9ca3af" : "#d1d5db" }}>
         {label}
-      </p>
-      <p className="text-[10px] mt-0.5 transition-colors duration-300"
-        style={{ color: state === "pending" ? "#f3f4f6" : "#9ca3af" }}>
-        {sub}
-      </p>
+      </span>
+      {status === "active" && (
+        <span className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: GG }} />
+      )}
     </div>
   );
 }
 
-function Arrow({ active, done }: { active: boolean; done: boolean }) {
-  return (
-    <div className="flex items-center justify-center flex-shrink-0 mt-[-14px]" style={{ width: 20 }}>
-      <svg width="20" height="10" viewBox="0 0 20 10">
-        <line x1="0" y1="5" x2="14" y2="5"
-          stroke={done || active ? GG : "#e5e7eb"}
-          strokeWidth="1.5" strokeDasharray={active ? "3 2" : "none"}
-          style={{ transition: "stroke 0.4s" }} />
-        <polyline points="11,2 15,5 11,8"
-          fill="none" stroke={done || active ? GG : "#e5e7eb"}
-          strokeWidth="1.5" style={{ transition: "stroke 0.4s" }} />
-      </svg>
-    </div>
-  );
-}
+const WF1_STEPS = [
+  { icon: <Mic size={12} />,        label: "Talk to Sarah" },
+  { icon: <FileText size={12} />,   label: "Sarah creates job" },
+  { icon: <DollarSign size={12} />, label: "Sarah recommends budget" },
+  { icon: <Send size={12} />,       label: "Sarah distributes jobs" },
+  { icon: <Phone size={12} />,      label: "Sarah screens applicants" },
+  { icon: <Star size={12} />,       label: "Qualified candidates delivered" },
+];
 
-function FlowRow({ steps, activeStep, label, color }: {
-  steps: typeof FLOW_A; activeStep: number; label: string; color: string;
-}) {
-  return (
-    <div className="p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>{label}</span>
-      </div>
-      <div className="flex items-start">
-        {steps.map((s, i) => (
-          <div key={i} className="flex items-start" style={{ flex: i < steps.length - 1 ? "1 1 0" : "0 0 auto" }}>
-            <FlowStep
-              icon={s.icon} label={s.label} sub={s.sub}
-              state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
-            />
-            {i < steps.length - 1 && (
-              <Arrow active={i === activeStep} done={i < activeStep} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+const WF2_STEPS = [
+  { icon: <Database size={12} />,   label: "Import candidates" },
+  { icon: <Phone size={12} />,      label: "Sarah calls candidates" },
+  { icon: <Mic size={12} />,        label: "Sarah screens candidates" },
+  { icon: <Star size={12} />,       label: "Sarah qualifies candidates" },
+  { icon: <UserCheck size={12} />,  label: "Shortlist delivered" },
+];
 
-function HeroFlowAnimation() {
-  const [stepA, setStepA] = useState(0);
-  const [stepB, setStepB] = useState(2);
+function WorkflowAnimation() {
+  const [wf1, setWf1] = useState(0);
+  const [wf2, setWf2] = useState(2);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setStepA(s => s >= FLOW_A.length ? 0 : s + 1);
-    }, 1200);
+    const t = setInterval(() => setWf1(s => (s >= WF1_STEPS.length ? 0 : s + 1)), 1100);
     return () => clearInterval(t);
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => {
-      setStepB(s => s >= FLOW_B.length ? 0 : s + 1);
-    }, 1350);
+    const t = setInterval(() => setWf2(s => (s >= WF2_STEPS.length ? 0 : s + 1)), 1250);
     return () => clearInterval(t);
   }, []);
 
+  function stepStatus(i: number, active: number): WFStatus {
+    if (i < active) return "done";
+    if (i === active) return "active";
+    return "pending";
+  }
+
   return (
-    <div className="rounded-2xl border border-gray-100 shadow-xl overflow-hidden bg-white">
-      <style>{FLOW_CSS}</style>
+    <div className="rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
       <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-        <p className="text-xs font-semibold text-gray-700">Two ways Sarah works</p>
+        <p className="text-xs font-semibold text-gray-500">Sarah at work</p>
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
           style={{ backgroundColor: GG_LIGHT, color: GG }}>
           <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: GG }} />
-          Live demo
+          Live
         </span>
       </div>
 
-      <FlowRow steps={FLOW_A} activeStep={stepA >= FLOW_A.length ? FLOW_A.length - 1 : stepA}
-        label="Distribute and screen" color={GG} />
+      <div className="grid grid-cols-2 divide-x divide-gray-100">
+        <div className="p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: GG }}>
+            Distribute & Screen
+          </p>
+          <p className="text-xs text-gray-400 mb-3">Post a job, Sarah handles the rest</p>
+          <div className="space-y-0.5">
+            {WF1_STEPS.map((s, i) => (
+              <div key={i}>
+                <WFStep icon={s.icon} label={s.label}
+                  status={wf1 >= WF1_STEPS.length ? "done" : stepStatus(i, wf1)} />
+                {i < WF1_STEPS.length - 1 && (
+                  <div className="ml-4 w-px h-1.5" style={{ backgroundColor: "#e5e7eb" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
-      <div className="mx-4 border-t border-dashed border-gray-100" />
+        <div className="p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-widest mb-0.5" style={{ color: GG }}>
+            Screen Existing
+          </p>
+          <p className="text-xs text-gray-400 mb-3">Import candidates, Sarah qualifies them</p>
+          <div className="space-y-0.5">
+            {WF2_STEPS.map((s, i) => (
+              <div key={i}>
+                <WFStep icon={s.icon} label={s.label}
+                  status={wf2 >= WF2_STEPS.length ? "done" : stepStatus(i, wf2)} />
+                {i < WF2_STEPS.length - 1 && (
+                  <div className="ml-4 w-px h-1.5" style={{ backgroundColor: "#e5e7eb" }} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-0.5 px-2.5 py-1.5 opacity-0">
+            <WFStep icon={<Star size={12} />} label="placeholder" status="pending" />
+          </div>
+        </div>
+      </div>
 
-      <FlowRow steps={FLOW_B} activeStep={stepB >= FLOW_B.length ? FLOW_B.length - 1 : stepB}
-        label="Screen existing candidates" color="#6366f1" />
+      <div className="border-t border-gray-100 px-5 py-3 grid grid-cols-3 gap-3 text-center bg-gray-50">
+        <div>
+          <p className="text-lg font-bold text-gray-900">452</p>
+          <p className="text-[10px] text-gray-400">Candidates reached</p>
+        </div>
+        <div>
+          <p className="text-lg font-bold text-gray-900">40</p>
+          <p className="text-[10px] text-gray-400">Calls in progress</p>
+        </div>
+        <div>
+          <p className="text-lg font-bold" style={{ color: GG }}>12</p>
+          <p className="text-[10px] text-gray-400">Qualified today</p>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 px-5 py-3 bg-white">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2.5">
+          Distributing to
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          {BOARD_DATA.map((b) => (
+            <div key={b.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-100"
+              style={{ backgroundColor: b.bg }}>
+              <span className="text-[10px] font-black leading-none" style={{ color: b.color }}>{b.letter}</span>
+              <span className="text-[10px] font-semibold" style={{ color: b.color }}>{b.name}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-dashed border-gray-200">
+            <span className="text-[10px] font-semibold text-gray-400">+ 15 more</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -233,8 +250,9 @@ export default function LandingPage() {
           </span>
           <h1 className="mt-5 text-[3.5rem] font-extrabold text-gray-900 leading-[1.06] mb-4"
             style={{ letterSpacing: "-0.025em" }}>
-            Your AI recruiting<br />
-            <span style={{ color: GG }}>operator.</span>
+            Meet Sarah.<br />
+            <span style={{ color: GG }}>She runs your</span><br />
+            <span style={{ color: GG }}>recruiting.</span>
           </h1>
           <div className="space-y-2.5 mb-7">
             {[
@@ -265,7 +283,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        <HeroFlowAnimation />
+        <WorkflowAnimation />
       </section>
 
       {/* Full flow */}

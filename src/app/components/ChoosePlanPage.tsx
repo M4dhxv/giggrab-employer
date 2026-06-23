@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { Button } from '@mui/material';
 import { Check, Zap, Star, Rocket } from 'lucide-react';
+import { usePostHog } from '@posthog/react';
 
 const plans = [
   {
@@ -66,6 +67,7 @@ const plans = [
 
 export default function ChoosePlanPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -139,8 +141,10 @@ export default function ChoosePlanPage() {
                   size="large"
                   onClick={() => {
                     if (promo.id === 'premium') {
+                      posthog?.capture('enterprise_sales_contacted', { plan: promo.id });
                       navigate('/enterprise');
                     } else {
+                      posthog?.capture('plan_selected', { plan: promo.id, plan_name: promo.name });
                       navigate(`/set-budget?plan=${promo.id}`);
                     }
                   }}

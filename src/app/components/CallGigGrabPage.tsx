@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@mui/material';
 import { PhoneCall } from 'lucide-react';
+import { usePostHog } from '@posthog/react';
 
 const transcript = [
   { speaker: 'GigGrab', text: 'Hi! Thanks for calling. What role are you hiring for?', delay: 0 },
@@ -21,6 +22,7 @@ const transcript = [
 
 export default function CallGigGrabPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const [messages, setMessages] = useState<typeof transcript>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [jobData, setJobData] = useState({
@@ -145,7 +147,14 @@ export default function CallGigGrabPage() {
             <Button
               variant="contained"
               size="large"
-              onClick={() => navigate('/market-intel')}
+              onClick={() => {
+                posthog?.capture('job_spec_completed', {
+                  role: jobData.title,
+                  location: jobData.location,
+                  hiring_volume: jobData.hiringVolume,
+                });
+                navigate('/market-intel');
+              }}
               disabled={currentIndex < transcript.length}
               sx={{
                 textTransform: 'none',

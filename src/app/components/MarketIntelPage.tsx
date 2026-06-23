@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Button, Checkbox } from '@mui/material';
 import { Users, Radar, Clock, MapPin, Bot, Check } from 'lucide-react';
+import { usePostHog } from '@posthog/react';
 
 interface RoleIntel {
   id: number;
@@ -33,6 +34,7 @@ const SCAN_STEPS = [
 
 export default function MarketIntelPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const [searchParams] = useSearchParams();
   const isBulk = searchParams.get('type') === 'bulk';
   const roles = isBulk ? BULK_ROLES : [SINGLE_ROLE];
@@ -40,16 +42,25 @@ export default function MarketIntelPage() {
   const [scanStep, setScanStep] = useState(0);
   const [scanning, setScanning] = useState(true);
   const [selected, setSelected] = useState<Set<number>>(new Set(roles.map(r => r.id)));
+  const viewedFired = useRef(false);
 
   useEffect(() => {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setScanning(false); return; }
+    const fireViewed = () => {
+      if (!viewedFired.current) {
+        viewedFired.current = true;
+        posthog?.capture('market_intel_viewed', { role_count: roles.length, is_bulk: isBulk });
+      }
+      setScanning(false);
+    };
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { fireViewed(); return; }
     const t = setInterval(() => {
       setScanStep(s => {
-        if (s >= SCAN_STEPS.length - 1) { clearInterval(t); setTimeout(() => setScanning(false), 450); return s; }
+        if (s >= SCAN_STEPS.length - 1) { clearInterval(t); setTimeout(fireViewed, 450); return s; }
         return s + 1;
       });
     }, 480);
     return () => clearInterval(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = (id: number) => {
@@ -145,7 +156,13 @@ export default function MarketIntelPage() {
           <Button
             variant="contained"
             size="large"
-            onClick={() => navigate('/choose-plan')}
+            onClick={() => {
+              posthog?.capture('worker_roles_selected', {
+                roles_selected: roles.filter(r => selected.has(r.id)).map(r => r.title),
+                role_count: selected.size,
+              });
+              navigate('/choose-plan');
+            }}
             disabled={selected.size === 0}
             sx={{
               textTransform: 'none', fontSize: '1rem', px: 6, py: 1.5,

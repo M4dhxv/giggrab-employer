@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { Button, Slider, Checkbox, FormControlLabel } from '@mui/material';
 import { TrendingUp, Clock, Users, Star, Check, Zap, Timer } from 'lucide-react';
+import { usePostHog } from '@posthog/react';
 
 const PLAN_CONFIG = {
   free: { label: 'FREE', min: 0, max: 0, default: 0, recommended: 0 },
@@ -43,6 +44,7 @@ function getEstimates(plan: Plan, budget: number) {
 
 export default function SetBudgetPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const [params] = useSearchParams();
   const plan: Plan = (params.get('plan') as Plan) || 'standard';
   const config = PLAN_CONFIG[plan] || PLAN_CONFIG.standard;
@@ -172,7 +174,15 @@ export default function SetBudgetPage() {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => {
+                  posthog?.capture('campaign_launched', {
+                    plan,
+                    daily_budget: dailyBudget,
+                    estimated_reach: estimates.reach,
+                    estimated_qualified: estimates.qualified,
+                  });
+                  navigate('/dashboard');
+                }}
                 disabled={!agreed}
                 sx={{
                   textTransform: 'none',
