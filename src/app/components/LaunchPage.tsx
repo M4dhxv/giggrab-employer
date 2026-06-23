@@ -93,23 +93,6 @@ export default function LaunchPage() {
             </div>
           </div>
 
-          {/* Estimates */}
-          <div className="rounded-2xl border border-gray-100 p-5 mb-5" style={{ backgroundColor: GG_LIGHT }}>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: GG }}>Estimated Outcomes</p>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              {[
-                { label: "Applicants", val: estApplicants },
-                { label: "Screenings", val: estScreenings },
-                { label: "Qualified",  val: estQualified },
-              ].map(({ label, val }) => (
-                <div key={label}>
-                  <p className="text-2xl font-bold" style={{ color: GG }}>{val}</p>
-                  <p className="text-xs mt-0.5" style={{ color: GG, opacity: 0.7 }}>{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* ToS */}
           <label className="flex items-start gap-3 mb-6 cursor-pointer">
             <button

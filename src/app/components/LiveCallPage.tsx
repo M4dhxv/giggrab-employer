@@ -1,68 +1,78 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 
 const GG = "#3d8c62";
 const GG_LIGHT = "#f0f8f4";
 
-const TRANSCRIPT: { from: "sarah" | "employer"; text: string }[] = [
-  { from: "sarah",    text: "Hi! I'm Sarah. I've just pulled up the job spec from our conversation. Before I start reaching out to candidates, I'd like to set up your screening questions. This is how I'll qualify everyone who applies." },
-  { from: "employer", text: "Great, sounds good." },
-  { from: "sarah",    text: "I use a two-tier system. Tier 1 is quick Yes/No qualifying questions. Each yes answer adds to a candidate's suitability score — so if they hit 5 out of 10 criteria, they score 50%. Simple and easy to interpret." },
-  { from: "employer", text: "That makes sense." },
-  { from: "sarah",    text: "For this Warehouse Associate role, I'd suggest Tier 1 questions like: Do you have warehouse or logistics experience? Can you lift up to 25kg regularly? Are you available to start within 2 weeks? Do you have the right to work in the UK?" },
-  { from: "employer", text: "Yes, those are all important. Add shift flexibility too — can they work days, lates, and weekends?" },
-  { from: "sarah",    text: "Added. That's 5 Tier 1 questions. Tier 2 then builds on Tier 1 answers with follow-up questions for context. For example: if they say yes to warehouse experience, I'll ask them to describe a typical shift and the heaviest item they've handled regularly." },
-  { from: "employer", text: "That's really useful." },
-  { from: "sarah",    text: "I'll also add: Can you tell me about a time you had to work to a tight deadline in a physical role? That helps surface reliable, hardworking candidates beyond just the yes/no answers." },
-  { from: "employer", text: "Perfect." },
-  { from: "sarah",    text: "What suitability score threshold should I use for your shortlist? I'd suggest 60% as a minimum — that means they meet at least 3 out of 5 key criteria." },
-  { from: "employer", text: "Let's go with 70%. I'd rather have a tighter shortlist." },
-  { from: "sarah",    text: "Done. Shortlist threshold set to 70%. I'll screen every applicant against these criteria and deliver ranked candidates with scores, call transcripts, and summaries. Ready to review your screening questions before we go live?" },
+// Phase 1: Sarah asks about the job → builds JD
+// Phase 2: Sarah sets up screening questions
+const TRANSCRIPT: { from: "sarah" | "employer"; text: string; phase: 1 | 2 }[] = [
+  { phase: 1, from: "sarah",    text: "Hi! I'm Sarah. Thanks for calling in. What role are you looking to fill?" },
+  { phase: 1, from: "employer", text: "Warehouse Associates." },
+  { phase: 1, from: "sarah",    text: "Got it. How many workers do you need and over what timeframe?" },
+  { phase: 1, from: "employer", text: "15, as soon as possible." },
+  { phase: 1, from: "sarah",    text: "Where is the role based? City and postcode if you have it." },
+  { phase: 1, from: "employer", text: "Manchester, M1." },
+  { phase: 1, from: "sarah",    text: "What's the pay rate and shift pattern?" },
+  { phase: 1, from: "employer", text: "£13 per hour, day shifts, some weekend flexibility needed." },
+  { phase: 1, from: "sarah",    text: "Any specific requirements — licences, certifications, physical requirements?" },
+  { phase: 1, from: "employer", text: "No licence needed, but they need to be physically fit and reliable. Right to work in the UK is essential." },
+  { phase: 1, from: "sarah",    text: "I've put together your job description. Before I start reaching candidates, let me set up how I'll screen them. I use a two-tier system — quick Yes/No questions that build a suitability score, then follow-up questions for context. Sound good?" },
+  { phase: 2, from: "employer", text: "Yes, that works." },
+  { phase: 2, from: "sarah",    text: "For Tier 1, I'll ask things like: Do you have warehouse or logistics experience? Can you lift 25kg regularly? Are you available to start within 2 weeks? Do you have the right to work in the UK? Flexible on shifts including weekends?" },
+  { phase: 2, from: "employer", text: "Yes, those are the key ones." },
+  { phase: 2, from: "sarah",    text: "Each yes answer adds to their score. If a candidate hits 70% or more, they go on your shortlist. For Tier 2 context, I'll ask: Tell me about your warehouse experience. Describe a time you worked to a tight physical deadline." },
+  { phase: 2, from: "employer", text: "Perfect, that gives a good picture." },
+  { phase: 2, from: "sarah",    text: "Great. Your job description is ready and your screening framework is set. Ready to review before we go live?" },
 ];
 
-// Tier 1 questions populate as the conversation progresses
-const T1_REVEALS = [
-  { afterMsg: 4, q: "Do you have warehouse or logistics experience?" },
-  { afterMsg: 4, q: "Can you lift up to 25kg regularly?" },
-  { afterMsg: 4, q: "Are you available to start within 2 weeks?" },
-  { afterMsg: 4, q: "Do you have the right to work in the UK?" },
-  { afterMsg: 5, q: "Can you work days, lates, and weekends?" },
+const JD_FIELDS: { key: string; val: string; afterMsg: number }[] = [
+  { key: "Job Title",       val: "Warehouse Associate",              afterMsg: 1 },
+  { key: "Hiring Volume",   val: "15 workers",                       afterMsg: 3 },
+  { key: "Location",        val: "Manchester, M1",                   afterMsg: 5 },
+  { key: "Pay Rate",        val: "£13/hour",                         afterMsg: 7 },
+  { key: "Shift Pattern",   val: "Day shifts, weekend flexibility",   afterMsg: 7 },
+  { key: "Requirements",    val: "Physically fit, reliable, RTW UK",  afterMsg: 9 },
 ];
 
-const T2_REVEALS = [
-  { afterMsg: 6, q: "Describe a typical shift and the heaviest item you've handled." },
-  { afterMsg: 8, q: "Tell me about a time you worked to a tight deadline in a physical role." },
+const T1_QUESTIONS = [
+  "Do you have warehouse or logistics experience?",
+  "Can you lift 25kg regularly?",
+  "Are you available to start within 2 weeks?",
+  "Do you have the right to work in the UK?",
+  "Flexible on shifts including weekends?",
+];
+
+const T2_QUESTIONS = [
+  "Tell me about your warehouse experience.",
+  "Describe a time you worked to a tight physical deadline.",
 ];
 
 export default function LiveCallPage() {
   const navigate = useNavigate();
   const [msgCount, setMsgCount] = useState(1);
   const [typing, setTyping] = useState(false);
-  const [threshold, setThreshold] = useState(60);
   const chatRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (msgCount >= TRANSCRIPT.length) return;
-    const delay = TRANSCRIPT[msgCount - 1].from === "sarah" ? 2200 : 1100;
-    setTyping(true);
-    const t = setTimeout(() => { setTyping(false); setMsgCount((c) => c + 1); }, delay);
-    return () => clearTimeout(t);
-  }, [msgCount]);
+  const currentPhase = TRANSCRIPT[Math.min(msgCount - 1, TRANSCRIPT.length - 1)].phase;
+  const done = msgCount >= TRANSCRIPT.length;
 
-  // Update threshold when employer says 70%
   useEffect(() => {
-    if (msgCount >= 12) setThreshold(70);
-  }, [msgCount]);
+    if (done) return;
+    const delay = TRANSCRIPT[msgCount - 1].from === "sarah" ? 2000 : 1000;
+    setTyping(true);
+    const t = setTimeout(() => { setTyping(false); setMsgCount(c => c + 1); }, delay);
+    return () => clearTimeout(t);
+  }, [msgCount, done]);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [msgCount, typing]);
 
-  const t1Visible = T1_REVEALS.filter(q => q.afterMsg <= msgCount - 1).map(q => q.q);
-  const t2Visible = T2_REVEALS.filter(q => q.afterMsg <= msgCount - 1).map(q => q.q);
-  const score = Math.min(100, Math.round((t1Visible.length / T1_REVEALS.length) * 100));
-  const done = msgCount >= TRANSCRIPT.length;
+  const jdVisible = JD_FIELDS.filter(f => f.afterMsg <= msgCount - 1);
+  const t1Visible = msgCount >= 13 ? T1_QUESTIONS : [];
+  const t2Visible = msgCount >= 15 ? T2_QUESTIONS : [];
 
   return (
     <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -74,28 +84,61 @@ export default function LiveCallPage() {
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
           style={{ backgroundColor: GG_LIGHT, color: GG }}>
           <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: GG }} />
-          {done ? "Call complete" : "Live call"}
+          {done ? "Call complete" : currentPhase === 1 ? "Building your JD" : "Setting up screening"}
         </span>
       </nav>
 
       <div className="flex-1 px-8 py-6 max-w-5xl mx-auto w-full">
-        <div className="mb-5">
-          <h1 className="text-xl font-bold text-gray-900">Setting up your screening</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Sarah is building your qualification framework in real time.</p>
+        <div className="mb-4">
+          <h1 className="text-xl font-bold text-gray-900">
+            {currentPhase === 1 ? "Tell Sarah about your role" : "Sarah is setting up your screening"}
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {currentPhase === 1
+              ? "Your job description is being written in real time as you speak."
+              : "Sarah is building your two-tier qualification framework."}
+          </p>
+        </div>
+
+        {/* Phase progress */}
+        <div className="flex items-center gap-2 mb-5">
+          {[
+            { n: 1, label: "Job details" },
+            { n: 2, label: "Screening setup" },
+          ].map(({ n, label }) => (
+            <div key={n} className="flex items-center gap-2">
+              {n > 1 && <div className="w-6 h-px bg-gray-200" />}
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-300"
+                  style={
+                    n < currentPhase || (n === 2 && done)
+                      ? { backgroundColor: GG, borderColor: GG, color: "white" }
+                      : n === currentPhase
+                        ? { backgroundColor: GG_LIGHT, borderColor: GG, color: GG }
+                        : { backgroundColor: "white", borderColor: "#e5e7eb", color: "#d1d5db" }
+                  }>
+                  {n < currentPhase || (n === 2 && done) ? <Check size={10} strokeWidth={3} /> : n}
+                </div>
+                <span className="text-xs font-medium" style={{ color: n === currentPhase ? GG : n < currentPhase ? "#9ca3af" : "#d1d5db" }}>
+                  {label}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-5 gap-5">
-          {/* Transcript — 3/5 width */}
+          {/* Chat — 3/5 */}
           <div className="col-span-3 rounded-2xl border border-gray-100 flex flex-col overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: done ? "#9ca3af" : GG, animation: done ? "none" : "pulse 2s infinite" }} />
               <span className="text-xs font-medium text-gray-600">{done ? "Call ended" : "In progress"}</span>
             </div>
-            <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 420 }}>
+            <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 400 }}>
               {TRANSCRIPT.slice(0, msgCount).map((msg, i) => (
                 <div key={i} className={`flex ${msg.from === "employer" ? "justify-end" : "justify-start"}`}>
                   {msg.from === "sarah" && (
-                    <div className="mr-2 mt-auto flex-shrink-0">
+                    <div className="mr-2 mt-auto">
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold" style={{ backgroundColor: GG }}>S</div>
                     </div>
                   )}
@@ -106,7 +149,7 @@ export default function LiveCallPage() {
                     {msg.text}
                   </div>
                   {msg.from === "employer" && (
-                    <div className="ml-2 mt-auto flex-shrink-0">
+                    <div className="ml-2 mt-auto">
                       <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-[9px] font-bold">ME</div>
                     </div>
                   )}
@@ -118,7 +161,7 @@ export default function LiveCallPage() {
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold" style={{ backgroundColor: GG }}>S</div>
                   </div>
                   <div className="bg-gray-100 px-3 py-2.5 rounded-xl flex gap-1 items-center">
-                    {[0,1,2].map((i) => (
+                    {[0, 1, 2].map(i => (
                       <span key={i} className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
                         style={{ animationDelay: `${i * 150}ms` }} />
                     ))}
@@ -128,65 +171,83 @@ export default function LiveCallPage() {
             </div>
           </div>
 
-          {/* Screening framework — 2/5 width */}
-          <div className="col-span-2 space-y-3 overflow-y-auto" style={{ maxHeight: 500 }}>
-            {/* Suitability score */}
+          {/* Right panel — 2/5 */}
+          <div className="col-span-2 space-y-3 overflow-y-auto" style={{ maxHeight: 460 }}>
+            {/* JD panel */}
             <div className="rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-700">Shortlist threshold</p>
-                <p className="text-sm font-bold" style={{ color: GG }}>{threshold}%</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-700">Job Description</p>
+                <span className="text-[10px] text-gray-400">Auto-written</span>
               </div>
-              <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${threshold}%`, backgroundColor: GG }} />
-              </div>
-              <p className="text-[10px] text-gray-400 mt-1.5">Candidates must meet {threshold}% of Tier 1 criteria</p>
+              {jdVisible.length === 0
+                ? <p className="text-xs text-gray-300 italic">Sarah is listening...</p>
+                : (
+                  <div className="space-y-2.5">
+                    {jdVisible.map(f => (
+                      <div key={f.key}>
+                        <p className="text-[10px] text-gray-400 mb-0.5">{f.key}</p>
+                        <p className="text-sm font-medium text-gray-900">{f.val}</p>
+                      </div>
+                    ))}
+                    {jdVisible.length < JD_FIELDS.length && (
+                      <div>
+                        <p className="text-[10px] text-gray-200 mb-0.5">Requirements</p>
+                        <p className="text-sm text-gray-200">...</p>
+                      </div>
+                    )}
+                  </div>
+                )}
             </div>
 
-            {/* Tier 1 */}
-            <div className="rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-700">Tier 1 — Qualifying</p>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: GG_LIGHT, color: GG }}>Yes / No</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mb-3">Each yes answer adds to suitability score</p>
-              {t1Visible.length === 0 ? (
-                <p className="text-xs text-gray-300 italic">Questions will appear as Sarah builds them...</p>
-              ) : (
-                <div className="space-y-2">
-                  {t1Visible.map((q, i) => (
-                    <div key={i} className="flex gap-2 items-start animate-in fade-in duration-300">
-                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: GG }}>
-                        <Check size={9} className="text-white" strokeWidth={3} />
-                      </div>
-                      <p className="text-xs text-gray-700 leading-snug">{q}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Screening panel — appears at phase 2 */}
+            {msgCount >= 11 && (
+              <div className="rounded-xl border border-gray-200 p-4">
+                <p className="text-xs font-semibold text-gray-700 mb-1">Screening Framework</p>
+                <p className="text-[10px] text-gray-400 mb-3">Two-tier qualification system</p>
 
-            {/* Tier 2 */}
-            <div className="rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-gray-700">Tier 2 — Context</p>
-                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-gray-100 text-gray-500">Follow-up</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mb-3">Asked only to candidates who clear Tier 1</p>
-              {t2Visible.length === 0 ? (
-                <p className="text-xs text-gray-300 italic">Follow-up questions appear next...</p>
-              ) : (
-                <div className="space-y-2">
-                  {t2Visible.map((q, i) => (
-                    <div key={i} className="flex gap-2 items-start animate-in fade-in duration-300">
-                      <div className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5" style={{ borderColor: GG }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: GG }} />
-                      </div>
-                      <p className="text-xs text-gray-700 leading-snug">{q}</p>
+                {t1Visible.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: GG }}>Tier 1</span>
+                      <span className="text-[10px] text-gray-400">Yes/No scoring</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <div className="space-y-1.5">
+                      {t1Visible.map((q, i) => (
+                        <div key={i} className="flex gap-2 items-start">
+                          <div className="w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: GG }}>
+                            <Check size={8} className="text-white" strokeWidth={3} />
+                          </div>
+                          <p className="text-xs text-gray-700 leading-snug">{q}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {t2Visible.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Tier 2</span>
+                      <span className="text-[10px] text-gray-400">Context follow-ups</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {t2Visible.map((q, i) => (
+                        <div key={i} className="flex gap-2 items-start">
+                          <div className="w-3.5 h-3.5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5" style={{ borderColor: "#9ca3af" }}>
+                            <div className="w-1 h-1 rounded-full bg-gray-400" />
+                          </div>
+                          <p className="text-xs text-gray-600 leading-snug">{q}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {t1Visible.length === 0 && (
+                  <p className="text-xs text-gray-300 italic">Questions building...</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -194,9 +255,9 @@ export default function LiveCallPage() {
           <button
             onClick={() => navigate("/screening-questions")}
             disabled={!done}
-            className="px-8 py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-30 transition-all"
+            className="px-8 py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-30 transition-opacity"
             style={{ backgroundColor: GG }}>
-            {done ? "Review screening questions" : "Sarah is building your framework..."}
+            {done ? "Review JD and screening questions" : "Sarah is building your setup..."}
           </button>
         </div>
       </div>

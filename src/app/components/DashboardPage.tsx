@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { usePostHog } from '@posthog/react';
 import {
   LayoutDashboard, Briefcase, Users, Settings,
   Plus, ChevronRight, Search, ArrowUpRight,
@@ -822,6 +823,7 @@ function AgentDock({ onToast, onShowArea, onAction }: {
   onShowArea: (area: string) => number;
   onAction: (kind: ActionKind) => void;
 }) {
+  const posthog = usePostHog();
   const [command, setCommand] = useState('');
   const [running, setRunning] = useState<{ cmd: string; step: number; steps: string[] } | null>(null);
   const [history, setHistory] = useState<{ id: number; cmd: string; result: string }[]>([]);
@@ -829,6 +831,7 @@ function AgentDock({ onToast, onShowArea, onAction }: {
   const run = (text: string) => {
     const cmd = text.trim();
     if (!cmd || running) return;
+    posthog?.capture('agent_command_submitted', { command: cmd });
     const plan = buildPlan(cmd, onShowArea, onAction);
     setCommand('');
     setRunning({ cmd, step: 0, steps: plan.steps });
@@ -956,6 +959,7 @@ function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: nu
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
   const [view, setView]                       = useState<View>('dashboard');
   const [jobs, setJobs]                       = useState<Job[]>(INITIAL_JOBS);
   const [candidatePool, setCandidatePool]     = useState<Candidate[]>(CANDIDATES);
@@ -988,6 +992,7 @@ export default function DashboardPage() {
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...patch } : j));
 
   const openProfile = (c: Candidate) => {
+    posthog?.capture('candidate_profile_opened', { candidate_score: c.score, candidate_status: c.status, role: c.role });
     setSelectedCandidate(c);
     setView('profile');
   };
@@ -1045,9 +1050,9 @@ export default function DashboardPage() {
         </button>
         <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10b981' }}>GigGrab</span>
         <div className="ml-auto flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs text-[#059669]" style={{ fontWeight: 600 }}>
+          <span className="flex items-center gap-1.5 text-xs bg-[#f0fdf4] border border-[#a7f3d0] text-[#059669] px-2.5 py-1 rounded-full" style={{ fontWeight: 600 }}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] gg-anim" style={{ animation: 'ggBlink 1.4s infinite' }} />
-            Sarah on duty
+            Sarah is screening
           </span>
           <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500" style={{ fontWeight: 600 }}>M</div>
         </div>
@@ -1076,7 +1081,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <nav className="flex-1 px-2">
+            <nav className="flex-1 px-2 overflow-y-auto">
               {[
                 { id: 'dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, label: 'Dashboard' },
                 { id: 'jobs',       icon: <Briefcase className="w-4 h-4" />,       label: 'Campaigns' },
@@ -1100,6 +1105,36 @@ export default function DashboardPage() {
                   </button>
                 );
               })}
+
+              {/* Sarah section */}
+              <div className="mt-4 mb-1 px-3">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-300">Sarah</p>
+              </div>
+              {[
+                { icon: <Bot className="w-4 h-4" />,        label: 'Configure Sarah',  path: '/settings' },
+                { icon: <DollarSign className="w-4 h-4" />, label: 'Budget',            path: '/campaigns' },
+                { icon: <Activity className="w-4 h-4" />,   label: 'Integrations',      path: '/settings' },
+              ].map(item => (
+                <button
+                  key={item.label}
+                  onClick={() => { navigate(item.path); setDrawerOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                >
+                  <span className="text-gray-400">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+
+              {/* Upload CSV */}
+              <div className="mt-3 px-1">
+                <button
+                  onClick={() => { setDrawerOpen(false); alert('CSV upload — coming in next build'); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-dashed border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  Upload CSV / Add candidates
+                </button>
+              </div>
             </nav>
 
             <div className="px-3 pb-4 border-t border-gray-100 pt-4 space-y-2">
@@ -1181,6 +1216,7 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
   onShowArea: (area: string) => number;
   onImportJobs: (jobs: PulledJob[]) => void;
 }) {
+  const posthog = usePostHog();
   const matched = [...candidates].sort((a, b) => b.score - a.score);
   const [action, setAction] = useState<{ kind: ActionKind; id: number } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -1195,7 +1231,7 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
           <p className="text-sm text-gray-400">Sarah is working on {jobs.filter(j => j.status === 'Active').length} active campaigns — tell her what you need below.</p>
         </div>
         <button
-          onClick={() => { setAction(null); setImportOpen(true); }}
+          onClick={() => { posthog?.capture('import_jobs_panel_opened'); setAction(null); setImportOpen(true); }}
           className="flex items-center gap-1.5 border border-gray-200 hover:border-[#10b981] hover:text-[#059669] bg-white text-gray-600 rounded-lg px-3.5 py-2 text-xs transition-colors shrink-0 mt-1"
           style={{ fontWeight: 600 }}
         >
@@ -1321,6 +1357,7 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
   onBack: () => void;
   onStatusChange: (id: string, status: string) => void;
 }) {
+  const posthog = usePostHog();
   const [tab, setTab]           = useState<ProfileTab>('summary');
   const [status, setStatus]     = useState(c.status);
   const [interviews, setInterviews] = useState<Interview[]>(c.interviews);
@@ -1590,7 +1627,7 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
                 <Calendar className="w-3.5 h-3.5" />
                 Schedule Interview
               </button>
-              <button onClick={() => { setStatus('Shortlisted'); }} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
+              <button onClick={() => { posthog?.capture('candidate_shortlisted', { candidate_id: c.id, role: c.role, score: c.score }); setStatus('Shortlisted'); }} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
                 <Star className="w-3.5 h-3.5" />
                 Shortlist
               </button>
@@ -1598,7 +1635,7 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
                 <CheckCircle className="w-3.5 h-3.5" />
                 Mark as Hired
               </button>
-              <button onClick={() => setStatus('Rejected')} className="w-full flex items-center gap-2 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
+              <button onClick={() => { posthog?.capture('candidate_rejected', { candidate_id: c.id, role: c.role, score: c.score }); setStatus('Rejected'); }} className="w-full flex items-center gap-2 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
                 <XCircle className="w-3.5 h-3.5" />
                 Reject
               </button>

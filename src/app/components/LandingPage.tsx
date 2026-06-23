@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Check, Database, Send, Sparkles, Globe, Phone, ArrowRight,
-  Mic, FileText, DollarSign, Star, UserCheck, Plus, PhoneCall,
-  Clock, MessageSquare,
+  Mic, FileText, Star, Plus, PhoneCall, MessageSquare,
 } from "lucide-react";
 
 const GG = "#3d8c62";
@@ -33,161 +32,139 @@ const LANGUAGES = [
   "Thai","Vietnamese","Indonesian","Malay","Tagalog","Bengali","Urdu","Swahili",
 ];
 
-// Agentic activity feed — things Sarah is actively doing
-const ACTIVITY_POOL = [
-  { action: "Called",       name: "Marcus L.",   detail: null,                      type: "call"    },
-  { action: "Qualified",    name: "Emma R.",     detail: "87%",                     type: "qualify" },
-  { action: "Sent SMS to",  name: "Tom K.",      detail: null,                      type: "sms"     },
-  { action: "Screened",     name: "David M.",    detail: "62%",                     type: "screen"  },
-  { action: "Called",       name: "Lisa P.",     detail: null,                      type: "call"    },
-  { action: "Qualified",    name: "Aisha B.",    detail: "91%",                     type: "qualify" },
-  { action: "Left message for", name: "James O.", detail: null,                     type: "sms"     },
-  { action: "Screened",     name: "Rosa T.",     detail: "74%",                     type: "screen"  },
-  { action: "Booked interview", name: "Emma R.", detail: "Tomorrow 10am",           type: "book"    },
-  { action: "Called",       name: "Kevin S.",    detail: null,                      type: "call"    },
-  { action: "Qualified",    name: "Nadia H.",    detail: "83%",                     type: "qualify" },
-  { action: "Screened",     name: "Piotr W.",    detail: "55%",                     type: "screen"  },
+// ── Two-flow hero animation ───────────────────────────────────────────────────
+
+const FLOW_A = [
+  { icon: <Phone size={15} />,       label: "Call Sarah",          sub: "5 min" },
+  { icon: <FileText size={15} />,    label: "JD auto-written",     sub: "Instant" },
+  { icon: <Send size={15} />,        label: "Posted to 10+ boards",sub: "Real-time" },
+  { icon: <PhoneCall size={15} />,   label: "Sarah screens inbound", sub: "24/7" },
+  { icon: <Star size={15} />,        label: "Qualified shortlist", sub: "Ranked" },
 ];
 
-const SCORE_COLORS: Record<string, string> = {
-  call:    "#3b82f6",
-  qualify: GG,
-  screen:  "#8b5cf6",
-  sms:     "#f59e0b",
-  book:    "#06b6d4",
-};
-
-const CANDIDATE_QUEUE = [
-  { name: "Emma R.",  score: 87, status: "Qualified", initials: "ER", color: GG },
-  { name: "Aisha B.", score: 91, status: "Qualified", initials: "AB", color: "#6366f1" },
-  { name: "Nadia H.", score: 83, status: "Qualified", initials: "NH", color: "#f59e0b" },
-  { name: "Rosa T.",  score: 74, status: "Review",    initials: "RT", color: "#06b6d4" },
-  { name: "David M.", score: 62, status: "Review",    initials: "DM", color: "#8b5cf6" },
+const FLOW_B = [
+  { icon: <Database size={15} />,    label: "Upload CSV / ATS",    sub: "Any format" },
+  { icon: <PhoneCall size={15} />,   label: "Sarah calls each one", sub: "Automated" },
+  { icon: <Mic size={15} />,         label: "Sarah screens them",  sub: "32 languages" },
+  { icon: <MessageSquare size={15} />,label: "Detailed analysis",  sub: "Per candidate" },
+  { icon: <Star size={15} />,        label: "Qualified shortlist", sub: "Ranked" },
 ];
 
-function AgenticHero() {
-  const [feed, setFeed] = useState(() => ACTIVITY_POOL.slice(0, 5).map((a, i) => ({ ...a, id: i, ts: i * 8 + 5 })));
-  const [tick, setTick] = useState(0);
-  const [nextIdx, setNextIdx] = useState(5);
+const FLOW_CSS = `
+@keyframes flow-dot {
+  0%   { left: 0%;   opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .fd { animation: none !important; } }
+`;
+
+function FlowStep({ icon, label, sub, state }: {
+  icon: React.ReactNode; label: string; sub: string;
+  state: "done" | "active" | "pending";
+}) {
+  return (
+    <div className="flex flex-col items-center text-center relative" style={{ flex: 1 }}>
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition-all duration-400 border"
+        style={
+          state === "active"  ? { backgroundColor: GG,         color: "white",    borderColor: GG,        boxShadow: `0 0 0 3px ${GG}22` } :
+          state === "done"    ? { backgroundColor: GG_LIGHT,   color: GG,         borderColor: "#a7f3d0"  } :
+                                { backgroundColor: "#f9fafb",  color: "#d1d5db",  borderColor: "#f3f4f6"  }
+        }>
+        {icon}
+      </div>
+      <p className="text-[11px] font-semibold leading-tight transition-colors duration-300"
+        style={{ color: state === "pending" ? "#e5e7eb" : state === "active" ? GG : "#6b7280" }}>
+        {label}
+      </p>
+      <p className="text-[10px] mt-0.5 transition-colors duration-300"
+        style={{ color: state === "pending" ? "#f3f4f6" : "#9ca3af" }}>
+        {sub}
+      </p>
+    </div>
+  );
+}
+
+function Arrow({ active, done }: { active: boolean; done: boolean }) {
+  return (
+    <div className="flex items-center justify-center flex-shrink-0 mt-[-14px]" style={{ width: 20 }}>
+      <svg width="20" height="10" viewBox="0 0 20 10">
+        <line x1="0" y1="5" x2="14" y2="5"
+          stroke={done || active ? GG : "#e5e7eb"}
+          strokeWidth="1.5" strokeDasharray={active ? "3 2" : "none"}
+          style={{ transition: "stroke 0.4s" }} />
+        <polyline points="11,2 15,5 11,8"
+          fill="none" stroke={done || active ? GG : "#e5e7eb"}
+          strokeWidth="1.5" style={{ transition: "stroke 0.4s" }} />
+      </svg>
+    </div>
+  );
+}
+
+function FlowRow({ steps, activeStep, label, color }: {
+  steps: typeof FLOW_A; activeStep: number; label: string; color: string;
+}) {
+  return (
+    <div className="p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>{label}</span>
+      </div>
+      <div className="flex items-start">
+        {steps.map((s, i) => (
+          <div key={i} className="flex items-start" style={{ flex: i < steps.length - 1 ? "1 1 0" : "0 0 auto" }}>
+            <FlowStep
+              icon={s.icon} label={s.label} sub={s.sub}
+              state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
+            />
+            {i < steps.length - 1 && (
+              <Arrow active={i === activeStep} done={i < activeStep} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroFlowAnimation() {
+  const [stepA, setStepA] = useState(0);
+  const [stepB, setStepB] = useState(2);
 
   useEffect(() => {
     const t = setInterval(() => {
-      setTick(x => x + 1);
-      setFeed(prev => {
-        const item = { ...ACTIVITY_POOL[nextIdx % ACTIVITY_POOL.length], id: Date.now(), ts: 0 };
-        setNextIdx(i => i + 1);
-        return [item, ...prev.slice(0, 5)].map((x, i) => ({ ...x, ts: i * 9 + (i === 0 ? 0 : x.ts) }));
-      });
-    }, 1800);
-    return () => clearInterval(t);
-  }, [nextIdx]);
-
-  // increment timestamps
-  useEffect(() => {
-    const t = setInterval(() => {
-      setFeed(prev => prev.map(a => ({ ...a, ts: a.ts + 1 })));
-    }, 1000);
+      setStepA(s => s >= FLOW_A.length ? 0 : s + 1);
+    }, 1200);
     return () => clearInterval(t);
   }, []);
 
-  const [callsNow, setCallsNow] = useState(40);
-  const [qualifiedToday, setQualifiedToday] = useState(12);
-  const [reached, setReached] = useState(452);
-
   useEffect(() => {
     const t = setInterval(() => {
-      if (Math.random() > 0.6) setCallsNow(n => n + (Math.random() > 0.5 ? 1 : -1));
-      if (Math.random() > 0.8) setQualifiedToday(n => n + 1);
-      if (Math.random() > 0.5) setReached(n => n + Math.floor(Math.random() * 3));
-    }, 2200);
+      setStepB(s => s >= FLOW_B.length ? 0 : s + 1);
+    }, 1350);
     return () => clearInterval(t);
   }, []);
 
   return (
     <div className="rounded-2xl border border-gray-100 shadow-xl overflow-hidden bg-white">
-      {/* Header */}
+      <style>{FLOW_CSS}</style>
       <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-700">Sarah</span>
-          <span className="text-xs text-gray-400">is recruiting right now</span>
-        </div>
+        <p className="text-xs font-semibold text-gray-700">Two ways Sarah works</p>
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
           style={{ backgroundColor: GG_LIGHT, color: GG }}>
           <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: GG }} />
-          Active
+          Live demo
         </span>
       </div>
 
-      <div className="p-4 grid grid-cols-2 gap-4">
-        {/* Live activity feed */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Live Actions</p>
-          <div className="space-y-1.5">
-            {feed.slice(0, 5).map((item, i) => (
-              <div key={item.id}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all duration-500"
-                style={{
-                  backgroundColor: i === 0 ? GG_LIGHT : "#f9fafb",
-                  opacity: 1 - i * 0.12,
-                }}>
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: SCORE_COLORS[item.type] }} />
-                <span className="text-xs text-gray-600 flex-1 truncate">
-                  {item.action}{" "}
-                  <span className="font-semibold text-gray-800">{item.name}</span>
-                  {item.detail && (
-                    <span className="ml-1 font-bold" style={{ color: item.type === "qualify" ? GG : "#6b7280" }}>
-                      {item.detail}
-                    </span>
-                  )}
-                </span>
-                <span className="text-[10px] text-gray-300 flex-shrink-0">{item.ts}s ago</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <FlowRow steps={FLOW_A} activeStep={stepA >= FLOW_A.length ? FLOW_A.length - 1 : stepA}
+        label="Distribute and screen" color={GG} />
 
-        {/* Candidate scores */}
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Shortlist Building</p>
-          <div className="space-y-1.5">
-            {CANDIDATE_QUEUE.map((c) => (
-              <div key={c.name} className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0"
-                  style={{ backgroundColor: c.color }}>
-                  {c.initials}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-xs font-medium text-gray-700 truncate">{c.name}</span>
-                    <span className="text-xs font-bold ml-1" style={{ color: c.score >= 75 ? GG : "#9ca3af" }}>{c.score}%</span>
-                  </div>
-                  <div className="h-1 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000"
-                      style={{ width: `${c.score}%`, backgroundColor: c.score >= 75 ? GG : "#d1d5db" }} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <div className="mx-4 border-t border-dashed border-gray-100" />
 
-      {/* Stats bar */}
-      <div className="border-t border-gray-100 px-5 py-3 grid grid-cols-3 gap-3 text-center bg-gray-50">
-        <div>
-          <p className="text-lg font-bold text-gray-900 tabular-nums">{reached}</p>
-          <p className="text-[10px] text-gray-400">Candidates reached</p>
-        </div>
-        <div>
-          <p className="text-lg font-bold text-gray-900 tabular-nums">{callsNow}</p>
-          <p className="text-[10px] text-gray-400">Calls in progress</p>
-        </div>
-        <div>
-          <p className="text-lg font-bold tabular-nums" style={{ color: GG }}>{qualifiedToday}</p>
-          <p className="text-[10px] text-gray-400">Qualified today</p>
-        </div>
-      </div>
+      <FlowRow steps={FLOW_B} activeStep={stepB >= FLOW_B.length ? FLOW_B.length - 1 : stepB}
+        label="Screen existing candidates" color="#6366f1" />
     </div>
   );
 }
@@ -288,7 +265,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-        <AgenticHero />
+        <HeroFlowAnimation />
       </section>
 
       {/* Full flow */}
