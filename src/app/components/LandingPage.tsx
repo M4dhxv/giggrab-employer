@@ -229,7 +229,7 @@ export default function LandingPage() {
       <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
         <button className="text-xl font-bold tracking-tight" style={{ color: GG }}>GigGrab</button>
         <div className="flex items-center gap-6 text-sm text-gray-600">
-          <span className="cursor-pointer hover:text-gray-900">For Workers</span>
+          <button onClick={() => navigate("/worker")} className="hover:text-gray-900">For Workers</button>
           <span className="cursor-pointer font-medium hover:text-gray-900">Pricing</span>
           <button onClick={() => navigate("/dashboard")} className="hover:text-gray-900">Log In</button>
           <button onClick={() => navigate("/post-job")}

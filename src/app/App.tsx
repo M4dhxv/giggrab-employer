@@ -20,17 +20,17 @@ export default function App() {
     <Router>
       <div className="min-h-screen bg-white">
         <Routes>
-          {/* Worker (candidate) side — unchanged */}
-          <Route path="/" element={<WorkerLandingPage />} />
-          <Route path="/worker" element={<Navigate to="/" replace />} />
+          {/* Employer flow — homepage */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/employer" element={<Navigate to="/" replace />} />
+
+          {/* Worker (candidate) side */}
+          <Route path="/worker" element={<WorkerLandingPage />} />
           <Route path="/worker/get-started" element={<WorkerGetStartedPage />} />
           <Route path="/worker/start" element={<WorkerStartPage />} />
           <Route path="/worker/call" element={<WorkerCallPage />} />
           <Route path="/worker/profile" element={<WorkerProfilePage />} />
           <Route path="/worker/dashboard" element={<WorkerDashboardPage />} />
-
-          {/* Employer flow */}
-          <Route path="/employer" element={<LandingPage />} />
           <Route path="/post-job" element={<CreateJobPage />} />
           <Route path="/connecting" element={<ConnectingPage />} />
           <Route path="/live-call" element={<LiveCallPage />} />
