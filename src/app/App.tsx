@@ -8,7 +8,6 @@ import LaunchPage from './components/LaunchPage';
 import DashboardPage from './components/DashboardPage';
 import CampaignsPage from './components/CampaignsPage';
 import SettingsPage from './components/SettingsPage';
-import ScreeningQuestionsPage from './components/ScreeningQuestionsPage';
 import WorkerLandingPage from './components/WorkerLandingPage';
 import WorkerGetStartedPage from './components/WorkerGetStartedPage';
 import WorkerStartPage from './components/WorkerStartPage';
@@ -35,7 +34,6 @@ export default function App() {
           <Route path="/post-job" element={<CreateJobPage />} />
           <Route path="/connecting" element={<ConnectingPage />} />
           <Route path="/live-call" element={<LiveCallPage />} />
-          <Route path="/screening-questions" element={<ScreeningQuestionsPage />} />
           <Route path="/service" element={<ServicePage />} />
           <Route path="/launch" element={<LaunchPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

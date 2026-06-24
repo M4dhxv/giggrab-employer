@@ -60,7 +60,7 @@ export default function LiveCallPage() {
 
   useEffect(() => {
     if (done) return;
-    const delay = TRANSCRIPT[msgCount - 1].from === "sarah" ? 2000 : 1000;
+    const delay = TRANSCRIPT[msgCount - 1].from === "sarah" ? 1000 : 550;
     setTyping(true);
     const t = setTimeout(() => { setTyping(false); setMsgCount(c => c + 1); }, delay);
     return () => clearTimeout(t);
@@ -75,8 +75,8 @@ export default function LiveCallPage() {
   const t2Visible = msgCount >= 15 ? T2_QUESTIONS : [];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <nav className="flex items-center justify-between py-4 px-8 border-b border-gray-100">
+    <div className="h-screen bg-white flex flex-col overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <nav className="flex items-center justify-between py-3 px-8 border-b border-gray-100 flex-shrink-0">
         <button onClick={() => navigate("/employer")}
           className="text-xl font-bold tracking-tight" style={{ color: GG }}>
           GigGrab
@@ -88,8 +88,8 @@ export default function LiveCallPage() {
         </span>
       </nav>
 
-      <div className="flex-1 px-8 py-6 max-w-5xl mx-auto w-full">
-        <div className="mb-4">
+      <div className="flex-1 px-8 py-3 max-w-5xl mx-auto w-full flex flex-col overflow-hidden">
+        <div className="mb-2 flex-shrink-0">
           <h1 className="text-xl font-bold text-gray-900">
             {currentPhase === 1 ? "Tell Sarah about your role" : "Sarah is setting up your screening"}
           </h1>
@@ -101,7 +101,7 @@ export default function LiveCallPage() {
         </div>
 
         {/* Phase progress */}
-        <div className="flex items-center gap-2 mb-5">
+        <div className="flex items-center gap-2 mb-3 flex-shrink-0">
           {[
             { n: 1, label: "Job details" },
             { n: 2, label: "Screening setup" },
@@ -127,14 +127,14 @@ export default function LiveCallPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-5 gap-5">
+        <div className="grid grid-cols-5 gap-5 flex-1 min-h-0">
           {/* Chat — 3/5 */}
           <div className="col-span-3 rounded-2xl border border-gray-100 flex flex-col overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: done ? "#9ca3af" : GG, animation: done ? "none" : "pulse 2s infinite" }} />
               <span className="text-xs font-medium text-gray-600">{done ? "Call ended" : "In progress"}</span>
             </div>
-            <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 400 }}>
+            <div ref={chatRef} className="flex-1 overflow-y-auto p-4 space-y-3">
               {TRANSCRIPT.slice(0, msgCount).map((msg, i) => (
                 <div key={i} className={`flex ${msg.from === "employer" ? "justify-end" : "justify-start"}`}>
                   {msg.from === "sarah" && (
@@ -172,7 +172,7 @@ export default function LiveCallPage() {
           </div>
 
           {/* Right panel — 2/5 */}
-          <div className="col-span-2 space-y-3 overflow-y-auto" style={{ maxHeight: 460 }}>
+          <div className="col-span-2 space-y-3 overflow-y-auto">
             {/* JD panel */}
             <div className="rounded-xl border border-gray-200 p-4">
               <div className="flex items-center justify-between mb-3">
@@ -251,13 +251,13 @@ export default function LiveCallPage() {
           </div>
         </div>
 
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-3 flex-shrink-0 pb-3">
           <button
-            onClick={() => navigate("/screening-questions")}
+            onClick={() => navigate("/service")}
             disabled={!done}
             className="px-8 py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-30 transition-opacity"
             style={{ backgroundColor: GG }}>
-            {done ? "Review JD and screening questions" : "Sarah is building your setup..."}
+            {done ? "Continue to service options" : "Sarah is building your setup..."}
           </button>
         </div>
       </div>
