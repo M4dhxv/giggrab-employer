@@ -25,8 +25,11 @@ export default function ServicePage() {
   const [activePlatforms, setActivePlatforms] = useState(new Set(["Indeed","LinkedIn","ZipRecruiter"]));
   const [sarahMin, setSarahMin] = useState(200);
   const [userAdjustedMin, setUserAdjustedMin] = useState(false);
+  const [networkActive, setNetworkActive] = useState(false);
+  const [networkBudget, setNetworkBudget] = useState(15);
 
-  const totalBudget = [...activePlatforms].reduce((s, p) => s + (budgets[p] || 0), 0);
+  const totalBudget = [...activePlatforms].reduce((s, p) => s + (budgets[p] || 0), 0)
+    + (networkActive ? networkBudget : 0);
   const cap = calcCapacity(totalBudget);
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function ServicePage() {
     sessionStorage.setItem("gg_service", JSON.stringify({
       option: selected, minutes, budgets,
       activePlatforms: [...activePlatforms], sarahMin,
+      networkActive, networkBudget,
     }));
     navigate("/launch");
   }
@@ -142,28 +146,55 @@ export default function ServicePage() {
                 {Object.keys(DEFAULT_BUDGETS).map((platform) => {
                   const active = activePlatforms.has(platform);
                   return (
-                    <div key={platform} className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => togglePlatform(platform, e)}
-                            className="w-4 h-4 rounded flex items-center justify-center border"
-                            style={{ backgroundColor: active ? GG : "white", borderColor: active ? GG : "#d1d5db" }}>
-                            {active && <Check size={10} className="text-white" strokeWidth={3} />}
-                          </button>
-                          <span className="text-sm text-gray-700">{platform}</span>
+                    <div key={platform}>
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => togglePlatform(platform, e)}
+                              className="w-4 h-4 rounded flex items-center justify-center border"
+                              style={{ backgroundColor: active ? GG : "white", borderColor: active ? GG : "#d1d5db" }}>
+                              {active && <Check size={10} className="text-white" strokeWidth={3} />}
+                            </button>
+                            <span className="text-sm text-gray-700">{platform}</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">${budgets[platform]}/day</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">${budgets[platform]}/day</span>
+                        {active && (
+                          <input type="range" min={5} max={100} step={5} value={budgets[platform]}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setBudgets((b) => ({ ...b, [platform]: +e.target.value }));
+                              setUserAdjustedMin(false);
+                            }}
+                            className="w-full" style={{ accentColor: GG }} />
+                        )}
                       </div>
-                      {active && (
-                        <input type="range" min={5} max={100} step={5} value={budgets[platform]}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            setBudgets((b) => ({ ...b, [platform]: +e.target.value }));
-                            setUserAdjustedMin(false);
-                          }}
-                          className="w-full" style={{ accentColor: GG }} />
+
+                      {platform === "ZipRecruiter" && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setNetworkActive(a => !a); }}
+                                className="w-4 h-4 rounded flex items-center justify-center border"
+                                style={{ backgroundColor: networkActive ? GG : "white", borderColor: networkActive ? GG : "#d1d5db" }}>
+                                {networkActive && <Check size={10} className="text-white" strokeWidth={3} />}
+                              </button>
+                              <span className="text-sm text-gray-700">Promote to Network</span>
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                                style={{ backgroundColor: GG_LIGHT, color: GG }}>GigGrab</span>
+                            </div>
+                            <span className="text-sm font-medium text-gray-900">${networkBudget}/day</span>
+                          </div>
+                          {networkActive && (
+                            <input type="range" min={5} max={100} step={5} value={networkBudget}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => { e.stopPropagation(); setNetworkBudget(+e.target.value); setUserAdjustedMin(false); }}
+                              className="w-full" style={{ accentColor: GG }} />
+                          )}
+                        </div>
                       )}
                     </div>
                   );
