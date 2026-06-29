@@ -14,6 +14,8 @@ import WorkerStartPage from './components/WorkerStartPage';
 import WorkerCallPage from './components/WorkerCallPage';
 import WorkerProfilePage from './components/WorkerProfilePage';
 import WorkerDashboardPage from './components/WorkerDashboardPage';
+import CandidateFormPage from './components/CandidateFormPage';
+import ScreeningCallPage from './components/ScreeningCallPage';
 
 export default function App() {
   return (
@@ -39,6 +41,10 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Candidate flow pages */}
+          <Route path="/form" element={<CandidateFormPage />} />
+          <Route path="/screening-call" element={<ScreeningCallPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
