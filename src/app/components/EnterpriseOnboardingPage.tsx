@@ -12,6 +12,8 @@ import {
 
 type OnboardStep =
   | "login"
+  | "number-type"
+  | "existing-number"
   | "country"
   | "areacode"
   | "number"
@@ -309,6 +311,7 @@ function Btn({
 
 const ONBOARD_STEPS = ["Hiring Number", "ATS Integration", "Screening", "Go Live"];
 const STEP_INDICES: Partial<Record<OnboardStep, number>> = {
+  "number-type": 0, "existing-number": 0,
   country: 0, areacode: 0, number: 0,
   "ats-connect": 1, "ats-imported": 1,
   screening: 2,
@@ -490,7 +493,143 @@ function LoginScreen({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ─── 2. Country Select ────────────────────────────────────────
+// ─── 2. Number Type ──────────────────────────────────────────
+
+function NumberTypeScreen({ onNew, onExisting }: { onNew: () => void; onExisting: () => void }) {
+  return (
+    <OnboardingShell
+      step="number-type"
+      headline="Set up your hiring number"
+      tagline="Sarah answers every candidate call to this number — 24/7, in 32 languages, under your brand."
+    >
+      <div>
+        <h2 className="text-4xl font-bold text-gray-900 mb-2">Hiring number</h2>
+        <p className="text-lg text-gray-500 mb-8">
+          Do you want a brand-new number or use one you already own?
+        </p>
+
+        <div className="grid grid-cols-1 gap-4 mb-8">
+          <button
+            onClick={onNew}
+            className="flex items-start gap-5 p-6 rounded-2xl border-2 border-gray-200 bg-white hover:border-green-400 hover:bg-green-50 text-left transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-green-100 flex items-center justify-center flex-shrink-0 transition-all">
+              <Hash size={22} className="text-gray-600 group-hover:text-green-700" />
+            </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900 mb-1">Get a new number</div>
+              <div className="text-base text-gray-500 leading-relaxed">
+                Choose a local number for your hiring hotline. Available instantly — pick your area code and number.
+              </div>
+            </div>
+            <ChevronRight size={20} className="text-gray-300 group-hover:text-green-500 flex-shrink-0 mt-1 transition-colors" />
+          </button>
+
+          <button
+            onClick={onExisting}
+            className="flex items-start gap-5 p-6 rounded-2xl border-2 border-gray-200 bg-white hover:border-green-400 hover:bg-green-50 text-left transition-all group"
+          >
+            <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-green-100 flex items-center justify-center flex-shrink-0 transition-all">
+              <Phone size={22} className="text-gray-600 group-hover:text-green-700" />
+            </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900 mb-1">Use an existing number</div>
+              <div className="text-base text-gray-500 leading-relaxed">
+                Port or forward a number you already own. Sarah takes over calls — your number, your brand.
+              </div>
+            </div>
+            <ChevronRight size={20} className="text-gray-300 group-hover:text-green-500 flex-shrink-0 mt-1 transition-colors" />
+          </button>
+        </div>
+      </div>
+    </OnboardingShell>
+  );
+}
+
+// ─── 2b. Existing Number ─────────────────────────────────────
+
+function ExistingNumberScreen({ onConfirm }: { onConfirm: (number: string) => void }) {
+  const [mode, setMode] = useState<"port" | "forward" | null>(null);
+  const [number, setNumber] = useState("");
+
+  return (
+    <OnboardingShell
+      step="existing-number"
+      headline="Use your existing number"
+      tagline="Sarah will answer all calls to this number automatically."
+    >
+      <div>
+        <h2 className="text-4xl font-bold text-gray-900 mb-2">Existing number</h2>
+        <p className="text-lg text-gray-500 mb-8">How would you like Sarah to answer calls?</p>
+
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {[
+            {
+              id: "port" as const,
+              title: "Port number",
+              desc: "Transfer fully to GigGrab. Typically 2–5 business days.",
+            },
+            {
+              id: "forward" as const,
+              title: "Forward calls",
+              desc: "Keep your number, forward inbound calls to Sarah instantly.",
+            },
+          ].map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setMode(opt.id)}
+              className={`p-4 rounded-xl border-2 text-left transition-all ${
+                mode === opt.id
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-200 bg-white hover:border-green-300"
+              }`}
+            >
+              <div className="text-base font-bold text-gray-900 mb-1">{opt.title}</div>
+              <div className="text-sm text-gray-500 leading-snug">{opt.desc}</div>
+              {mode === opt.id && (
+                <div className="mt-2.5 flex items-center gap-1.5 text-green-700 text-sm font-semibold">
+                  <Check size={12} strokeWidth={3} /> Selected
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-8">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Your existing number</label>
+          <input
+            type="tel"
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            placeholder="+44 20 7123 4567"
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-green-400 transition-all"
+          />
+          {mode === "port" && (
+            <p className="text-xs text-gray-400 mt-2">
+              You'll need to provide your current provider's account details. We manage the full porting process.
+            </p>
+          )}
+          {mode === "forward" && (
+            <p className="text-xs text-gray-400 mt-2">
+              We'll give you a forwarding number to configure with your current provider. Sarah answers all forwarded calls immediately.
+            </p>
+          )}
+        </div>
+
+        <Btn
+          onClick={() => number.trim() && mode && onConfirm(number.trim())}
+          disabled={!number.trim() || !mode}
+          className="w-full"
+          size="lg"
+        >
+          Confirm number <ArrowRight size={18} />
+        </Btn>
+      </div>
+    </OnboardingShell>
+  );
+}
+
+// ─── 3. Country Select ────────────────────────────────────────
 
 function CountryScreen({
   onSelect,
@@ -2474,7 +2613,18 @@ export default function EnterpriseOnboardingPage() {
   return (
     <>
       {step === "login" && (
-        <LoginScreen onNext={() => setStep("country")} />
+        <LoginScreen onNext={() => setStep("number-type")} />
+      )}
+      {step === "number-type" && (
+        <NumberTypeScreen
+          onNew={() => setStep("country")}
+          onExisting={() => setStep("existing-number")}
+        />
+      )}
+      {step === "existing-number" && (
+        <ExistingNumberScreen
+          onConfirm={(n) => { setPhoneNumber(n); setStep("provisioning"); }}
+        />
       )}
       {step === "country" && (
         <CountryScreen onSelect={(c) => { setCountry(c); setStep("areacode"); }} />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, ArrowRight, Star } from "lucide-react";
 
 const GG = "#3d8c62";
 const GG_LIGHT = "#f0f8f4";
@@ -84,11 +84,29 @@ export default function ServicePage() {
               )}
             </div>
             <p className="text-sm text-gray-500 mb-3">Upload your ATS or CSV. Sarah calls and qualifies everyone automatically.</p>
-            <div className="flex gap-2 flex-wrap mb-4">
-              {["ATS","CSV Upload","Existing Database"].map((s) => (
-                <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">{s}</span>
+
+            {/* Connected sources */}
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">Connect existing data</p>
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {[
+                { name: "HubSpot",      color: "#FF7A59", bg: "#FFF4F0" },
+                { name: "Google Drive", color: "#4285F4", bg: "#EEF4FF" },
+                { name: "Greenhouse",   color: "#24B47E", bg: "#F0FDF4" },
+                { name: "CSV / Excel",  color: "#6B7280", bg: "#F3F4F6" },
+                { name: "Ashby",        color: "#6366F1", bg: "#F5F3FF" },
+              ].map((s) => (
+                <span key={s.name}
+                  className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-md border"
+                  style={{ color: s.color, backgroundColor: s.bg, borderColor: s.color + "40" }}>
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                  {s.name}
+                </span>
               ))}
+              <span className="flex items-center text-[11px] font-semibold px-2 py-1 rounded-md bg-gray-100 text-gray-400 border border-gray-200">
+                + 12 more
+              </span>
             </div>
+
             <p className="text-2xl font-bold text-gray-900">$0.25<span className="text-base font-normal text-gray-400">/min</span></p>
 
             {selected === "A" && (
@@ -202,6 +220,40 @@ export default function ServicePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Enterprise Card */}
+        <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 mb-7 relative overflow-hidden">
+          <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest">
+            <Star size={9} fill="white" strokeWidth={0} />
+            Enterprise
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">Option C</p>
+          <h3 className="text-lg font-bold text-gray-900 mb-1">Enterprise Hiring Line</h3>
+          <p className="text-sm text-gray-500 mb-5">
+            A dedicated AI hiring number under your brand — new number or port an existing one. Sarah handles every call, 24/7.
+          </p>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 mb-6">
+            {[
+              "Dedicated number (new or existing)",
+              "White-label — your brand",
+              "Multi-site hiring",
+              "ATS & CRM integration",
+              "Unlimited screening minutes",
+              "Dedicated account support & SLA",
+            ].map((f) => (
+              <div key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                <Check size={12} strokeWidth={3} style={{ color: GG, flexShrink: 0 }} />
+                {f}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => navigate("/enterprise")}
+            className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[.99]"
+            style={{ backgroundColor: "#1e293b" }}>
+            Set Up Enterprise <ArrowRight size={15} />
+          </button>
         </div>
 
         {/* Sarah Capacity Planner */}
