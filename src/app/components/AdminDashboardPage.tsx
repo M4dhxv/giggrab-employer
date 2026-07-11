@@ -42,14 +42,20 @@ function SessionDetail({ s }: { s: AdminSession }) {
   const rec = ai?.recommendation ? REC_STYLE[ai.recommendation] : null;
 
   const FIELDS: [string, string][] = [
+    ["Location", "candidate_location"],
+    ["Recent job", "recent_job"],
+    ["Cleaning type", "cleaning_experience"],
+    ["Years exp", "years_experience"],
+    ["Currently working", "currently_working"],
+    ["Full/part-time", "employment_type"],
+    ["Notice / start", "notice_period"],
+    ["Can't work", "unavailable_times"],
+    ["Happy to travel", "comfortable_with_travel"],
+    ["Driving licence", "driving_licence"],
+    ["Own vehicle", "own_transport"],
     ["Right to work", "right_to_work"],
-    ["Can reach site", "can_reach_site"],
-    ["Comfortable w/ travel", "comfortable_with_travel"],
-    ["Available days", "available_days"],
-    ["Earliest start time", "earliest_start_time"],
-    ["Latest finish time", "latest_finish_time"],
-    ["Shift notice", "shift_notice"],
-    ["Earliest start date", "earliest_start_date"],
+    ["Certifications", "certifications"],
+    ["Motivation", "motivation"],
   ];
   const fmt = (v: unknown) =>
     v === null || v === undefined || v === "" ? "—"

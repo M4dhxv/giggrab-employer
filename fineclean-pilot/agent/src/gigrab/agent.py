@@ -297,12 +297,18 @@ _WRAPUP_SPEAK_SOON_RE = re.compile(r"speak\s+soon\b", re.IGNORECASE)
 _WRAPUP_LOGON_RE = re.compile(
     r"log\s*on\s+to\s+giggrab\.io\s+with\s+your\s+phone\s+number", re.IGNORECASE
 )
+# FineClean screening closes with "Have a great day." as its final line.
+_WRAPUP_CLOSE_RE = re.compile(r"have\s+a\s+great\s+day", re.IGNORECASE)
 
 
 def _looks_like_wrapup(text: str) -> bool:
     if not text:
         return False
-    return bool(_WRAPUP_SPEAK_SOON_RE.search(text) or _WRAPUP_LOGON_RE.search(text))
+    return bool(
+        _WRAPUP_SPEAK_SOON_RE.search(text)
+        or _WRAPUP_LOGON_RE.search(text)
+        or _WRAPUP_CLOSE_RE.search(text)
+    )
 
 
 def _format_pay(pay: Optional[str]) -> str:
@@ -877,22 +883,22 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             pref_name = _sanitize_profile_field(cfg.preferred_name or "", 60)
             if pref_name:
                 kickoff = (
-                    f"The call just connected. You ALREADY KNOW the candidate's "
-                    f"name is {pref_name}. Do NOT ask their name. Do NOT mention "
-                    f"CVs or building a CV. Stay in {cfg.language} unless they "
-                    f"switch. In ONE short sentence, greet them by name and say "
-                    f"the call is recorded, then IMMEDIATELY ask your first "
-                    f"screening question about right-to-work documentation. "
-                    f"Example: 'Hi {pref_name}, it's Sarah from FineClean — quick "
-                    f"recorded call about the cleaning role. Do you currently have "
-                    f"valid right to work documentation?'"
+                    f"The call just connected. The candidate's name is {pref_name}. "
+                    f"Begin your OPENING now, exactly as your instructions describe, "
+                    f"one short line at a time: first confirm it's them "
+                    f"(\"Hi, is that {pref_name}?\"), then introduce yourself and the "
+                    f"FineClean recruitment team, explain why you're calling, and ask "
+                    f"if now's a good time. Do NOT start the interview questions until "
+                    f"they confirm it's a good time. Stay in {cfg.language}. Do NOT "
+                    f"mention CVs."
                 )
             else:
                 kickoff = (
-                    f"The call just connected. Do NOT mention CVs. Stay in "
-                    f"{cfg.language} unless they switch. In ONE short sentence, say "
-                    f"hi, that you're Sarah from FineClean and the call is recorded, "
-                    f"then ask their name."
+                    f"The call just connected. Begin your OPENING as your instructions "
+                    f"describe, but you don't yet have their name — start by confirming "
+                    f"who you're speaking to and introducing yourself + the FineClean "
+                    f"recruitment team, then explain why you're calling and ask if now's "
+                    f"a good time. Stay in {cfg.language}. Do NOT mention CVs."
                 )
         context.add_message({"role": "user", "content": kickoff})
         await task.queue_frames([LLMRunFrame()])
