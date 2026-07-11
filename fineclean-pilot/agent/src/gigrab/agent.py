@@ -884,9 +884,9 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                     f"'{cfg.language}' as their call language — stay in "
                     f"{cfg.language} unless they switch first. Greet them "
                     f"in TWO short sentences using their name verbatim. "
-                    f"First sentence: 'Hi {pref_name}, this is Sarah from "
-                    f"GigGrab — this call is recorded so we can build "
-                    f"your CV.' Second sentence: 'Just to confirm — am I "
+                    f"First sentence: 'Hi {pref_name}, this is Sarah, "
+                    f"FineClean's AI recruiter — this call is recorded.' "
+                    f"Second sentence: 'Just to confirm — am I "
                     f"speaking with {pref_name}?' Nothing else. If they "
                     f"correct you, apologise once and use their version."
                 )
@@ -896,8 +896,8 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                     f"'{cfg.language}' as their call language — stay in "
                     f"{cfg.language} unless they switch first. Greet them in "
                     f"TWO short sentences. First sentence: 'Hi, this is "
-                    f"GigGrab's AI recruiter — this call is recorded so we can "
-                    f"build your CV.' Second sentence: ask their name. Nothing "
+                    f"Sarah, FineClean's AI recruiter — this call is recorded.' "
+                    f"Second sentence: ask their name. Nothing "
                     f"else."
                 )
         context.add_message({"role": "user", "content": kickoff})
