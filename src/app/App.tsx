@@ -16,6 +16,7 @@ import WorkerProfilePage from './components/WorkerProfilePage';
 import WorkerDashboardPage from './components/WorkerDashboardPage';
 import CandidateFormPage from './components/CandidateFormPage';
 import ScreeningCallPage from './components/ScreeningCallPage';
+import AdminDashboardPage from './components/AdminDashboardPage';
 import EnterpriseOnboardingPage from './components/EnterpriseOnboardingPage';
 
 export default function App() {
@@ -46,6 +47,7 @@ export default function App() {
           {/* Candidate flow pages */}
           <Route path="/form" element={<CandidateFormPage />} />
           <Route path="/screening-call" element={<ScreeningCallPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/enterprise" element={<EnterpriseOnboardingPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />

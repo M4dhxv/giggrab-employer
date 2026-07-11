@@ -73,3 +73,51 @@ export const fc = {
     opts?: { first_name?: string; consent?: boolean },
   ) => post<ScreeningResult>('fc-request-screening', { token, candidate_id, ...opts }),
 };
+
+// ─── Admin dashboard ──────────────────────────────────────────────────────────
+export interface AdminTranscriptMsg { speaker: 'sarah' | 'candidate'; message: string; sequence_number: number }
+export interface AdminAiSummary {
+  summary: string | null;
+  strengths: string[] | null;
+  concerns: string[] | null;
+  missing_information: string[] | null;
+  recommendation: 'shortlist' | 'interview' | 'reject' | 'hold' | null;
+  confidence_score: number | null;
+}
+export interface AdminSession {
+  id: string;
+  status: string;
+  started_at: string | null;
+  completed_at: string | null;
+  duration_seconds: number | null;
+  created_at: string;
+  fc_transcript_messages: AdminTranscriptMsg[];
+  fc_candidate_structured_responses: Record<string, unknown>[];
+  fc_ai_summaries: AdminAiSummary[];
+}
+export interface AdminCandidate {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  current_status: string;
+  is_active: boolean;
+  prequal_score: number | null;
+  prequal_band: string | null;
+  created_at: string;
+  fc_prequal_responses: { question: string; answer: string }[];
+  fc_screening_sessions: AdminSession[];
+}
+
+export async function fetchAdminDashboard(adminKey: string): Promise<AdminCandidate[]> {
+  const res = await fetch(`${BASE}/fc-admin-dashboard`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: KEY, 'x-admin-key': adminKey },
+    body: '{}',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) throw new Error('Wrong password');
+  if (!res.ok) throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
+  return (data as { candidates: AdminCandidate[] }).candidates;
+}
