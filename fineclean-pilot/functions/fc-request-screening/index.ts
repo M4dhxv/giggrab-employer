@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   try {
-    const { token, candidate_id, first_name, consent } = await req.json();
+    const { token, candidate_id, first_name, phone, consent } = await req.json();
     if (!token || !candidate_id) return err('token and candidate_id required');
 
     const { candidate, db, error } = await resolveCandidate(token);
@@ -83,13 +83,26 @@ Deno.serve(async (req) => {
       await logEvent(db, candidate_id, 'Screening Consent Given', { at: new Date().toISOString() });
     }
 
-    const { data: pv } = await db
-      .from('fc_phone_verifications')
-      .select('verified, phone')
-      .eq('candidate_id', candidate_id)
-      .single();
-
-    if (!pv?.verified) return err('Phone number not verified', 400);
+    // Testing flow: the page sends the number directly (no OTP). Accept a valid
+    // E.164 number, mark it verified, and use it. Otherwise fall back to a
+    // previously OTP-verified number.
+    let dialPhone: string | null = null;
+    if (typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone.trim())) {
+      dialPhone = phone.trim();
+      await db.from('fc_phone_verifications').upsert(
+        { candidate_id, phone: dialPhone, verified: true, verified_at: new Date().toISOString() },
+        { onConflict: 'candidate_id' },
+      );
+      await db.from('fc_candidates').update({ phone: dialPhone }).eq('id', candidate_id);
+    } else {
+      const { data: pv } = await db
+        .from('fc_phone_verifications')
+        .select('verified, phone')
+        .eq('candidate_id', candidate_id)
+        .single();
+      if (!pv?.verified) return err('Phone number not verified', 400);
+      dialPhone = pv.phone;
+    }
 
     const { data: session, error: sessionErr } = await db
       .from('fc_screening_sessions')
@@ -101,7 +114,7 @@ Deno.serve(async (req) => {
 
     let callId: string | null = null;
     try {
-      callId = await triggerSarahCall(candidate_id, pv.phone, session.id);
+      callId = await triggerSarahCall(candidate_id, dialPhone!, session.id);
     } catch (callErr) {
       console.error('Sarah call trigger failed:', callErr);
     }

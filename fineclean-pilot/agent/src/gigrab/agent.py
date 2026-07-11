@@ -869,36 +869,30 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                 "system prompt instructs."
             )
         else:
-            # Outbound call from /start — caller already ticked consent on
-            # the web form. We still announce recording on the call itself
-            # because consent must be informed AND verifiable in audio.
-            # If the form captured a name, greet by it + ask to confirm
-            # (instead of asking from cold). Matches user-requested UX:
-            # "Hi Tom, this is Sarah from GigGrab — this call is recorded
-            #  so we can build your CV. Can you please confirm your name?"
+            # Outbound call from /start — caller already gave their name +
+            # consent on the web page. Keep the kickoff DEAD SIMPLE: greet by
+            # the known name and go straight into Q1. (A two-step "greet then
+            # confirm the name" instruction makes the small live model garble
+            # it into "hi <name>, what's your name" — so we don't do that.)
             pref_name = _sanitize_profile_field(cfg.preferred_name or "", 60)
             if pref_name:
                 kickoff = (
-                    f"The call just connected. The candidate typed their "
-                    f"name '{pref_name}' into the web form and picked "
-                    f"'{cfg.language}' as their call language — stay in "
-                    f"{cfg.language} unless they switch first. Greet them "
-                    f"in TWO short sentences using their name verbatim. "
-                    f"First sentence: 'Hi {pref_name}, this is Sarah, "
-                    f"FineClean's AI recruiter — this call is recorded.' "
-                    f"Second sentence: 'Just to confirm — am I "
-                    f"speaking with {pref_name}?' Nothing else. If they "
-                    f"correct you, apologise once and use their version."
+                    f"The call just connected. You ALREADY KNOW the candidate's "
+                    f"name is {pref_name}. Do NOT ask their name. Do NOT mention "
+                    f"CVs or building a CV. Stay in {cfg.language} unless they "
+                    f"switch. In ONE short sentence, greet them by name and say "
+                    f"the call is recorded, then IMMEDIATELY ask your first "
+                    f"screening question about right-to-work documentation. "
+                    f"Example: 'Hi {pref_name}, it's Sarah from FineClean — quick "
+                    f"recorded call about the cleaning role. Do you currently have "
+                    f"valid right to work documentation?'"
                 )
             else:
                 kickoff = (
-                    f"The call just connected. The candidate already picked "
-                    f"'{cfg.language}' as their call language — stay in "
-                    f"{cfg.language} unless they switch first. Greet them in "
-                    f"TWO short sentences. First sentence: 'Hi, this is "
-                    f"Sarah, FineClean's AI recruiter — this call is recorded.' "
-                    f"Second sentence: ask their name. Nothing "
-                    f"else."
+                    f"The call just connected. Do NOT mention CVs. Stay in "
+                    f"{cfg.language} unless they switch. In ONE short sentence, say "
+                    f"hi, that you're Sarah from FineClean and the call is recorded, "
+                    f"then ask their name."
                 )
         context.add_message({"role": "user", "content": kickoff})
         await task.queue_frames([LLMRunFrame()])

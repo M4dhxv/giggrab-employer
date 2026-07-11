@@ -51,8 +51,6 @@ export default function ScreeningCallPage() {
   const [phone, setPhone]             = useState("");
   const [phoneError, setPhoneError]   = useState("");
   const [step, setStep]               = useState<Step>("phone");
-  const [otp, setOtp]                 = useState("");
-  const [otpError, setOtpError]       = useState("");
   const [loading, setLoading]         = useState(false);
   const [consent, setConsent]         = useState(false);
 
@@ -72,39 +70,22 @@ export default function ScreeningCallPage() {
       .catch((e) => setLookupError(e.message || "This invitation link is invalid or expired."));
   }, [token]);
 
-  async function sendCode() {
+  // Testing flow: no OTP. Name + number → consent → call.
+  function continueToCall() {
     if (!nameValid) { setPhoneError("Please enter your first name"); return; }
     if (!phoneValid || !candidate) { setPhoneError("Please enter a valid phone number"); return; }
     setPhoneError("");
-    setLoading(true);
-    try {
-      await fc.requestOtp(token, candidate.candidate_id, fullPhone);
-      setStep("otp");
-    } catch (e) {
-      setPhoneError(e instanceof Error ? e.message : "Could not send code. Try again.");
-    } finally { setLoading(false); }
-  }
-
-  async function verifyOtp() {
-    if (otp.length !== 6 || !candidate) { setOtpError("Enter all 6 digits"); return; }
-    setOtpError("");
-    setLoading(true);
-    try {
-      const res = await fc.verifyOtp(token, candidate.candidate_id, otp);
-      if (res.verified) setStep("ready");
-      else setOtpError(`Incorrect code${res.remaining_attempts != null ? ` — ${res.remaining_attempts} attempts left` : ""}`);
-    } catch (e) {
-      setOtpError(e instanceof Error ? e.message : "Could not verify. Try again.");
-    } finally { setLoading(false); }
+    setStep("ready");
   }
 
   async function startCall() {
-    if (!candidate || !consent || !nameValid) return;
+    if (!candidate || !consent || !nameValid || !phoneValid) return;
     setLoading(true);
     setStep("calling");
     try {
       await fc.requestScreening(token, candidate.candidate_id, {
         first_name: firstName.trim(),
+        phone: fullPhone,
         consent: true,
       });
       setStep("done");
@@ -272,67 +253,16 @@ export default function ScreeningCallPage() {
 
               {step === "phone" && (
                 <button
-                  onClick={sendCode}
-                  disabled={loading || !phoneValid || !nameValid}
+                  onClick={continueToCall}
+                  disabled={!phoneValid || !nameValid}
                   className="mt-3 w-full py-3 rounded-xl border-2 text-sm font-bold transition-all disabled:opacity-40"
                   style={{ borderColor: GG, color: GG }}>
-                  {loading
-                    ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Sending…</span>
-                    : "Send Code"}
+                  Continue
                 </button>
               )}
             </div>
 
-            {/* Step 3 — OTP */}
-            {(step === "otp" || phoneVerified) && (
-              <div className="p-5 gg-in">
-                <div className="flex items-center gap-3 mb-3">
-                  <StepBadge n={3} active={step === "otp"} done={step === "ready" || step === "calling"} />
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Verification code</span>
-                </div>
-
-                {step === "otp" ? (
-                  <>
-                    <p className="text-xs text-gray-400 mb-3">Enter the 6-digit code sent to {fullPhone}</p>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={otp}
-                      onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setOtpError(""); }}
-                      placeholder="000000"
-                      maxLength={6}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-2xl tracking-[0.6em] font-mono text-center outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
-                      onFocus={e => (e.target.style.borderColor = GG)}
-                      onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
-                    />
-                    {otpError && <p className="text-xs text-red-500 mt-1.5">{otpError}</p>}
-                    <button
-                      onClick={verifyOtp}
-                      disabled={otp.length !== 6 || loading}
-                      className="mt-3 w-full py-3 rounded-xl text-white text-sm font-bold transition-all disabled:opacity-40"
-                      style={{ backgroundColor: GG }}>
-                      {loading
-                        ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Verifying…</span>
-                        : "Verify"}
-                    </button>
-                    <button
-                      onClick={() => setStep("phone")}
-                      className="mt-2 w-full text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                      Resend code
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: GG }}>
-                      <Check size={9} className="text-white" strokeWidth={3} />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Phone number verified</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 4 — Launch */}
+            {/* Step 3 — Launch */}
             {(step === "ready" || step === "calling") && (
               <div className="p-5 gg-in">
                 <div className="flex items-center gap-3 mb-4">

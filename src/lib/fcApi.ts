@@ -70,7 +70,7 @@ export const fc = {
   requestScreening: (
     token: string,
     candidate_id: string,
-    opts?: { first_name?: string; consent?: boolean },
+    opts?: { first_name?: string; phone?: string; consent?: boolean },
   ) => post<ScreeningResult>('fc-request-screening', { token, candidate_id, ...opts }),
 };
 
