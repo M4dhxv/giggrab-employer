@@ -46,6 +46,7 @@ export default function ScreeningCallPage() {
   const [candidate, setCandidate] = useState<CandidateLookup | null>(null);
   const [lookupError, setLookupError] = useState("");
 
+  const [firstName, setFirstName]     = useState("");
   const [countryCode, setCountryCode] = useState("+44");
   const [phone, setPhone]             = useState("");
   const [phoneError, setPhoneError]   = useState("");
@@ -53,8 +54,10 @@ export default function ScreeningCallPage() {
   const [otp, setOtp]                 = useState("");
   const [otpError, setOtpError]       = useState("");
   const [loading, setLoading]         = useState(false);
+  const [consent, setConsent]         = useState(false);
 
   const email = candidate?.email ?? "";
+  const nameValid  = firstName.trim().length >= 2;
   const rawDigits  = phone.replace(/\D/g, "");
   const phoneValid = rawDigits.length >= 9;
   const fullPhone  = countryCode + rawDigits;
@@ -62,11 +65,15 @@ export default function ScreeningCallPage() {
   useEffect(() => {
     if (!token) { setLookupError("This link is missing its invitation code."); return; }
     fc.lookupCandidate(token)
-      .then(setCandidate)
+      .then((c) => {
+        setCandidate(c);
+        if (c.first_name) setFirstName(c.first_name);
+      })
       .catch((e) => setLookupError(e.message || "This invitation link is invalid or expired."));
   }, [token]);
 
   async function sendCode() {
+    if (!nameValid) { setPhoneError("Please enter your first name"); return; }
     if (!phoneValid || !candidate) { setPhoneError("Please enter a valid phone number"); return; }
     setPhoneError("");
     setLoading(true);
@@ -92,11 +99,14 @@ export default function ScreeningCallPage() {
   }
 
   async function startCall() {
-    if (!candidate) return;
+    if (!candidate || !consent || !nameValid) return;
     setLoading(true);
     setStep("calling");
     try {
-      await fc.requestScreening(token, candidate.candidate_id);
+      await fc.requestScreening(token, candidate.candidate_id, {
+        first_name: firstName.trim(),
+        consent: true,
+      });
       setStep("done");
     } catch (e) {
       setPhoneError(e instanceof Error ? e.message : "Could not start the call. Try again.");
@@ -194,18 +204,30 @@ export default function ScreeningCallPage() {
           {/* Card */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100 gg-in gg-d1">
 
-            {/* Step 1 — Email */}
+            {/* Step 1 — Your details */}
             <div className="p-5">
               <div className="flex items-center gap-3 mb-3">
-                <StepBadge n={1} active={step === "phone"} done={true} />
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Your email</span>
+                <StepBadge n={1} active={step === "phone"} done={nameValid} />
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Your details</span>
               </div>
               <input
-                type="email"
-                value={email}
-                readOnly
-                className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 bg-gray-50 cursor-not-allowed select-none"
+                type="text"
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                disabled={phoneVerified}
+                placeholder="First name"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed mb-2"
+                onFocus={e => (e.target.style.borderColor = GG)}
+                onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
               />
+              {email && (
+                <input
+                  type="email"
+                  value={email}
+                  readOnly
+                  className="w-full border border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-500 bg-gray-50 cursor-not-allowed select-none"
+                />
+              )}
             </div>
 
             {/* Step 2 — Phone */}
@@ -251,7 +273,7 @@ export default function ScreeningCallPage() {
               {step === "phone" && (
                 <button
                   onClick={sendCode}
-                  disabled={loading || !phoneValid}
+                  disabled={loading || !phoneValid || !nameValid}
                   className="mt-3 w-full py-3 rounded-xl border-2 text-sm font-bold transition-all disabled:opacity-40"
                   style={{ borderColor: GG, color: GG }}>
                   {loading
@@ -322,15 +344,36 @@ export default function ScreeningCallPage() {
                   <p className="text-sm font-medium text-gray-800">{fullPhone}</p>
                   <p className="text-xs text-gray-500 mt-0.5">Expect a call within a few minutes of starting.</p>
                 </div>
+
+                {/* Consent — required before the call */}
+                <label className="flex items-start gap-3 mb-4 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={e => setConsent(e.target.checked)}
+                    disabled={step === "calling"}
+                    className="mt-0.5 w-4 h-4 flex-shrink-0 accent-emerald-600 cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-600 leading-relaxed">
+                    I understand that the information I provide will be collected and processed through
+                    Gig Grab for the purpose of managing and assessing my application for roles with
+                    FineClean. Relevant application information and screening results will be shared with
+                    FineClean and handled in accordance with the applicable Candidate Privacy Notice.
+                  </span>
+                </label>
+
                 <button
                   onClick={startCall}
-                  disabled={step === "calling"}
-                  className="w-full py-4 rounded-xl text-white font-bold text-base transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-[.98] disabled:opacity-70"
+                  disabled={step === "calling" || !consent}
+                  className="w-full py-4 rounded-xl text-white font-bold text-base transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-[.98] disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ backgroundColor: GG }}>
                   {step === "calling"
                     ? <><Loader2 size={18} className="animate-spin" />Requesting call…</>
                     : <><Phone size={18} />Start Screening Call</>}
                 </button>
+                {!consent && (
+                  <p className="text-[11px] text-gray-400 mt-2 text-center">Please tick the box above to continue.</p>
+                )}
               </div>
             )}
           </div>

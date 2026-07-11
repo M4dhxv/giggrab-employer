@@ -23,14 +23,14 @@ const TOOL = {
     additionalProperties: false,
     properties: {
       // ─ Qualification filter (primary screen) ─
-      right_to_work: { type: ['boolean', 'null'], description: 'true if they clearly have the right to work (incl. "yes, with restrictions"); false if no; null if unsure/not asked.' },
+      right_to_work: { type: ['boolean', 'null'], description: 'true if they have valid right-to-work documentation; false if no; null if not asked.' },
       right_to_work_status: { type: ['string', 'null'], enum: ['yes', 'with_restrictions', 'no', 'unsure', null] },
-      can_reach_site: { type: ['boolean', 'null'], description: 'Can reliably reach the Worcester meeting point (WR1 2XE) for the early start. "depends on start time" → false.' },
+      can_reach_site: { type: ['boolean', 'null'], description: 'Can reliably reach the Worcester meeting/pick-up point (4 Lowesmoor Wharf). true=yes, false=no, null if "depends on start time"/unclear.' },
       comfortable_with_travel: { type: ['boolean', 'null'], description: 'Comfortable travelling to varied Worcestershire sites (transport provided from the meeting point).' },
       available_days: { type: 'array', items: { type: 'string' }, description: "Days they can work, verbatim: 'Monday','Saturday', etc." },
       earliest_start_time: { type: ['string', 'null'], description: "Earliest time they can start, e.g. '06:30', '7am'." },
-      latest_finish_time: { type: ['string', 'null'] },
-      can_work_required_hours: { type: ['boolean', 'null'], description: 'Can consistently work the role hours (~07:00–12:00).' },
+      latest_finish_time: { type: ['string', 'null'], description: 'Latest time they can finish.' },
+      can_work_required_hours: { type: ['boolean', 'null'], description: 'Optional — only if the call discussed specific required hours.' },
       shift_notice: { type: ['string', 'null'], enum: ['same_day', '24h', '48h', 'more_than_48h', null], description: 'Notice needed to accept a shift.' },
       earliest_start_date: { type: ['string', 'null'], description: 'ISO date YYYY-MM-DD if a concrete date was given, else null.' },
       notice_period: { type: ['string', 'null'] },
@@ -59,9 +59,10 @@ const SYSTEM = `You extract structured hiring data from a FineClean cleaner qual
 STRICT: only record what the candidate actually said. Never infer or invent right-to-work, ability to reach the site, availability, dates, or times. If a field wasn't covered, use null (or an empty array) and add it to missing_information. Dates must be ISO YYYY-MM-DD or null — do not guess a year.
 
 This is a QUALIFICATION FILTER. Set recommendation using these hard gates first:
-- recommendation = "reject" if ANY of: right_to_work is false (no right to work), can_reach_site is false (can't get to the WR1 2XE meeting point for the early start), or can_work_required_hours is false (can't work ~07:00–12:00). Put the failing reason in concerns.
+- recommendation = "reject" if EITHER: right_to_work is false (no valid right-to-work documentation), OR can_reach_site is false (cannot reliably get to the Worcester meeting/pick-up point). Put the failing reason in concerns.
+- "It depends on the start time" for getting to the meeting point is NOT a reject — set can_reach_site to null and use "hold".
 - If a hard-gate field is null because it wasn't asked/answered, do NOT reject on it — use "hold" and list it in missing_information.
-- Otherwise (passes all gates), use "shortlist" or "interview" based on overall fit; use "hold" if key availability is unclear.
+- Otherwise (passes the gates), use "shortlist" or "interview" based on overall fit; use "hold" if key availability is unclear.
 Keep the summary factual and short.`;
 
 Deno.serve(async (req) => {

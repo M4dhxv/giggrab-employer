@@ -67,6 +67,9 @@ export const fc = {
   verifyOtp: (token: string, candidate_id: string, otp: string) =>
     post<VerifyResult>('fc-verify-otp', { token, candidate_id, otp }),
 
-  requestScreening: (token: string, candidate_id: string) =>
-    post<ScreeningResult>('fc-request-screening', { token, candidate_id }),
+  requestScreening: (
+    token: string,
+    candidate_id: string,
+    opts?: { first_name?: string; consent?: boolean },
+  ) => post<ScreeningResult>('fc-request-screening', { token, candidate_id, ...opts }),
 };

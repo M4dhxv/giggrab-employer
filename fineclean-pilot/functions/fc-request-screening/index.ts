@@ -65,13 +65,23 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   try {
-    const { token, candidate_id } = await req.json();
+    const { token, candidate_id, first_name, consent } = await req.json();
     if (!token || !candidate_id) return err('token and candidate_id required');
 
     const { candidate, db, error } = await resolveCandidate(token);
     if (error || !candidate) return err(error ?? 'Not found', 404);
     if (candidate.id !== candidate_id) return err('Token mismatch', 403);
     if (!candidate.is_active) return err('Candidate is inactive', 409);
+
+    // Candidate confirmed their first name on the screening page — use it.
+    if (typeof first_name === 'string' && first_name.trim()) {
+      const cleaned = first_name.replace(/[\r\n\t\0]/g, ' ').trim().slice(0, 60);
+      await db.from('fc_candidates').update({ first_name: cleaned }).eq('id', candidate_id);
+    }
+    // Record the privacy/consent acknowledgement given before the call.
+    if (consent === true) {
+      await logEvent(db, candidate_id, 'Screening Consent Given', { at: new Date().toISOString() });
+    }
 
     const { data: pv } = await db
       .from('fc_phone_verifications')
