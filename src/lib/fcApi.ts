@@ -72,6 +72,10 @@ export const fc = {
     candidate_id: string,
     opts?: { first_name?: string; phone?: string; consent?: boolean },
   ) => post<ScreeningResult>('fc-request-screening', { token, candidate_id, ...opts }),
+
+  // Tokenless testing flow — creates the candidate on the fly and calls them.
+  startScreening: (opts: { first_name: string; phone: string; consent?: boolean }) =>
+    post<ScreeningResult>('fc-request-screening', opts),
 };
 
 // ─── Admin dashboard ──────────────────────────────────────────────────────────

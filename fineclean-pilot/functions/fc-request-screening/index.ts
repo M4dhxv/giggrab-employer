@@ -1,6 +1,6 @@
 import { preflight, json, err } from '../_shared/cors.ts';
 import { resolveCandidate } from '../_shared/validate.ts';
-import { logEvent } from '../_shared/db.ts';
+import { adminClient, logEvent } from '../_shared/db.ts';
 
 // Base URL for our own edge functions, e.g. https://<ref>.supabase.co/functions/v1
 // Derived from SUPABASE_URL so we don't need a second secret.
@@ -66,65 +66,82 @@ Deno.serve(async (req) => {
 
   try {
     const { token, candidate_id, first_name, phone, consent } = await req.json();
-    if (!token || !candidate_id) return err('token and candidate_id required');
 
-    const { candidate, db, error } = await resolveCandidate(token);
-    if (error || !candidate) return err(error ?? 'Not found', 404);
-    if (candidate.id !== candidate_id) return err('Token mismatch', 403);
-    if (!candidate.is_active) return err('Candidate is inactive', 409);
+    const cleanName = typeof first_name === 'string'
+      ? first_name.replace(/[\r\n\t\0]/g, ' ').trim().slice(0, 60) : '';
+    const cleanPhone = typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone.trim())
+      ? phone.trim() : '';
 
-    // Candidate confirmed their first name on the screening page — use it.
-    if (typeof first_name === 'string' && first_name.trim()) {
-      const cleaned = first_name.replace(/[\r\n\t\0]/g, ' ').trim().slice(0, 60);
-      await db.from('fc_candidates').update({ first_name: cleaned }).eq('id', candidate_id);
+    let db: ReturnType<typeof adminClient>;
+    let candidateId: string;
+
+    if (token && candidate_id) {
+      // Invitation flow.
+      const r = await resolveCandidate(token);
+      if (r.error || !r.candidate) return err(r.error ?? 'Not found', 404);
+      if (r.candidate.id !== candidate_id) return err('Token mismatch', 403);
+      if (!r.candidate.is_active) return err('Candidate is inactive', 409);
+      db = r.db;
+      candidateId = candidate_id;
+      if (cleanName) await db.from('fc_candidates').update({ first_name: cleanName }).eq('id', candidateId);
+    } else {
+      // Tokenless testing flow — create the candidate on the fly.
+      if (!cleanName) return err('first_name required');
+      if (!cleanPhone) return err('valid phone required (E.164, e.g. +447700900123)');
+      db = adminClient();
+      const { data: emp } = await db.from('fc_employers').select('id').eq('slug', 'fineclean').single();
+      if (!emp) return err('FineClean employer not found', 500);
+      const { data: newC, error: cErr } = await db.from('fc_candidates').insert({
+        employer_id: emp.id,
+        first_name: cleanName,
+        last_name: '',
+        email: `test+${Date.now()}@fineclean.local`,
+        phone: cleanPhone,
+        source: 'self_serve_test',
+        current_status: 'imported',
+      }).select('id').single();
+      if (cErr || !newC) throw cErr;
+      candidateId = newC.id;
     }
-    // Record the privacy/consent acknowledgement given before the call.
+
     if (consent === true) {
-      await logEvent(db, candidate_id, 'Screening Consent Given', { at: new Date().toISOString() });
+      await logEvent(db, candidateId, 'Screening Consent Given', { at: new Date().toISOString() });
     }
 
-    // Testing flow: the page sends the number directly (no OTP). Accept a valid
-    // E.164 number, mark it verified, and use it. Otherwise fall back to a
-    // previously OTP-verified number.
-    let dialPhone: string | null = null;
-    if (typeof phone === 'string' && /^\+[1-9]\d{6,14}$/.test(phone.trim())) {
-      dialPhone = phone.trim();
+    // Determine the number to dial. If one was supplied (no-OTP testing flow),
+    // mark it verified and use it; else fall back to an OTP-verified number.
+    let dialPhone: string;
+    if (cleanPhone) {
+      dialPhone = cleanPhone;
       await db.from('fc_phone_verifications').upsert(
-        { candidate_id, phone: dialPhone, verified: true, verified_at: new Date().toISOString() },
+        { candidate_id: candidateId, phone: dialPhone, verified: true, verified_at: new Date().toISOString() },
         { onConflict: 'candidate_id' },
       );
-      await db.from('fc_candidates').update({ phone: dialPhone }).eq('id', candidate_id);
+      await db.from('fc_candidates').update({ phone: dialPhone }).eq('id', candidateId);
     } else {
-      const { data: pv } = await db
-        .from('fc_phone_verifications')
-        .select('verified, phone')
-        .eq('candidate_id', candidate_id)
-        .single();
+      const { data: pv } = await db.from('fc_phone_verifications')
+        .select('verified, phone').eq('candidate_id', candidateId).single();
       if (!pv?.verified) return err('Phone number not verified', 400);
       dialPhone = pv.phone;
     }
 
     const { data: session, error: sessionErr } = await db
       .from('fc_screening_sessions')
-      .insert({ candidate_id, scheduled_at: new Date().toISOString(), status: 'scheduled' })
+      .insert({ candidate_id: candidateId, scheduled_at: new Date().toISOString(), status: 'scheduled' })
       .select()
       .single();
-
     if (sessionErr || !session) throw sessionErr;
 
     let callId: string | null = null;
     try {
-      callId = await triggerSarahCall(candidate_id, dialPhone!, session.id);
+      callId = await triggerSarahCall(candidateId, dialPhone, session.id);
     } catch (callErr) {
       console.error('Sarah call trigger failed:', callErr);
     }
+    if (callId) await db.from('fc_screening_sessions').update({ call_id: callId }).eq('id', session.id);
 
-    if (callId) {
-      await db.from('fc_screening_sessions').update({ call_id: callId }).eq('id', session.id);
-    }
-
-    await db.from('fc_candidates').update({ current_status: 'screening_requested' }).eq('id', candidate_id);
-    await logEvent(db, candidate_id, 'Sarah Call Requested', { session_id: session.id, call_id: callId });
+    await db.from('fc_candidates').update({ current_status: 'screening_requested' }).eq('id', candidateId);
+    await logEvent(db, candidateId, 'Sarah Call Requested', { session_id: session.id, call_id: callId });
 
     return json({ success: true, session_id: session.id });
   } catch (e) {

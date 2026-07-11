@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Check, Phone, ChevronDown, Loader2 } from "lucide-react";
 import { DualHeader } from "./CandidateFormPage";
-import { fc, type CandidateLookup } from "../../lib/fcApi";
+import { fc } from "../../lib/fcApi";
 
 const GG = "#10b981";
 const GG_LIGHT = "#f0fdf4";
@@ -41,10 +41,6 @@ function StepBadge({ n, active, done }: { n: number; active: boolean; done: bool
 
 export default function ScreeningCallPage() {
   const navigate = useNavigate();
-  const token = new URLSearchParams(window.location.search).get("token") ?? "";
-
-  const [candidate, setCandidate] = useState<CandidateLookup | null>(null);
-  const [lookupError, setLookupError] = useState("");
 
   const [firstName, setFirstName]     = useState("");
   const [countryCode, setCountryCode] = useState("+44");
@@ -54,72 +50,31 @@ export default function ScreeningCallPage() {
   const [loading, setLoading]         = useState(false);
   const [consent, setConsent]         = useState(false);
 
-  const email = candidate?.email ?? "";
+  const email = "";
   const nameValid  = firstName.trim().length >= 2;
   const rawDigits  = phone.replace(/\D/g, "");
   const phoneValid = rawDigits.length >= 9;
   const fullPhone  = countryCode + rawDigits;
 
-  useEffect(() => {
-    if (!token) { setLookupError("This link is missing its invitation code."); return; }
-    fc.lookupCandidate(token)
-      .then((c) => {
-        setCandidate(c);
-        if (c.first_name) setFirstName(c.first_name);
-      })
-      .catch((e) => setLookupError(e.message || "This invitation link is invalid or expired."));
-  }, [token]);
-
-  // Testing flow: no OTP. Name + number → consent → call.
+  // Testing flow: no token, no OTP. Name + number → consent → call.
   function continueToCall() {
     if (!nameValid) { setPhoneError("Please enter your first name"); return; }
-    if (!phoneValid || !candidate) { setPhoneError("Please enter a valid phone number"); return; }
+    if (!phoneValid) { setPhoneError("Please enter a valid phone number"); return; }
     setPhoneError("");
     setStep("ready");
   }
 
   async function startCall() {
-    if (!candidate || !consent || !nameValid || !phoneValid) return;
+    if (!consent || !nameValid || !phoneValid) return;
     setLoading(true);
     setStep("calling");
     try {
-      await fc.requestScreening(token, candidate.candidate_id, {
-        first_name: firstName.trim(),
-        phone: fullPhone,
-        consent: true,
-      });
+      await fc.startScreening({ first_name: firstName.trim(), phone: fullPhone, consent: true });
       setStep("done");
     } catch (e) {
       setPhoneError(e instanceof Error ? e.message : "Could not start the call. Try again.");
       setStep("ready");
     } finally { setLoading(false); }
-  }
-
-  // ── Invalid token ──────────────────────────────────────────────────────────
-  if (lookupError) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
-        <DualHeader />
-        <div className="flex-1 flex items-center justify-center px-6 text-center">
-          <div className="max-w-sm">
-            <h1 className="text-xl font-extrabold text-gray-900 mb-2">Invitation link problem</h1>
-            <p className="text-gray-500 text-sm">{lookupError}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Loading candidate ──────────────────────────────────────────────────────
-  if (!candidate) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
-        <DualHeader />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin" style={{ color: GG }} />
-        </div>
-      </div>
-    );
   }
 
   // ── Success screen ─────────────────────────────────────────────────────────
