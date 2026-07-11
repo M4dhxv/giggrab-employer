@@ -22,10 +22,21 @@ const TOOL = {
     type: 'object',
     additionalProperties: false,
     properties: {
-      years_experience: { type: ['integer', 'null'], minimum: 0 },
-      cleaning_experience: { type: ['string', 'null'], description: "Type(s) of cleaning, verbatim: 'domestic', 'commercial offices', 'end-of-tenancy'." },
-      right_to_work: { type: ['boolean', 'null'] },
+      // ─ Qualification filter (primary screen) ─
+      right_to_work: { type: ['boolean', 'null'], description: 'true if they clearly have the right to work (incl. "yes, with restrictions"); false if no; null if unsure/not asked.' },
+      right_to_work_status: { type: ['string', 'null'], enum: ['yes', 'with_restrictions', 'no', 'unsure', null] },
+      can_reach_site: { type: ['boolean', 'null'], description: 'Can reliably reach the Worcester meeting point (WR1 2XE) for the early start. "depends on start time" → false.' },
+      comfortable_with_travel: { type: ['boolean', 'null'], description: 'Comfortable travelling to varied Worcestershire sites (transport provided from the meeting point).' },
+      available_days: { type: 'array', items: { type: 'string' }, description: "Days they can work, verbatim: 'Monday','Saturday', etc." },
+      earliest_start_time: { type: ['string', 'null'], description: "Earliest time they can start, e.g. '06:30', '7am'." },
+      latest_finish_time: { type: ['string', 'null'] },
+      can_work_required_hours: { type: ['boolean', 'null'], description: 'Can consistently work the role hours (~07:00–12:00).' },
+      shift_notice: { type: ['string', 'null'], enum: ['same_day', '24h', '48h', 'more_than_48h', null], description: 'Notice needed to accept a shift.' },
       earliest_start_date: { type: ['string', 'null'], description: 'ISO date YYYY-MM-DD if a concrete date was given, else null.' },
+      notice_period: { type: ['string', 'null'] },
+      // ─ Legacy / optional (may be null if not asked) ─
+      years_experience: { type: ['integer', 'null'], minimum: 0 },
+      cleaning_experience: { type: ['string', 'null'] },
       weekend_availability: { type: ['boolean', 'null'] },
       preferred_hours: { type: ['string', 'null'] },
       preferred_locations: { type: 'array', items: { type: 'string' } },
@@ -33,7 +44,6 @@ const TOOL = {
       driving_licence: { type: ['boolean', 'null'] },
       english_level: { type: ['string', 'null'], enum: ['basic', 'conversational', 'fluent', 'native', null] },
       expected_pay_hourly: { type: ['number', 'null'], description: 'Hourly rate in GBP.' },
-      notice_period: { type: ['string', 'null'] },
       summary: { type: 'string', description: '1–2 sentence neutral recruiter summary, third person. Only facts stated on the call.' },
       strengths: { type: 'array', items: { type: 'string' } },
       concerns: { type: 'array', items: { type: 'string' } },
@@ -45,8 +55,14 @@ const TOOL = {
   },
 } as const;
 
-const SYSTEM = `You extract structured hiring data from a FineClean cleaner-screening call transcript.
-STRICT: only record what the candidate actually said. Never infer or invent numbers, dates, right-to-work, transport, or pay. If a field wasn't covered, use null (or an empty array) and add it to missing_information. Dates must be ISO YYYY-MM-DD or null — do not guess a year. Keep the summary factual and short.`;
+const SYSTEM = `You extract structured hiring data from a FineClean cleaner qualification-screening call transcript.
+STRICT: only record what the candidate actually said. Never infer or invent right-to-work, ability to reach the site, availability, dates, or times. If a field wasn't covered, use null (or an empty array) and add it to missing_information. Dates must be ISO YYYY-MM-DD or null — do not guess a year.
+
+This is a QUALIFICATION FILTER. Set recommendation using these hard gates first:
+- recommendation = "reject" if ANY of: right_to_work is false (no right to work), can_reach_site is false (can't get to the WR1 2XE meeting point for the early start), or can_work_required_hours is false (can't work ~07:00–12:00). Put the failing reason in concerns.
+- If a hard-gate field is null because it wasn't asked/answered, do NOT reject on it — use "hold" and list it in missing_information.
+- Otherwise (passes all gates), use "shortlist" or "interview" based on overall fit; use "hold" if key availability is unclear.
+Keep the summary factual and short.`;
 
 Deno.serve(async (req) => {
   try {
@@ -119,10 +135,21 @@ Deno.serve(async (req) => {
       {
         session_id,
         candidate_id: session.candidate_id,
+        // qualification filter
+        right_to_work: x.right_to_work ?? null,
+        right_to_work_status: x.right_to_work_status ?? null,
+        can_reach_site: x.can_reach_site ?? null,
+        comfortable_with_travel: x.comfortable_with_travel ?? null,
+        available_days: (x.available_days as string[]) ?? [],
+        earliest_start_time: x.earliest_start_time ?? null,
+        latest_finish_time: x.latest_finish_time ?? null,
+        can_work_required_hours: x.can_work_required_hours ?? null,
+        shift_notice: x.shift_notice ?? null,
+        earliest_start_date: x.earliest_start_date ?? null,
+        notice_period: x.notice_period ?? null,
+        // legacy / optional
         years_experience: x.years_experience ?? null,
         cleaning_experience: x.cleaning_experience ?? null,
-        right_to_work: x.right_to_work ?? null,
-        earliest_start_date: x.earliest_start_date ?? null,
         weekend_availability: x.weekend_availability ?? null,
         preferred_hours: x.preferred_hours ?? null,
         preferred_locations: (x.preferred_locations as string[]) ?? [],
@@ -130,7 +157,6 @@ Deno.serve(async (req) => {
         driving_licence: x.driving_licence ?? null,
         english_level: x.english_level ?? null,
         expected_pay_hourly: x.expected_pay_hourly ?? null,
-        notice_period: x.notice_period ?? null,
       },
       { onConflict: 'session_id' },
     );
