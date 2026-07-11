@@ -1,0 +1,9 @@
+# Secrets — never commit these
+.env
+.env.*
+set-supabase-secrets.sh
+
+# Python
+__pycache__/
+*.pyc
+.venv/
