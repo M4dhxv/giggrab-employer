@@ -7,3 +7,6 @@ set-supabase-secrets.sh
 __pycache__/
 *.pyc
 .venv/
+
+# Supabase CLI deploy-staging copy of functions/ (canonical source is functions/)
+supabase/

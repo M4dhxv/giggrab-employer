@@ -73,7 +73,13 @@ Deno.serve(async (req) => {
   const params: Record<string, string> = {};
   for (const [k, v] of form.entries()) params[k] = String(v);
 
-  const ok = await verifyTwilioSignature(req.url, params, req.headers.get('X-Twilio-Signature'));
+  // Twilio signs the exact PUBLIC url it was configured to POST to — NOT the
+  // internal Deno request url (Supabase's gateway rewrites host/path), so we
+  // reconstruct the canonical url that fc-request-screening registered.
+  const base = (Deno.env.get('FUNCTIONS_BASE_URL') ?? `${Deno.env.get('SUPABASE_URL')}/functions/v1`).replace(/\/+$/, '');
+  const canonicalUrl = `${base}/fc-twilio-status/${sessionId}` + (isRecording ? '?recording=1' : '');
+
+  const ok = await verifyTwilioSignature(canonicalUrl, params, req.headers.get('X-Twilio-Signature'));
   if (!ok) {
     console.warn(`[fc-twilio-status] bad signature session=${sessionId}`);
     return new Response('forbidden', { status: 403 });

@@ -7,6 +7,35 @@ interface PrequalResponse {
   answer: string;
 }
 
+// ─── Tier-1 rule-based score (0–100) ─────────────────────────────────────────
+// Deterministic pre-qualification score from the 4 form answers. Tier 2 (the
+// Sarah call) is AI-scored separately in fc-sarah-extract. Frontend sends these
+// stable question keys: still_looking | city | available_2_weeks | role.
+const LONDON_AREA = new Set([
+  'London', 'Reading', 'Oxford', 'Brighton', 'Southampton', 'Portsmouth',
+  'Slough', 'Watford', 'Croydon', 'Guildford',
+]);
+const ROLE_POINTS: Record<string, number> = {
+  Cleaner: 25, Housekeeper: 25, Supervisor: 20, 'Team Leader': 20, Other: 10,
+};
+
+function answerFor(responses: PrequalResponse[], key: string): string {
+  const r = responses.find(
+    (x) => x.question === key || x.question.toLowerCase().includes(key.replace(/_/g, ' ')),
+  );
+  return (r?.answer ?? '').trim();
+}
+
+function scorePrequal(responses: PrequalResponse[]): { score: number; band: string } {
+  const availability = answerFor(responses, 'available_2_weeks').toLowerCase() === 'yes' ? 40 : 15;
+  const city = answerFor(responses, 'city');
+  const location = LONDON_AREA.has(city) ? 35 : city ? 15 : 0;
+  const role = ROLE_POINTS[answerFor(responses, 'role')] ?? 10;
+  const score = Math.min(100, availability + location + role);
+  const band = score >= 70 ? 'strong' : score >= 40 ? 'maybe' : 'weak';
+  return { score, band };
+}
+
 Deno.serve(async (req) => {
   const cors = preflight(req);
   if (cors) return cors;
@@ -60,12 +89,21 @@ Deno.serve(async (req) => {
       return json({ success: true, next_step: 'done', reason: 'not_looking' });
     }
 
-    await db.from('fc_candidates').update({ current_status: 'prequal_completed' }).eq('id', candidate_id);
+    // Tier-1 rule-based score.
+    const { score, band } = scorePrequal(responses);
+
+    await db.from('fc_candidates').update({
+      current_status: 'prequal_completed',
+      prequal_score: score,
+      prequal_band: band,
+    }).eq('id', candidate_id);
     await logEvent(db, candidate_id, 'Form Submitted', {
       completion_time_seconds: completion_time_seconds ?? null,
+      prequal_score: score,
+      prequal_band: band,
     });
 
-    return json({ success: true, next_step: 'screening' });
+    return json({ success: true, next_step: 'screening', prequal_score: score, prequal_band: band });
   } catch (e) {
     console.error('fc-submit-prequal:', e);
     return err('Internal error', 500);

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { fc, type CandidateLookup } from "../../lib/fcApi";
 
 const GG = "#10b981";
 const GG_LIGHT = "#f0fdf4";
@@ -60,23 +61,104 @@ function RadioPair({ value, onChange }: {
 
 export default function CandidateFormPage() {
   const navigate = useNavigate();
+  const token = new URLSearchParams(window.location.search).get("token") ?? "";
+
+  const [candidate, setCandidate] = useState<CandidateLookup | null>(null);
+  const [lookupError, setLookupError] = useState<string>("");
+  const [startedAt] = useState(() => Date.now());
+
   const [lookingForWork, setLookingForWork] = useState<"Yes" | "No" | "">("");
   const [city, setCity] = useState("");
   const [availableSoon, setAvailableSoon] = useState<"Yes" | "No" | "">("");
   const [role, setRole] = useState("");
   const [attempted, setAttempted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [notLooking, setNotLooking] = useState(false);
+
+  // Resolve the invitation token → candidate.
+  useEffect(() => {
+    if (!token) { setLookupError("This link is missing its invitation code."); return; }
+    fc.lookupCandidate(token)
+      .then((c) => {
+        setCandidate(c);
+        if (c.city) setCity(c.city);
+      })
+      .catch((e) => setLookupError(e.message || "This invitation link is invalid or expired."));
+  }, [token]);
 
   const valid = lookingForWork !== "" && city !== "" && availableSoon !== "" && role !== "";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setAttempted(true);
-    if (!valid) return;
-    sessionStorage.setItem("gg_candidate_form", JSON.stringify({ lookingForWork, city, availableSoon, role }));
-    navigate("/screening-call");
+    setSubmitError("");
+    if (!valid || !candidate) return;
+    setSubmitting(true);
+    try {
+      const res = await fc.submitPrequal(
+        token,
+        candidate.candidate_id,
+        [
+          { question: "still_looking", answer: lookingForWork },
+          { question: "city", answer: city },
+          { question: "available_2_weeks", answer: availableSoon },
+          { question: "role", answer: role },
+        ],
+        Math.round((Date.now() - startedAt) / 1000),
+      );
+      if (res.next_step === "done") { setNotLooking(true); return; }
+      navigate(`/screening-call?token=${encodeURIComponent(token)}`);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const err = (field: boolean) => attempted && !field;
+
+  // Invalid / missing token.
+  if (lookupError) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
+        <DualHeader />
+        <div className="flex-1 flex items-center justify-center px-6 text-center">
+          <div className="max-w-sm">
+            <h1 className="text-xl font-extrabold text-gray-900 mb-2">Invitation link problem</h1>
+            <p className="text-gray-500 text-sm">{lookupError}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading the candidate from the token.
+  if (!candidate) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
+        <DualHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="animate-spin" style={{ color: GG }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Answered "not looking" → gently end.
+  if (notLooking) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
+        <DualHeader />
+        <div className="flex-1 flex items-center justify-center px-6 text-center">
+          <div className="max-w-sm gg-in">
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Thanks for letting us know</h1>
+            <p className="text-gray-500 text-sm">No problem — we've taken you off the list. If anything changes, just reply to our message.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -163,11 +245,13 @@ export default function CandidateFormPage() {
             {err(!role) && <p className="text-xs text-red-500 mt-1.5">Please select a role</p>}
           </div>
 
+          {submitError && <p className="text-sm text-red-500 text-center">{submitError}</p>}
           <button
             type="submit"
-            className="w-full py-4 rounded-xl text-white font-bold text-base transition-all hover:opacity-90 active:scale-[.98]"
+            disabled={submitting}
+            className="w-full py-4 rounded-xl text-white font-bold text-base transition-all hover:opacity-90 active:scale-[.98] disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ backgroundColor: GG }}>
-            Continue to Screening
+            {submitting ? <><Loader2 size={18} className="animate-spin" />Submitting…</> : "Continue to Screening"}
           </button>
         </form>
       </div>
