@@ -71,9 +71,11 @@ CATEGORIES = [
 
 
 def _categories_block() -> str:
-    return "\n".join(
-        f"  {i}. {c['label']}  — {c['purpose']}" for i, c in enumerate(CATEGORIES, 1)
-    )
+    lines = []
+    for i, c in enumerate(CATEGORIES, 1):
+        lines.append(f'  {i}. {c["label"]} — answer format: {c["purpose"]}')
+        lines.append(f'     Ask, close to word-for-word: "{c["example_q"]}"')
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
