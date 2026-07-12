@@ -884,21 +884,20 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             if pref_name:
                 kickoff = (
                     f"The call just connected. The candidate's name is {pref_name}. "
-                    f"Begin your OPENING now, exactly as your instructions describe. "
-                    f"Your VERY FIRST line must be warm and polite: "
-                    f"\"Hello, am I speaking to {pref_name}?\" Wait for their yes, then "
-                    f"introduce yourself and the FineClean recruitment team, explain why "
-                    f"you're calling, and ask if now's a good time. Do NOT start the "
-                    f"interview questions until they confirm it's a good time. Stay in "
-                    f"{cfg.language}. Do NOT mention CVs."
+                    f"Say EXACTLY ONE short line now, then STOP and wait for them to reply: "
+                    f'"Hello, am I speaking to {pref_name}?" '
+                    f"Output ONLY that one line — nothing before or after it. Do NOT "
+                    f"continue into your introduction yet, and NEVER write the candidate's "
+                    f"reply or any note in brackets. Wait for their real answer. Stay in "
+                    f"{cfg.language}."
                 )
             else:
                 kickoff = (
-                    f"The call just connected. Begin your OPENING as your instructions "
-                    f"describe, but you don't yet have their name — start by confirming "
-                    f"who you're speaking to and introducing yourself + the FineClean "
-                    f"recruitment team, then explain why you're calling and ask if now's "
-                    f"a good time. Stay in {cfg.language}. Do NOT mention CVs."
+                    f"The call just connected. Say EXACTLY ONE short line now, then STOP "
+                    f'and wait for them to reply: "Hello, this is Sarah from the FineClean '
+                    f'recruitment team — who am I speaking with?" Output ONLY that one line. '
+                    f"NEVER write the candidate's reply or any note in brackets. Stay in "
+                    f"{cfg.language}."
                 )
         context.add_message({"role": "user", "content": kickoff})
         await task.queue_frames([LLMRunFrame()])
