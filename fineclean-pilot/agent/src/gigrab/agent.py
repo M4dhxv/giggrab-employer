@@ -884,13 +884,13 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             if pref_name:
                 kickoff = (
                     f"The call just connected. The candidate's name is {pref_name}. "
-                    f"Begin your OPENING now, exactly as your instructions describe, "
-                    f"one short line at a time: first confirm it's them "
-                    f"(\"Hi, is that {pref_name}?\"), then introduce yourself and the "
-                    f"FineClean recruitment team, explain why you're calling, and ask "
-                    f"if now's a good time. Do NOT start the interview questions until "
-                    f"they confirm it's a good time. Stay in {cfg.language}. Do NOT "
-                    f"mention CVs."
+                    f"Begin your OPENING now, exactly as your instructions describe. "
+                    f"Your VERY FIRST line must be warm and polite: "
+                    f"\"Hello, am I speaking to {pref_name}?\" Wait for their yes, then "
+                    f"introduce yourself and the FineClean recruitment team, explain why "
+                    f"you're calling, and ask if now's a good time. Do NOT start the "
+                    f"interview questions until they confirm it's a good time. Stay in "
+                    f"{cfg.language}. Do NOT mention CVs."
                 )
             else:
                 kickoff = (
