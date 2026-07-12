@@ -2,7 +2,7 @@
 
 Stack:
   Twilio Media Streams (WebSocket) → Silero VAD → Deepgram Nova-3 multi (STT)
-  → Groq Llama 3.1 8B (LLM, ~100ms TTFT) → Cartesia Sonic-3 (TTS, multilingual)
+  → OpenAI gpt-4o-mini (LLM) → Cartesia Sonic-3 (TTS, multilingual)
   → back to Twilio.
 
 Plus a side-channel that streams transcript turns into Postgres.
@@ -76,9 +76,9 @@ except ImportError:  # pragma: no cover
 # on import. We use the new paths to silence them and stay compatible with
 # whatever 0.x point release is current.
 try:  # pragma: no cover - import-shim
-    from pipecat.services.groq.llm import GroqLLMService  # type: ignore
+    from pipecat.services.openai.llm import OpenAILLMService  # type: ignore
 except ImportError:
-    from pipecat.services.groq import GroqLLMService  # type: ignore
+    from pipecat.services.openai import OpenAILLMService  # type: ignore
 try:
     from pipecat.transports.websocket.fastapi import (  # type: ignore
         FastAPIWebsocketTransport,
@@ -726,10 +726,15 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
         stt_kwargs["language"] = cfg.language or "en"
     stt = DeepgramSTTService(**stt_kwargs)
 
-    llm = GroqLLMService(
-        api_key=os.environ["GROQ_API_KEY"],
-        model="llama-3.1-8b-instant",
-        name="groq-llm",
+    # Swapped from Groq (repeated 429s under real call volume + weaker
+    # instruction-following on llama-3.1-8b-instant — e.g. mishandling
+    # explicit wrong-person/end-call requests). gpt-4o-mini gives higher
+    # per-account throughput headroom and follows the screening script's
+    # conditional instructions more reliably.
+    llm = OpenAILLMService(
+        api_key=os.environ["OPENAI_API_KEY"],
+        model="gpt-4o-mini",
+        name="openai-llm",
     )
 
     # Cartesia sample_rate matches the transport rate to skip a resample
