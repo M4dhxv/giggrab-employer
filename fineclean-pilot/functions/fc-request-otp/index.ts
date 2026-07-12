@@ -14,11 +14,27 @@ function generateOtp(): string {
 async function sendSms(phone: string, otp: string) {
   const sid = Deno.env.get('TWILIO_ACCOUNT_SID');
   const token = Deno.env.get('TWILIO_AUTH_TOKEN');
+  // Prefer a Messaging Service: its sender pool lets Twilio pick the right
+  // sender per destination country — a US long code for +1, the "GigGrab"
+  // Alphanumeric Sender ID for the UK (+44), which a US number physically
+  // cannot reach (Twilio error 21612: bad To/From combination). A bare
+  // From number is kept as a fallback for dev / single-country setups.
+  const msgService = Deno.env.get('TWILIO_MESSAGING_SERVICE_SID');
   const from = Deno.env.get('TWILIO_FROM_NUMBER');
 
-  if (!sid || !token || !from) {
+  if (!sid || !token || (!msgService && !from)) {
     console.log(`[DEV] OTP for ${phone}: ${otp}`);
     return;
+  }
+
+  const params = new URLSearchParams({
+    To: phone,
+    Body: `Your GigGrab screening code is ${otp}. Valid for 10 minutes.`,
+  });
+  if (msgService) {
+    params.set('MessagingServiceSid', msgService);
+  } else {
+    params.set('From', from!);
   }
 
   const res = await fetch(
@@ -29,11 +45,7 @@ async function sendSms(phone: string, otp: string) {
         Authorization: `Basic ${btoa(`${sid}:${token}`)}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        To: phone,
-        From: from,
-        Body: `Your GigGrab screening code is ${otp}. Valid for 10 minutes.`,
-      }),
+      body: params,
     },
   );
 
