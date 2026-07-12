@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Lock, RefreshCw, ChevronDown, Phone, Clock } from "lucide-react";
 import {
   fetchAdminDashboard,
+  recordingSrc,
   type AdminCandidate,
   type AdminSession,
 } from "../../lib/fcApi";
@@ -36,7 +37,7 @@ function fmtDuration(s: number | null) {
   return `${m}m ${sec}s`;
 }
 
-function SessionDetail({ s }: { s: AdminSession }) {
+function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
   const ai = s.fc_ai_summaries?.[0];
   const sr = (s.fc_candidate_structured_responses?.[0] ?? {}) as Record<string, unknown>;
   const rec = ai?.recommendation ? REC_STYLE[ai.recommendation] : null;
@@ -59,11 +60,18 @@ function SessionDetail({ s }: { s: AdminSession }) {
 
   return (
     <div className="mt-3 space-y-4">
-      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-        <span className="font-semibold text-gray-700">Call</span>
-        <Chip bg="#f3f4f6" fg="#374151">{s.status}</Chip>
-        <span className="flex items-center gap-1"><Clock size={12} />{fmtDuration(s.duration_seconds)}</span>
-        <span>{s.completed_at ? new Date(s.completed_at).toLocaleString() : ""}</span>
+      {/* Call record */}
+      <div className="rounded-xl border border-gray-200 p-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-2">
+          <span className="font-bold uppercase tracking-widest text-gray-400">Call record</span>
+          <Chip bg="#f3f4f6" fg="#374151">{s.status}</Chip>
+          <span className="flex items-center gap-1"><Clock size={12} />{fmtDuration(s.duration_seconds)}</span>
+          <span>{new Date(s.completed_at ?? s.created_at).toLocaleString()}</span>
+          {s.call_id && <span className="text-gray-300 font-mono">{s.call_id.slice(0, 12)}…</span>}
+        </div>
+        {s.recording_url
+          ? <audio controls preload="none" className="w-full h-9" src={recordingSrc(s.id, adminKey)} />
+          : <p className="text-[11px] text-gray-400">Recording not available yet.</p>}
       </div>
 
       {/* Tier-2 AI summary */}
@@ -123,7 +131,7 @@ function SessionDetail({ s }: { s: AdminSession }) {
   );
 }
 
-function CandidateRow({ c }: { c: AdminCandidate }) {
+function CandidateRow({ c, adminKey }: { c: AdminCandidate; adminKey: string }) {
   const [open, setOpen] = useState(false);
   const name = `${c.first_name} ${c.last_name}`.trim() || c.email;
   const latest = c.fc_screening_sessions?.[0];
@@ -160,7 +168,7 @@ function CandidateRow({ c }: { c: AdminCandidate }) {
             </div>
           )}
           {c.fc_screening_sessions?.length
-            ? c.fc_screening_sessions.map(s => <SessionDetail key={s.id} s={s} />)
+            ? c.fc_screening_sessions.map(s => <SessionDetail key={s.id} s={s} adminKey={adminKey} />)
             : <p className="text-xs text-gray-400 mt-3 flex items-center gap-1"><Phone size={12} /> No screening call yet.</p>}
         </div>
       )}
@@ -241,7 +249,7 @@ export default function AdminDashboardPage() {
 
       <div className="max-w-4xl mx-auto px-6 py-6 space-y-2.5">
         {candidates.length === 0 && <p className="text-sm text-gray-400 text-center py-10">No candidates yet.</p>}
-        {candidates.map(c => <CandidateRow key={c.id} c={c} />)}
+        {candidates.map(c => <CandidateRow key={c.id} c={c} adminKey={key} />)}
       </div>
     </div>
   );

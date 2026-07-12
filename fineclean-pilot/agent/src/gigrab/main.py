@@ -149,6 +149,7 @@ async def _ws_handler(websocket: WebSocket):
             if event == "start":
                 start = msg.get("start", {}) or {}
                 stream_sid = start.get("streamSid", "") or ""
+                call_sid = start.get("callSid", "") or ""
                 params = start.get("customParameters", {}) or {}
                 session_id = params.get("sessionId", "") or ""
                 language = params.get("language", "en") or "en"
@@ -196,6 +197,7 @@ async def _ws_handler(websocket: WebSocket):
         inbound=inbound,
         existing_profile=existing_profile,
         preferred_name=preferred_name,
+        call_sid=call_sid,
     )
     logger.info(
         f"ws session start: session={session_id} stream={stream_sid} lang={language} "

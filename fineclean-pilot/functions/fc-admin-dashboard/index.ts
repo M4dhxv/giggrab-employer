@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
         fc_prequal_responses ( question, answer, submitted_at ),
         fc_screening_sessions (
           id, status, started_at, completed_at, duration_seconds, created_at,
+          call_id, recording_url,
           fc_transcript_messages ( speaker, message, sequence_number ),
           fc_candidate_structured_responses ( * ),
           fc_ai_summaries ( * )

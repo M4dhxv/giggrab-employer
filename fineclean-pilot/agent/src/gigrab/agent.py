@@ -642,6 +642,9 @@ class AgentConfig:
     # this fires on the FIRST call when no profile_card yet exists. Lets
     # outbound kickoff greet by name + ask to confirm.
     preferred_name: Optional[str] = None
+    # Twilio CallSid from the Media Streams start frame — lets the serializer
+    # hang up the call itself (auto_hang_up) once Sarah delivers her sign-off.
+    call_sid: Optional[str] = None
 
 
 async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig):
@@ -767,8 +770,11 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
         ),
     )
     if UserTurnStrategies is not None and SpeechTimeoutUserTurnStopStrategy is not None:
+        # 0.7s (was 1.0s): snappier reply after short answers so Sarah doesn't
+        # feel frozen ("having to say hello to wake her up"), while still long
+        # enough to ride over brief natural pauses mid-answer.
         user_aggregator_kwargs["user_turn_strategies"] = UserTurnStrategies(
-            stop=[SpeechTimeoutUserTurnStopStrategy(user_speech_timeout=1.0)],
+            stop=[SpeechTimeoutUserTurnStopStrategy(user_speech_timeout=0.7)],
         )
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
         context,
@@ -917,16 +923,32 @@ async def run_agent(websocket, cfg: AgentConfig, *, stream_sid: str):
     # echoes it back on every outbound media frame so Twilio routes audio to
     # the right call leg. cfg.session_id is OUR DB session UUID — separate concern.
     #
-    # In Pipecat 0.0.108 auto_hang_up lives on InputParams (not a direct
-    # kwarg). We disable it so the serializer doesn't try to call Twilio's
-    # REST API when the pipeline ends — the candidate hangs up their phone,
-    # Twilio closes the WS, and on_client_disconnected marks the session
-    # completed in DB. To enable agent-initiated hangup later, pass
-    # call_sid + account_sid + auth_token + params with auto_hang_up=True.
-    serializer = TwilioFrameSerializer(
-        stream_sid=stream_sid,
-        params=TwilioFrameSerializer.InputParams(auto_hang_up=False),
-    )
+    # Agent-initiated hangup: once Sarah delivers her sign-off, WrapUpHangup
+    # pushes an EndFrame and the serializer calls Twilio's REST API to hang up
+    # the call (so the candidate isn't left on dead air). Needs the CallSid
+    # (from the start frame) + Twilio creds in the agent env. If any are
+    # missing we fall back to auto_hang_up=False (candidate ends the call).
+    _tw_sid = os.getenv("TWILIO_ACCOUNT_SID")
+    _tw_tok = os.getenv("TWILIO_AUTH_TOKEN")
+    _can_hangup = bool(cfg.call_sid and _tw_sid and _tw_tok)
+    if _can_hangup:
+        serializer = TwilioFrameSerializer(
+            stream_sid=stream_sid,
+            call_sid=cfg.call_sid,
+            account_sid=_tw_sid,
+            auth_token=_tw_tok,
+            params=TwilioFrameSerializer.InputParams(auto_hang_up=True),
+        )
+    else:
+        logger.warning(
+            "[hangup] auto_hang_up disabled — missing "
+            f"call_sid={bool(cfg.call_sid)} TWILIO_ACCOUNT_SID={bool(_tw_sid)} "
+            f"TWILIO_AUTH_TOKEN={bool(_tw_tok)}"
+        )
+        serializer = TwilioFrameSerializer(
+            stream_sid=stream_sid,
+            params=TwilioFrameSerializer.InputParams(auto_hang_up=False),
+        )
     # Transport-side VAD: emits UserStartedSpeakingFrame mid-TTS so the
     # pipeline can interrupt Sarah when the caller barges in. Without this
     # interruption never fires regardless of allow_interruptions. Uses

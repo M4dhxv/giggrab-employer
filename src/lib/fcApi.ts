@@ -105,9 +105,16 @@ export interface AdminSession {
   completed_at: string | null;
   duration_seconds: number | null;
   created_at: string;
+  call_id: string | null;
+  recording_url: string | null;
   fc_transcript_messages: AdminTranscriptMsg[];
   fc_candidate_structured_responses: Record<string, unknown>[];
   fc_ai_summaries: AdminAiSummary[];
+}
+
+// Authenticated proxy URL for a call's recording (Twilio audio needs auth).
+export function recordingSrc(sessionId: string, adminKey: string): string {
+  return `${BASE}/fc-recording?session_id=${encodeURIComponent(sessionId)}&key=${encodeURIComponent(adminKey)}`;
 }
 export interface AdminCandidate {
   id: string;

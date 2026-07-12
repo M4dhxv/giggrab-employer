@@ -93,11 +93,11 @@ Deno.serve(async (req) => {
   if (isRecording) {
     const recordingUrl = params['RecordingUrl'];
     if (recordingUrl) {
+      const mp3 = `${recordingUrl}.mp3`;
       await db
         .from('fc_screening_sessions')
-        .update({ call_id: params['CallSid'] ?? undefined })
+        .update({ call_id: params['CallSid'] ?? undefined, recording_url: mp3 })
         .eq('id', sessionId);
-      // Store the mp3 URL on the event log (no dedicated column in schema).
       const { data: sess } = await db
         .from('fc_screening_sessions')
         .select('candidate_id')
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       if (sess?.candidate_id) {
         await logEvent(db, sess.candidate_id, 'Sarah Call Recording', {
           session_id: sessionId,
-          recording_url: `${recordingUrl}.mp3`,
+          recording_url: mp3,
         });
       }
     }
