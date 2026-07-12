@@ -84,8 +84,14 @@ Deno.serve(async (req) => {
       db = r.db;
       candidateId = candidate_id;
       if (cleanName) await db.from('fc_candidates').update({ first_name: cleanName }).eq('id', candidateId);
+    } else if (candidate_id) {
+      // Tokenless flow with an existing candidate (created + OTP-verified in
+      // fc-request-otp / fc-verify-otp).
+      db = adminClient();
+      candidateId = candidate_id;
+      if (cleanName) await db.from('fc_candidates').update({ first_name: cleanName }).eq('id', candidateId);
     } else {
-      // Tokenless testing flow — create the candidate on the fly.
+      // Tokenless flow, no prior candidate — create on the fly (no-OTP path).
       if (!cleanName) return err('first_name required');
       if (!cleanPhone) return err('valid phone required (E.164, e.g. +447700900123)');
       db = adminClient();

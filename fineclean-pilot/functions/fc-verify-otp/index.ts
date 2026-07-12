@@ -1,6 +1,6 @@
 import { preflight, json, err } from '../_shared/cors.ts';
 import { resolveCandidate } from '../_shared/validate.ts';
-import { logEvent } from '../_shared/db.ts';
+import { adminClient, logEvent } from '../_shared/db.ts';
 
 const MAX_ATTEMPTS = 5;
 
@@ -15,11 +15,18 @@ Deno.serve(async (req) => {
 
   try {
     const { token, candidate_id, otp } = await req.json();
-    if (!token || !candidate_id || !otp) return err('token, candidate_id, otp required');
+    if (!candidate_id || !otp) return err('candidate_id, otp required');
 
-    const { candidate, db, error } = await resolveCandidate(token);
-    if (error || !candidate) return err(error ?? 'Not found', 404);
-    if (candidate.id !== candidate_id) return err('Token mismatch', 403);
+    let db: ReturnType<typeof adminClient>;
+    if (token) {
+      const r = await resolveCandidate(token);
+      if (r.error || !r.candidate) return err(r.error ?? 'Not found', 404);
+      if (r.candidate.id !== candidate_id) return err('Token mismatch', 403);
+      db = r.db;
+    } else {
+      // Tokenless testing flow — verify by candidate_id (created in fc-request-otp).
+      db = adminClient();
+    }
 
     const { data: pv } = await db
       .from('fc_phone_verifications')

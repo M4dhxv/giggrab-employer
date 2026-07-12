@@ -76,6 +76,16 @@ export const fc = {
   // Tokenless testing flow — creates the candidate on the fly and calls them.
   startScreening: (opts: { first_name: string; phone: string; consent?: boolean }) =>
     post<ScreeningResult>('fc-request-screening', opts),
+
+  // Tokenless OTP flow: request → verify → start (by candidate_id).
+  requestOtpNew: (first_name: string, phone: string) =>
+    post<OtpResult & { candidate_id: string }>('fc-request-otp', { first_name, phone }),
+
+  verifyOtpById: (candidate_id: string, otp: string) =>
+    post<VerifyResult>('fc-verify-otp', { candidate_id, otp }),
+
+  startScreeningById: (candidate_id: string, consent: boolean) =>
+    post<ScreeningResult>('fc-request-screening', { candidate_id, consent }),
 };
 
 // ─── Admin dashboard ──────────────────────────────────────────────────────────
