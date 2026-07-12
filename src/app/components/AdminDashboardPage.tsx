@@ -43,9 +43,14 @@ function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
   const rec = ai?.recommendation ? REC_STYLE[ai.recommendation] : null;
 
   const FIELDS: [string, string][] = [
-    ["Right to work docs", "right_to_work"],
+    ["Right to work", "right_to_work"],
+    ["RTW basis", "right_to_work_basis"],
+    ["RTW expiry", "right_to_work_expiry"],
+    ["Transport to site", "transport_to_site"],
     ["Can reach Worcester", "can_reach_site"],
     ["Comfortable w/ travel", "comfortable_with_travel"],
+    ["Physical demands OK", "physical_comfort"],
+    ["Chemical sensitivities", "chemical_sensitivities"],
     ["Available days", "available_days"],
     ["Earliest start time", "earliest_start_time"],
     ["Latest finish time", "latest_finish_time"],
