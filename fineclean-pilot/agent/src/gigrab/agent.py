@@ -299,6 +299,21 @@ _WRAPUP_LOGON_RE = re.compile(
 )
 # FineClean screening closes with "Have a great day." as its final line.
 _WRAPUP_CLOSE_RE = re.compile(r"have\s+a\s+great\s+day", re.IGNORECASE)
+# Fallback farewells. When Groq is rate-limited/degraded Sarah sometimes
+# drops the scripted close and ad-libs a shorter goodbye (observed:
+# "I'm afraid I'm going to go. Goodbye."). Catch those generic sign-offs
+# too so an off-script ending still auto hangs up instead of stranding the
+# caller on an open line. These only occur at a genuine end of turn.
+_WRAPUP_FAREWELL_RE = re.compile(
+    r"good\s*bye"
+    r"|\bbye\s+now\b"
+    r"|\btake\s+care\b"
+    # Only when "go" ENDS the clause ("I'm going to go." / "...go now"), so we
+    # don't fire on openers like "we're going to go through a few questions".
+    r"|\b(?:going|have|need|got)\s+to\s+go(?=\s*[.,!?]|\s+now\b|\s*$)"
+    r"|\b(?:i'?ll|let\s+me)\s+let\s+you\s+go\b",
+    re.IGNORECASE,
+)
 
 
 def _looks_like_wrapup(text: str) -> bool:
@@ -308,6 +323,7 @@ def _looks_like_wrapup(text: str) -> bool:
         _WRAPUP_SPEAK_SOON_RE.search(text)
         or _WRAPUP_LOGON_RE.search(text)
         or _WRAPUP_CLOSE_RE.search(text)
+        or _WRAPUP_FAREWELL_RE.search(text)
     )
 
 
