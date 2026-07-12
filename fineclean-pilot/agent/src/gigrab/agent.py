@@ -438,8 +438,18 @@ class WrapUpHangup(FrameProcessor):
     output (TextFrame chunks bracketed by LLMFullResponseStart/EndFrame) and
     the BotStoppedSpeakingFrame emitted by the transport output AFTER audio
     playback has actually drained. When the buffered assistant turn matches
-    the wrap-up pattern, we arm a one-shot flag and push an EndFrame on the
-    next BotStoppedSpeakingFrame.
+    the wrap-up pattern, we arm a one-shot flag and end the call on the next
+    BotStoppedSpeakingFrame.
+
+    Ending the call MUST go through the PipelineTask (set_task), not a plain
+    downstream push_frame. The Twilio hang-up lives in
+    TwilioFrameSerializer.serialize(EndFrame), which only runs inside
+    transport.output(). Because this processor sits AFTER transport.output()
+    (it has to, to see BotStoppedSpeakingFrame), an EndFrame pushed downstream
+    from here travels to the pipeline's tail sink and never reaches the output
+    transport — so the REST hang-up never fires. Queuing the EndFrame on the
+    task injects it at the SOURCE instead, so it flows DOWN through
+    transport.output(), gets serialized, and hangs the call up.
     """
 
     def __init__(self) -> None:
@@ -448,6 +458,12 @@ class WrapUpHangup(FrameProcessor):
         self._buffering = False
         self._armed = False
         self._fired = False
+        self._task = None
+
+    def set_task(self, task) -> None:
+        """Wire the PipelineTask so the sign-off can end the call from the
+        source (see class docstring for why a downstream push_frame can't)."""
+        self._task = task
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
@@ -488,8 +504,21 @@ class WrapUpHangup(FrameProcessor):
         if self._armed and isinstance(frame, BotStoppedSpeakingFrame):
             self._fired = True
             self._armed = False
-            logger.info("[wrap-up] audio drained — pushing EndFrame")
-            await self.push_frame(EndFrame(), FrameDirection.DOWNSTREAM)
+            if self._task is not None:
+                logger.info(
+                    "[wrap-up] audio drained — ending call via task EndFrame "
+                    "(routes through transport.output() → Twilio hang-up)"
+                )
+                await self._task.queue_frame(EndFrame())
+            else:
+                # Fallback: no task wired. This will shut the pipeline down but
+                # will NOT trigger the Twilio REST hang-up (EndFrame never
+                # reaches the output serializer from here).
+                logger.warning(
+                    "[wrap-up] audio drained but no task wired — pushing "
+                    "EndFrame downstream (call may not auto hang up)"
+                )
+                await self.push_frame(EndFrame(), FrameDirection.DOWNSTREAM)
 
 
 def _sanitize_profile_field(s: object, max_len: int = 200) -> str:
@@ -829,6 +858,12 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
         pipeline,
         params=PipelineParams(**pipeline_params_kwargs),
     )
+
+    # Wire the task into WrapUpHangup so the sign-off ends the call by queuing
+    # an EndFrame at the SOURCE — the only route that reaches the output
+    # transport's serializer and triggers Twilio's REST hang-up. (Pushing an
+    # EndFrame downstream from WrapUpHangup's tail position never gets there.)
+    wrap_up_hangup.set_task(task)
 
     # Canonical pipecat 0.0.108 kickoff (matches
     # pipecat-examples/twilio-chatbot/inbound/bot.py): on connect, append a
