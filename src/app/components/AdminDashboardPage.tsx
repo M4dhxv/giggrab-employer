@@ -46,9 +46,12 @@ function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
     ["Right to work", "right_to_work"],
     ["RTW basis", "right_to_work_basis"],
     ["RTW expiry", "right_to_work_expiry"],
+    ["Supporting docs", "supporting_documents"],
     ["Transport to site", "transport_to_site"],
     ["Can reach Worcester", "can_reach_site"],
     ["Comfortable w/ travel", "comfortable_with_travel"],
+    ["Drives", "driving_licence"],
+    ["Own vehicle", "own_transport"],
     ["Physical demands OK", "physical_comfort"],
     ["Chemical sensitivities", "chemical_sensitivities"],
     ["Available days", "available_days"],
@@ -112,6 +115,20 @@ function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
           </div>
         ))}
       </div>
+
+      {/* Competency answers */}
+      {(sr.competency_standards || sr.competency_communication) ? (
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Maintaining standards</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{fmt(sr.competency_standards)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Communication</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{fmt(sr.competency_communication)}</p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Transcript */}
       {s.fc_transcript_messages?.length > 0 && (

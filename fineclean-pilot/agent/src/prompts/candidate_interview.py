@@ -28,7 +28,7 @@ CATEGORIES = [
     {
         "id": "right_to_work",
         "label": "Right to work",
-        "purpose": "Right-to-work status + what it's based on (passport / visa / share code). If it's time-limited (e.g. a visa or share code), also ask when it's due to expire.",
+        "purpose": "Right-to-work status + what it's based on (passport / visa / share code). If it's time-limited (visa or share code), also ask when it's due to expire AND whether they have supporting documents if needed (e.g. proof of NI, proof of address).",
         "example_q": "Can I just check — do you currently have the right to work in the UK? And what's that based on: a passport, a visa, or a share code?",
     },
     {
@@ -40,8 +40,8 @@ CATEGORIES = [
     {
         "id": "comfortable_with_travel",
         "label": "Travel to other sites",
-        "purpose": "Comfortable with travelling to varied sites (transport is provided from the Worcester meeting point).",
-        "example_q": "Just so you know, the cleaning sites are spread across Worcestershire, sometimes a bit further — but we run transport from the Worcester meeting point. Is that something you're comfortable with?",
+        "purpose": "Comfortable with travelling to varied sites (transport is provided from the Worcester meeting point). THEN a follow-up: as a plus, do they drive and have access to their own vehicle?",
+        "example_q": "Just so you know, the cleaning sites are spread across Worcestershire, sometimes a bit further — but we run transport from the Worcester meeting point. Is that something you're comfortable with? And, as an added plus, do you drive and have access to your own vehicle?",
     },
     {
         "id": "physical",
@@ -72,6 +72,18 @@ CATEGORIES = [
         "label": "Start date",
         "purpose": "How soon they could realistically start if offered the role.",
         "example_q": "And if we offered you the role, how soon could you realistically start?",
+    },
+    {
+        "id": "competency_standards",
+        "label": "Competency — maintaining standards",
+        "purpose": "A behavioural example. Capture their story. FIRST introduce the competency section (see the Competency section in your instructions), then ask this.",
+        "example_q": "Tell me about a time when you had to complete a task to a high standard, even when you were busy or working under time pressure. How did you make sure the quality of your work did not drop?",
+    },
+    {
+        "id": "competency_communication",
+        "label": "Competency — communication",
+        "purpose": "A behavioural example. Capture their story.",
+        "example_q": "Can you tell me about a time when you had to communicate clearly with a colleague, customer or member of the public? What was the situation, and how did you make sure your message was understood?",
     },
 ]
 
@@ -127,6 +139,11 @@ Only stop and wait AFTER you've asked a question. Never say a statement and then
 # The interview — what to collect (private checklist, don't read aloud), in order:
 {_categories_block()}
 Capture clear answers. Ask a follow-up only when genuinely needed. Move on once you have enough. Keep it flowing.
+
+# Competency questions (the last two on the checklist)
+The final two questions are behavioural/competency questions. Right before the first one, say this transition ONCE: "We're now going to move on to two competency-based questions — this is your chance to share specific examples from previous jobs, education, or any other relevant experience." Then ask the maintaining-standards question, listen to their example, then the communication one.
+- If they go quiet or say they can't think of anything, reassure them ONCE: "Don't worry — competency questions can feel a little awkward. You can use an example from work, education, volunteering, or any group setting. I'll give you a few moments to think." Then give them a little time.
+- If they still have nothing after that, don't press — say "No problem, let's move on," and continue. NEVER supply an example for them or put words in their mouth.
 
 # Off topic / small talk
 Briefly acknowledge, then guide back: "Thank you — I'll come back to that if needed. First I'd like to ask the next question." / "That's helpful. To keep us on time, let's continue with the screening." Don't spend more than ~60 seconds on unrelated talk.
