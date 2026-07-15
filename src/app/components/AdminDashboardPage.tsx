@@ -46,19 +46,18 @@ function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
     ["Right to work", "right_to_work"],
     ["RTW basis", "right_to_work_basis"],
     ["RTW expiry", "right_to_work_expiry"],
-    ["Supporting docs", "supporting_documents"],
+    ["Drives", "driving_licence"],
+    ["Own vehicle", "own_transport"],
     ["Transport to site", "transport_to_site"],
     ["Can reach Worcester", "can_reach_site"],
     ["Comfortable w/ travel", "comfortable_with_travel"],
-    ["Drives", "driving_licence"],
-    ["Own vehicle", "own_transport"],
-    ["Physical demands OK", "physical_comfort"],
-    ["Chemical sensitivities", "chemical_sensitivities"],
     ["Available days", "available_days"],
+    ["Availability changes", "availability_changes"],
     ["Earliest start time", "earliest_start_time"],
     ["Latest finish time", "latest_finish_time"],
     ["Shift notice", "shift_notice"],
     ["Earliest start date", "earliest_start_date"],
+    ["Interview availability", "interview_availability"],
   ];
   const fmt = (v: unknown) =>
     v === null || v === undefined || v === "" ? "—"
