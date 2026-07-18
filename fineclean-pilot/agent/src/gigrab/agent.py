@@ -2,7 +2,7 @@
 
 Stack:
   Twilio Media Streams (WebSocket) → Silero VAD → Deepgram Nova-3 multi (STT)
-  → OpenAI gpt-4o-mini (LLM) → Cartesia Sonic-3 (TTS, multilingual)
+  → Cerebras gpt-oss-120b (LLM) → Cartesia Sonic-3 (TTS, multilingual)
   → back to Twilio.
 
 Plus a side-channel that streams transcript turns into Postgres.
@@ -72,13 +72,20 @@ try:
 except ImportError:  # pragma: no cover
     UserTurnStrategies = None  # type: ignore
     SpeechTimeoutUserTurnStopStrategy = None  # type: ignore
+# LLM providers. Cerebras is primary; Groq then OpenAI are 429 fallbacks
+# (see FallbackLLMService). All three are OpenAI-compatible — pipecat's
+# subclasses only swap the base_url and, for Cerebras, drop the sampling
+# params (frequency/presence_penalty, service_tier) Cerebras rejects — hence
+# a CerebrasLLMService rather than a bare OpenAILLMService with base_url set.
+# These module paths are stable across the whole 0.0.70–0.0.108 pin range.
+from pipecat.services.cerebras.llm import CerebrasLLMService  # type: ignore
+from pipecat.services.groq.llm import GroqLLMService  # type: ignore
+from pipecat.services.openai.llm import OpenAILLMService  # type: ignore
+from openai import RateLimitError  # all three services stream via the openai SDK
+
 # Pipecat 0.0.108 still ships the legacy paths but emits DeprecationWarnings
 # on import. We use the new paths to silence them and stay compatible with
 # whatever 0.x point release is current.
-try:  # pragma: no cover - import-shim
-    from pipecat.services.openai.llm import OpenAILLMService  # type: ignore
-except ImportError:
-    from pipecat.services.openai import OpenAILLMService  # type: ignore
 try:
     from pipecat.transports.websocket.fastapi import (  # type: ignore
         FastAPIWebsocketTransport,
@@ -168,7 +175,7 @@ _TRANSCRIPT_START_MS: dict[str, int] = {}
 
 # 4+ consecutive single-letter tokens separated by whitespace — Deepgram's
 # emission for someone spelling out "A-L-B-A-N-E-S-E" reaches the agent as
-# "a l b a n e s e". Llama 3.1 8B routinely drops or repeats letters when
+# "a l b a n e s e". Smaller models routinely drop or repeat letters when
 # reading those back, so we pre-concatenate before the LLM sees the text.
 _SPELL_OUT_RE = re.compile(r"\b([A-Za-z](?:[ .\-]+[A-Za-z]){3,})\b")
 
@@ -299,7 +306,7 @@ _WRAPUP_LOGON_RE = re.compile(
 )
 # FineClean screening closes with "Have a great day." as its final line.
 _WRAPUP_CLOSE_RE = re.compile(r"have\s+a\s+great\s+day", re.IGNORECASE)
-# Fallback farewells. When Groq is rate-limited/degraded Sarah sometimes
+# Fallback farewells. When the LLM is rate-limited/degraded Sarah sometimes
 # drops the scripted close and ad-libs a shorter goodbye (observed:
 # "I'm afraid I'm going to go. Goodbye."). Catch those generic sign-offs
 # too so an off-script ending still auto hangs up instead of stranding the
@@ -666,6 +673,94 @@ def _clean_ai_text(s: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# LLM with provider fallback
+# ---------------------------------------------------------------------------
+
+
+class FallbackLLMService(CerebrasLLMService):
+    """Cerebras primary with Groq → OpenAI fallbacks on rate limits.
+
+    All three are OpenAI-compatible pipecat services, so each raises the
+    openai SDK's RateLimitError (HTTP 429) from get_chat_completions —
+    which returns the *stream* before any token is pushed downstream. That
+    makes it the one safe seam to swap providers mid-call: a 429 here is
+    caught before Cartesia sees a single word, so the caller only ever
+    hears one clean answer from whichever provider actually served it.
+
+    Fallback tiers whose API key is unset are skipped, so Groq/OpenAI are
+    optional — with neither key present this is just a plain Cerebras
+    service. `build_chat_completion_params` stays Cerebras's (inherited);
+    each fallback service builds its own params against its own client.
+    """
+
+    def __init__(self, *args, fallbacks: list[tuple[str, OpenAILLMService]], **kwargs):
+        super().__init__(*args, **kwargs)
+        self._fallbacks = fallbacks
+
+    async def get_chat_completions(self, params_from_context):
+        # (label, bound get_chat_completions) — primary first, then fallbacks.
+        chain = [("cerebras", super().get_chat_completions)]
+        chain += [(name, svc.get_chat_completions) for name, svc in self._fallbacks]
+        last_exc: Optional[RateLimitError] = None
+        for i, (name, fn) in enumerate(chain):
+            try:
+                stream = await fn(params_from_context)
+                if i > 0:
+                    logger.warning(f"[llm-fallback] served this turn via {name}")
+                return stream
+            except RateLimitError as e:
+                last_exc = e
+                nxt = chain[i + 1][0] if i + 1 < len(chain) else None
+                logger.warning(
+                    f"[llm-fallback] {name} rate-limited (429)"
+                    + (f"; falling back to {nxt}" if nxt else "; no fallback left")
+                )
+        # Every tier was rate-limited — surface the last 429 to the caller
+        # path (pipeline logs it; Sarah stays silent rather than half-speaking).
+        assert last_exc is not None
+        raise last_exc
+
+
+def _build_llm() -> FallbackLLMService:
+    """Wire Cerebras primary + optional Groq/OpenAI 429 fallbacks from env.
+
+    CEREBRAS_API_KEY is required (validated at startup in main.py). GROQ_API_KEY
+    and OPENAI_API_KEY are optional — each present key adds a fallback tier, in
+    the order Cerebras → Groq → OpenAI.
+    """
+    fallbacks: list[tuple[str, OpenAILLMService]] = []
+    if os.getenv("GROQ_API_KEY"):
+        fallbacks.append((
+            "groq",
+            GroqLLMService(
+                api_key=os.environ["GROQ_API_KEY"],
+                model=os.getenv("GROQ_MODEL") or "llama-3.1-8b-instant",
+                name="groq-llm-fallback",
+            ),
+        ))
+    if os.getenv("OPENAI_API_KEY"):
+        fallbacks.append((
+            "openai",
+            OpenAILLMService(
+                api_key=os.environ["OPENAI_API_KEY"],
+                model=os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
+                name="openai-llm-fallback",
+            ),
+        ))
+    logger.info(
+        "[llm-fallback] primary=cerebras fallbacks="
+        + (", ".join(n for n, _ in fallbacks) or "none")
+    )
+    return FallbackLLMService(
+        api_key=os.environ["CEREBRAS_API_KEY"],
+        model=os.getenv("CEREBRAS_MODEL") or "gpt-oss-120b",
+        name="cerebras-llm",
+        fallbacks=fallbacks,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Pipeline factory
 # ---------------------------------------------------------------------------
 
@@ -726,16 +821,13 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
         stt_kwargs["language"] = cfg.language or "en"
     stt = DeepgramSTTService(**stt_kwargs)
 
-    # Swapped from Groq (repeated 429s under real call volume + weaker
-    # instruction-following on llama-3.1-8b-instant — e.g. mishandling
-    # explicit wrong-person/end-call requests). gpt-4o-mini gives higher
-    # per-account throughput headroom and follows the screening script's
-    # conditional instructions more reliably.
-    llm = OpenAILLMService(
-        api_key=os.environ["OPENAI_API_KEY"],
-        model="gpt-4o-mini",
-        name="openai-llm",
-    )
+    # Cerebras gpt-oss-120b is big enough to hold the screening script's
+    # conditional branches and returns a full short reply in ~0.5 s. It emits
+    # reasoning tokens on a separate `reasoning` delta field that pipecat
+    # ignores, so nothing but the spoken answer reaches Cartesia. Groq (the
+    # original provider, dropped for 429s + weak instruction-following on
+    # llama-3.1-8b-instant) and gpt-4o-mini remain as automatic 429 fallbacks.
+    llm = _build_llm()
 
     # Cartesia sample_rate matches the transport rate to skip a resample
     # hop. Phone = 8 kHz (Twilio mu-law), web = 16 kHz raw PCM.

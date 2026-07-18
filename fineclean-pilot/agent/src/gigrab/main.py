@@ -213,7 +213,7 @@ async def _ws_handler(websocket: WebSocket):
 
 def main():
     port = int(os.getenv("PORT", "8080"))
-    required = ["DEEPGRAM_API_KEY", "OPENAI_API_KEY", "CARTESIA_API_KEY", "DATABASE_URL"]
+    required = ["DEEPGRAM_API_KEY", "CEREBRAS_API_KEY", "CARTESIA_API_KEY", "DATABASE_URL"]
     missing = [k for k in required if not os.getenv(k)]
     if missing:
         logger.error(f"Missing required env vars: {missing}")

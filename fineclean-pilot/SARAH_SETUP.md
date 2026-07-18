@@ -11,7 +11,7 @@ fc-request-screening (edge fn)
    places Twilio outbound call to the candidate
       → candidate answers → Twilio fetches fc-twilio-voice (TwiML)
          → <Connect><Stream> bridges call audio to the Pipecat agent (/ws)
-            → Silero VAD → Deepgram Nova-3 (STT) → OpenAI gpt-4o-mini (Sarah) → Cartesia (TTS)
+            → Silero VAD → Deepgram Nova-3 (STT) → Cerebras gpt-oss-120b (Sarah) → Cartesia (TTS)
             → agent writes each turn to fc_transcript_messages, session status to fc_screening_sessions
    Twilio call-progress + recording → fc-twilio-status
       → on `completed` → fc-sarah-extract (Claude Sonnet)
@@ -51,7 +51,7 @@ supabase functions deploy fc-sarah-extract
 
 ```bash
 cd agent
-cp .env.example .env      # fill DATABASE_URL + DEEPGRAM/OPENAI/CARTESIA keys
+cp .env.example .env      # fill DATABASE_URL + DEEPGRAM/CEREBRAS/CARTESIA keys
 # The Dockerfile is Frank's — build & deploy to Cloud Run / Fly / Railway.
 ```
 Point `AGENT_WS_URL` (edge secret) at the deployed agent's `wss://.../ws`.

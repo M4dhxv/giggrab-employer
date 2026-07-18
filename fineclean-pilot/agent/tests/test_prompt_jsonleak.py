@@ -16,8 +16,8 @@ These tests guard against regressions:
     negative phrasings ("don't output JSON") sometimes get inverted
     by weak models — the safest fix is to remove the words entirely.
 
-  Tier 2 (skipped without GROQ_API_KEY) — live red-team. Spins up
-    Groq's Llama 3.1 8B (the same model the agent uses), runs three
+  Tier 2 (skipped without CEREBRAS_API_KEY) — live red-team. Spins up
+    Cerebras gpt-oss-120b (the same model the agent uses), runs three
     adversarial wrap-up scenarios, and asserts the response contains
     none of: ```json fences, schema-property snippets, or balanced
     `{ "x": ... }` blobs.
@@ -26,7 +26,7 @@ Run all:
     cd apps/agent && pytest tests/test_prompt_jsonleak.py -v
 
 Run just live tier:
-    GROQ_API_KEY=... pytest tests/test_prompt_jsonleak.py::test_live_redteam -v
+    CEREBRAS_API_KEY=... pytest tests/test_prompt_jsonleak.py::test_live_redteam -v
 """
 
 from __future__ import annotations
@@ -106,13 +106,13 @@ def test_prompt_has_wrap_up_terminator(prompt: str, name: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Live red-team: Groq Llama 3.1 8B with adversarial wrap-up transcripts.
-# Skipped silently when GROQ_API_KEY is absent.
+# Live red-team: Cerebras gpt-oss-120b with adversarial wrap-up transcripts.
+# Skipped silently when CEREBRAS_API_KEY is absent.
 # ---------------------------------------------------------------------------
 
 LIVE_SKIP = pytest.mark.skipif(
-    not os.environ.get("GROQ_API_KEY"),
-    reason="GROQ_API_KEY not set — skipping live red-team",
+    not os.environ.get("CEREBRAS_API_KEY"),
+    reason="CEREBRAS_API_KEY not set — skipping live red-team",
 )
 
 
@@ -204,14 +204,17 @@ CANDIDATE_WRAPUP_HISTORY = [
 LIVE_TRIALS = int(os.environ.get("LIVE_TRIALS", "5"))
 
 
-def _call_groq(system_prompt: str, history: list[dict], temperature: float = 0.7):
-    """Single Groq call returning the response text."""
-    from groq import Groq
+def _call_llm(system_prompt: str, history: list[dict], temperature: float = 0.7):
+    """Single Cerebras call returning the response text."""
+    from openai import OpenAI
 
-    client = Groq(api_key=os.environ["GROQ_API_KEY"])
+    client = OpenAI(
+        api_key=os.environ["CEREBRAS_API_KEY"],
+        base_url="https://api.cerebras.ai/v1",
+    )
     messages = [{"role": "system", "content": system_prompt}] + history
     resp = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model=os.environ.get("CEREBRAS_MODEL", "gpt-oss-120b"),
         messages=messages,
         temperature=temperature,
         max_tokens=512,
@@ -231,12 +234,12 @@ def _call_groq(system_prompt: str, history: list[dict], temperature: float = 0.7
     ids=["employer", "candidate", "combined_worker", "combined_employer"],
 )
 def test_live_redteam(system_prompt: str, history: list[dict], name: str) -> None:
-    """Live probe: send wrap-up history to Groq Llama 3.1 8B repeatedly,
+    """Live probe: send wrap-up history to Cerebras gpt-oss-120b repeatedly,
     assert no run leaks JSON. N trials because the bug is stochastic —
     a single clean run doesn't prove the prompt is safe."""
     leaks: list[str] = []
     for i in range(LIVE_TRIALS):
-        reply = _call_groq(system_prompt, history)
+        reply = _call_llm(system_prompt, history)
         for pattern in JSON_LEAK_PATTERNS:
             if re.search(pattern, reply, re.IGNORECASE):
                 leaks.append(f"trial {i}: matched {pattern!r}\n  reply: {reply[:300]!r}")
@@ -262,12 +265,12 @@ def test_live_redteam_assistant_continuation(
 ) -> None:
     """The original bug surfaced when the model's OWN wrap-up turn
     continued past the wrap-up sentence into a JSON dump. Reproduce that
-    failure mode: strip the trailing user 'bye' turn and ask Groq to
+    failure mode: strip the trailing user 'bye' turn and ask the model to
     continue the assistant's last (wrap-up) message. Any continuation
     that produces JSON-shaped output is a leak."""
     # Drop trailing user turn so history ends on the assistant wrap-up.
     truncated = [m for m in history[:-1]]
-    # Re-frame the last assistant turn as a "continue" prompt — Groq's
+    # Re-frame the last assistant turn as a "continue" prompt — the
     # chat API can't natively prefill an assistant turn, so we simulate
     # by adding a user turn that says nothing (silence) and asks the
     # assistant if anything else is needed. This is the closest analogue
@@ -277,7 +280,7 @@ def test_live_redteam_assistant_continuation(
     ]
     leaks: list[str] = []
     for i in range(LIVE_TRIALS):
-        reply = _call_groq(system_prompt, history_with_silence)
+        reply = _call_llm(system_prompt, history_with_silence)
         for pattern in JSON_LEAK_PATTERNS:
             if re.search(pattern, reply, re.IGNORECASE):
                 leaks.append(
@@ -325,5 +328,5 @@ def test_live_redteam_adversarial_bait(
     """User explicitly asks for JSON/schema dump. Agent must refuse to
     emit structured data on the call. Run across both intake prompts."""
     bait_history = history[:-2] + [{"role": "user", "content": bait}]
-    reply = _call_groq(system_prompt, bait_history)
+    reply = _call_llm(system_prompt, bait_history)
     _check_no_leak(reply, f"{name} bait={bait!r}")
