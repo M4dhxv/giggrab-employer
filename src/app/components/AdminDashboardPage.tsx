@@ -51,6 +51,7 @@ function SessionDetail({ s, adminKey }: { s: AdminSession; adminKey: string }) {
     ["Transport to site", "transport_to_site"],
     ["Can reach Worcester", "can_reach_site"],
     ["Comfortable w/ travel", "comfortable_with_travel"],
+    ["Previous experience", "previous_experience"],
     ["Available days", "available_days"],
     ["Availability changes", "availability_changes"],
     ["Earliest start time", "earliest_start_time"],
