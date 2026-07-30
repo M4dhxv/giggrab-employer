@@ -3,18 +3,17 @@ import { requireAdminKey } from '../_shared/validate.ts';
 import { adminClient, logEvent } from '../_shared/db.ts';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FineClean Candidate Journey — email templates.
+// FineClean Candidate Journey — email templates (verbatim copy + exact order).
 //
-// Send rules (per the FineClean spec):
-//   From:  Sarah <sarah@giggrab.io>         (override with RESEND_FROM)
-//   CC:    careers@fineclean.com            (override with FC_EMAIL_CC, "" to disable)
-//   Format: plain text, single FineClean logo, mobile-friendly, footer unsubscribe
-//   Send window (Tue–Thu, 10–11am) is NOT enforced here — that belongs to
-//   whatever SCHEDULES the send (a cron/queue). This function sends on demand.
+// Send rules:
+//   From:  Sarah <sarah@giggrab.io>   (RESEND_FROM)
+//   CC:    careers@fineclean.com      (FC_EMAIL_CC, "" to disable)
+//   Format: plain text, single FineClean logo, mobile-friendly, footer unsubscribe.
+//   Send window (Tue–Thu 10–11am) is enforced by the scheduler, not here.
 //
-// Each template is built from `vars` = candidate-derived fields (firstName, link)
-// merged with an optional `data` object the caller passes for the richer
-// later-stage emails (role, pay, date, time, interviewer, meetingLink, …).
+// Each template returns an ORDERED list of items, reproduced exactly as written.
+// A plain string is one line/paragraph ("\n" = line break within it); a Cta
+// object renders the [bracketed] action inline where it appears in the flow.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FROM = Deno.env.get('RESEND_FROM') ?? 'Sarah <sarah@giggrab.io>';
@@ -44,37 +43,44 @@ interface Cta {
   url: string;
 }
 
+type Item = string | Cta;
+
 interface Built {
   subject: string;
-  paragraphs: string[];
-  ctas?: Cta[];
-  // Sign-off lines (shown after a blank line, small + muted).
-  signoff?: string[];
+  body: Item[];
 }
 
 // ── Presentation ─────────────────────────────────────────────────────────────
-// Plain-text feel: system font, single column, one text logo, one accent button.
+// Plain text: one text logo, left-aligned lines exactly as written, a simple
+// underlined action link. No cards, no marketing chrome.
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function button(cta: Cta): string {
-  return `<a href="${cta.url}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:8px;font-weight:600;font-size:15px;margin:4px 8px 4px 0">${esc(cta.label)}</a>`;
+function action(cta: Cta): string {
+  return `<a href="${cta.url}" style="color:#059669;font-weight:600;text-decoration:underline">${esc(cta.label)}</a>`;
 }
 
-function shell(bodyHtml: string): string {
+function render(b: Built): string {
+  const lines = b.body
+    .map((item) =>
+      typeof item === 'string'
+        ? `<p style="margin:0 0 14px">${esc(item).replace(/\n/g, '<br>')}</p>`
+        : `<p style="margin:0 0 14px">${action(item)}</p>`,
+    )
+    .join('\n');
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f6f7f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden">
-  <tr><td style="padding:24px 32px 8px 32px">
-    <span style="font-size:18px;font-weight:800;letter-spacing:0.04em;color:#111827">FINE<span style="color:#10b981">CLEAN</span></span>
+<body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1f2937">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="left" style="padding:28px 20px">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
+  <tr><td style="padding:0 0 20px 0">
+    <span style="font-size:17px;font-weight:800;letter-spacing:0.04em;color:#111827">FINE<span style="color:#10b981">CLEAN</span></span>
   </td></tr>
-  <tr><td style="padding:8px 32px 28px 32px;color:#374151;font-size:15px;line-height:1.6">
-${bodyHtml}
+  <tr><td style="font-size:15px;line-height:1.6;color:#1f2937">
+${lines}
   </td></tr>
-  <tr><td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb">
-    <p style="margin:0 0 4px;color:#9ca3af;font-size:11px;line-height:1.5">FineClean Recruitment · powered by GigGrab</p>
+  <tr><td style="padding:24px 0 0 0">
     <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5"><a href="${UNSUBSCRIBE_URL}" style="color:#9ca3af;text-decoration:underline">Unsubscribe</a></p>
   </td></tr>
 </table>
@@ -82,196 +88,178 @@ ${bodyHtml}
 </body></html>`;
 }
 
-function render(b: Built): string {
-  const body = [
-    ...b.paragraphs.map(
-      (p) => `<p style="margin:0 0 16px">${p}</p>`,
-    ),
-    b.ctas && b.ctas.length ? `<p style="margin:8px 0 20px">${b.ctas.map(button).join('')}</p>` : '',
-    b.signoff && b.signoff.length
-      ? `<p style="margin:20px 0 0;color:#6b7280;font-size:14px;line-height:1.6">${b.signoff.map(esc).join('<br>')}</p>`
-      : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
-  return shell(body);
-}
-
-// ── Templates ────────────────────────────────────────────────────────────────
-// `v.firstName` and links are pre-escaped where interpolated as text.
-
-const N = (v: Vars) => esc(v.firstName);
+// ── Templates (verbatim) ─────────────────────────────────────────────────────
 
 const TEMPLATES: Record<string, (v: Vars) => Built> = {
   // 1A — Existing FineClean database candidates.
   existing_invitation: (v) => ({
     subject: `${v.firstName}, FINECLEAN Application Update`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Thank you for expressing an interest in working with us at FINECLEAN.`,
       `We currently have a number of roles available and would like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience.`,
       `Before moving to the first stage of the process we will need you to complete a short application form. This should take around 2 minutes and will help us confirm your suitability before progressing your application.`,
+      `Please complete the form within the next 48 hours to be considered for a role.`,
+      `Kind regards,\nFINECLEAN Recruitment Team`,
       `Please complete the form within the next 48 hours to keep your application active.`,
+      { label: 'Continue Application', url: v.link },
+      `If you have any questions, please don't hesitate to email me back.`,
+      `Sarah\nFINECLEAN Recruitment`,
     ],
-    ctas: [{ label: 'Continue Application', url: v.link }],
-    signoff: [`If you have any questions, please don't hesitate to email me back.`, ``, `Sarah`, `FINECLEAN Recruitment`],
   }),
 
   // 1B — Indeed applicants.
   indeed_invitation: (v) => ({
     subject: `${v.firstName}, next step for your FINECLEAN application`,
-    paragraphs: [
-      `Hi ${N(v)},`,
-      `Thank you for applying for our ${esc(v.role)} role in ${esc(v.location)} (${esc(v.pay)}) at FINECLEAN via Indeed.`,
+    body: [
+      `Hi ${v.firstName},`,
+      `Thank you for applying for our ${v.role}, ${v.location}, ${v.pay} at FINECLEAN via Indeed.`,
       `We would like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience.`,
       `The first step is to complete a short application form. This should take around 2 minutes and will help us confirm your suitability before progressing your application.`,
       `Please complete the form within the next 48 hours to keep your application active.`,
+      { label: 'Continue Application', url: v.link },
+      `If you have any questions, simply reply to this email.`,
+      `Sarah\nFINECLEAN Recruitment`,
     ],
-    ctas: [{ label: 'Continue Application', url: v.link }],
-    signoff: [`If you have any questions, simply reply to this email.`, ``, `Sarah`, `FINECLEAN Recruitment`],
   }),
 
   // 2 — Reminder (48h later, form not completed).
   reminder: (v) => ({
     subject: `${v.firstName}, your FineClean application`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Just a quick reminder to complete the next step of your FINECLEAN application.`,
       `The short application form only takes around 2 minutes.`,
       `Please complete it within the next 24 hours to keep your application active.`,
+      { label: 'Continue Application', url: v.link },
+      `Sarah\nFINECLEAN Recruitment`,
     ],
-    ctas: [{ label: 'Continue Application', url: v.link }],
-    signoff: [`Sarah`, `FINECLEAN Recruitment`],
   }),
 
   // 3 — Final reminder (24h later, still not completed).
   final_reminder: (v) => ({
     subject: `Final reminder: your FINECLEAN application`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `This is the final reminder to complete our short application form.`,
       `Your application will be withdrawn today if the form isn't completed.`,
-      `If you're no longer looking for a new role, no problem — just let us know. We'll keep your details on file for future opportunities.`,
+      { label: 'Continue Application', url: v.link },
+      `If you're no longer looking for a new role, no problem let us know. We'll keep your details on file for future opportunities.`,
+      `Sarah\nFINECLEAN Recruitment`,
     ],
-    ctas: [{ label: 'Continue Application', url: v.link }],
-    signoff: [`Sarah`, `FINECLEAN Recruitment`],
   }),
 
   // 4 — Screening interview invitation (immediately after pre-qual form).
   screening_invitation: (v) => ({
     subject: `Congratulations ${v.firstName} — you've made it to the next stage`,
-    paragraphs: [
-      `Hi ${N(v)},`,
-      `Great news — you have successfully completed the first stage of our recruitment process and have been selected to progress to the next stage.`,
-      `The next step is a short interview with me. I'll ask you a few questions about your experience, availability and the type of cleaning work you're looking for.`,
-      `It's also an opportunity for us to share more information about the role you've applied for and assess your suitability.`,
+    body: [
+      `Hi ${v.firstName},`,
+      `Great news, you have successfully completed the first stage of our recruitment process and have been selected to progress to the next stage.`,
+      `The next step is a short interview with me. I will ask you a few questions about your experience, availability and the type of cleaning work you are looking for.`,
+      `It is also an opportunity for us to share more information about the role you have applied for and assess your suitability.`,
       `The interview should take around 10 minutes.`,
       `Please start your interview within the next 48 hours to make sure you don't miss out.`,
       `We look forward to hearing from you!`,
+      `Kind regards,\nFINECLEAN Recruitment Team`,
+      { label: 'Start Screening Interview', url: v.link },
+      `If you have any questions, please reply to this email.`,
+      `I look forward to speaking with you.`,
+      `Sarah\nFineClean Recruitment`,
     ],
-    ctas: [{ label: 'Start Screening Interview', url: v.link }],
-    signoff: [`If you have any questions, please reply to this email.`, `I look forward to speaking with you.`, ``, `Sarah`, `FineClean Recruitment`],
   }),
 
   // 5 — Screening interview reminder (24h before scheduled call).
   screening_reminder: (v) => ({
     subject: `Your FineClean screening interview is tomorrow at ${v.time ?? '[time]'}`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Just a reminder that your screening interview is tomorrow.`,
-      `Date: ${esc(v.date ?? '[date]')}<br>Time: ${esc(v.time ?? '[time]')}<br>Phone: ${esc(v.phoneNumber ?? '[phone number]')}`,
+      `Date: ${v.date ?? '[date]'}\nTime: ${v.time ?? '[time]'}\nPhone: ${v.phoneNumber ?? '[phoneNumber]'}`,
       `I'll call you on this number.`,
-    ],
-    ctas: [
       ...(v.rescheduleUrl ? [{ label: 'Reschedule', url: v.rescheduleUrl }] : []),
       ...(v.cancelUrl ? [{ label: 'Cancel', url: v.cancelUrl }] : []),
+      `Sarah\nFineClean Recruitment`,
     ],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 
   // 6 — Thank you (immediately after the screening interview).
   thank_you: (v) => ({
     subject: `Thanks for your time today`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Thank you for taking the time to speak with me today.`,
       `I've shared your interview notes with the hiring manager.`,
       `I'll be in touch as soon as I have an update.`,
+      `Sarah\nFineClean Recruitment`,
     ],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 
   // 7 — Hiring-manager interview invitation (candidate shortlisted).
   hm_interview_invitation: (v) => ({
     subject: `Congratulations ${v.firstName} — you're through to the next stage`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Congratulations!`,
       `Following your interview, the hiring manager would like to invite you to the final stage of our recruitment process.`,
       `The next step is a 30-minute interview with the hiring manager. This is an opportunity to discuss your experience in more detail and learn more about the role.`,
       `Please book your interview within the next 48 hours.`,
+      { label: 'Book Interview', url: v.bookingUrl ?? v.link },
       `Congratulations again, and we look forward to meeting you.`,
+      `Sarah\nFineClean Recruitment`,
     ],
-    ctas: [{ label: 'Book Interview', url: v.bookingUrl ?? v.link }],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 
   // 8 — Interview confirmation (immediately after booking).
   interview_confirmation: (v) => ({
     subject: `Your FineClean interview is confirmed`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Your interview with FINECLEAN has been confirmed.`,
-      `Role: ${esc(v.role)}${v.location ? ` · ${esc(v.location)}` : ''}${v.pay ? ` · ${esc(v.pay)}` : ''}<br>` +
-        `Date: ${esc(v.date ?? '[date]')}<br>Time: ${esc(v.time ?? '[time]')}<br>` +
-        `Interviewer: ${esc(v.interviewer ?? '[interviewer]')}<br>` +
-        `Platform: ${esc(v.platform ?? '[Microsoft Teams / Google Meet / Zoom]')}` +
-        (v.meetingLink ? `<br>Meeting link: <a href="${v.meetingLink}" style="color:#10b981">${esc(v.meetingLink)}</a>` : ''),
+      `Role: ${v.role}, ${v.location} & ${v.pay}\n` +
+        `Date: ${v.date ?? '[date]'}\nTime: ${v.time ?? '[time]'}\n` +
+        `Interviewer: ${v.interviewer ?? '[interviewer]'}\n` +
+        `Platform: ${v.platform ?? '[Microsoft Teams / Google Meet / Zoom]'}\n` +
+        `Meeting Link: ${v.meetingLink ?? '[meetingLink]'}`,
       `The interview will take approximately 30 minutes.`,
       `If you need to make any changes, you can do so below.`,
-    ],
-    ctas: [
       ...(v.rescheduleUrl ? [{ label: 'Reschedule', url: v.rescheduleUrl }] : []),
       ...(v.cancelUrl ? [{ label: 'Cancel', url: v.cancelUrl }] : []),
+      `Sarah\nFineClean Recruitment`,
     ],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 
   // 9 — Rejection.
   rejection: (v) => ({
     subject: `Update on your FINECLEAN application`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Thank you for taking the time to apply and complete our recruitment process.`,
       `After careful consideration, we've decided not to move forward with your application on this occasion.`,
       `We appreciate your interest in FINECLEAN and will keep your details on file should another suitable opportunity become available.`,
       `We wish you every success in your job search.`,
+      `Sarah\nFineClean Recruitment`,
     ],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 
   // 10 — Offer.
   offer: (v) => ({
     subject: `Congratulations! Welcome to FineClean`,
-    paragraphs: [
-      `Hi ${N(v)},`,
+    body: [
+      `Hi ${v.firstName},`,
       `Congratulations!`,
       `We're delighted to offer you a position with FINECLEAN.`,
       `Our team will contact you shortly with your start date, onboarding information and employment paperwork.`,
       `We look forward to welcoming you to the FineClean team.`,
       `Congratulations once again.`,
+      `Sarah\nFineClean Recruitment`,
     ],
-    signoff: [`Sarah`, `FineClean Recruitment`],
   }),
 };
 
 // Back-compat: the old default key `invitation` maps to the Indeed invite.
 TEMPLATES.invitation = TEMPLATES.indeed_invitation;
 
-// Which templates advance the candidate to "invited" on send.
-const INVITE_TEMPLATES = new Set([
-  'invitation', 'existing_invitation', 'indeed_invitation',
-]);
+const INVITE_TEMPLATES = new Set(['invitation', 'existing_invitation', 'indeed_invitation']);
 
 const EVENT_NAME: Record<string, string> = {
   invitation: 'Invitation Sent',
@@ -339,7 +327,6 @@ Deno.serve(async (req) => {
     const appUrl = Deno.env.get('FC_APP_URL') ?? 'https://giggrab.io';
     const link = `${appUrl}/form?token=${candidate.invitation_token}`;
 
-    // Merge candidate/job defaults with any caller-supplied `data`.
     const vars: Vars = {
       firstName: candidate.first_name,
       link,
