@@ -17,6 +17,10 @@ dependencies = [
     "numpy>=1.26",
     # SDK client for Cerebras' OpenAI-compatible chat endpoint.
     "openai>=1.50",
+    # Groq SDK — required by pipecat.services.groq (Sarah's Cerebras→Groq→OpenAI
+    # 429 fallback). Importing the Groq service pulls in groq.tts, which needs
+    # this package even though we only use the LLM.
+    "groq>=0.11",
     "noisereduce>=3.0",
     "av>=12.0",
     "torch>=2.4",

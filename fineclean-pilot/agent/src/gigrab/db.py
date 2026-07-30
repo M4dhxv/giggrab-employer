@@ -178,6 +178,13 @@ async def fetch_profile_for_session(session_id: str) -> Optional[dict]:
     return None
 
 
+def _tidy_name(s: str) -> str:
+    """Make a name safe for text-to-speech. An all-caps word like "MADHAV" is
+    read out letter-by-letter (M-A-D-H-A-V) by TTS, so title-case any word that
+    is ALL CAPS; leave already-cased names (e.g. "McDonald", "O'Brien") alone."""
+    return " ".join(w.title() if w.isupper() else w for w in s.split())
+
+
 async def fetch_preferred_name_for_session(session_id: str) -> Optional[str]:
     """Greet the candidate by the full name we have for them (first + last)."""
     pool = await get_pool()
@@ -192,7 +199,7 @@ async def fetch_preferred_name_for_session(session_id: str) -> Optional[str]:
             session_id,
         )
     if row and isinstance(row["n"], str) and row["n"].strip():
-        return row["n"].strip()
+        return _tidy_name(row["n"].strip())
     return None
 
 
