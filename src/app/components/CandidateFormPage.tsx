@@ -20,10 +20,7 @@ export function DualHeader() {
     <header className="border-b border-gray-100 px-6 py-4">
       <div className="max-w-lg mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <span className="text-white font-extrabold text-xs leading-none">FC</span>
-          </div>
-          <span className="font-bold text-gray-900 text-sm tracking-tight">FineClean</span>
+          <img src="/fineclean-logo.jpeg" alt="FineClean" className="h-7 w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: GG }}>

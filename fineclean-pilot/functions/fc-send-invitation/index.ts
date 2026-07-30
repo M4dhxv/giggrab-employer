@@ -20,6 +20,8 @@ const FROM = Deno.env.get('RESEND_FROM') ?? 'Sarah <sarah@giggrab.io>';
 const CC = Deno.env.get('FC_EMAIL_CC') ?? 'careers@fineclean.com';
 const UNSUBSCRIBE_URL =
   Deno.env.get('FC_UNSUBSCRIBE_URL') ?? 'mailto:careers@fineclean.com?subject=Unsubscribe';
+// FineClean wordmark — hosted in the app's public/ (served at the domain root).
+const LOGO_URL = Deno.env.get('FC_LOGO_URL') ?? 'https://giggrab.io/fineclean-logo.jpeg';
 
 interface Vars {
   firstName: string;
@@ -75,7 +77,7 @@ function render(b: Built): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="left" style="padding:28px 20px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
   <tr><td style="padding:0 0 20px 0">
-    <span style="font-size:17px;font-weight:800;letter-spacing:0.04em;color:#111827">FINE<span style="color:#10b981">CLEAN</span></span>
+    <img src="${LOGO_URL}" alt="FineClean" width="150" style="display:block;width:150px;max-width:60%;height:auto;border:0" />
   </td></tr>
   <tr><td style="font-size:15px;line-height:1.6;color:#1f2937">
 ${lines}
