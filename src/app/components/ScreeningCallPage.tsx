@@ -82,11 +82,11 @@ export default function ScreeningCallPage() {
               style={{ backgroundColor: GG, boxShadow: "0 8px 32px -8px rgba(16,185,129,0.45)" }}>
               <Check size={36} className="text-white" strokeWidth={2.5} />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">You're all set!</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-3">Thanks — you're all set!</h1>
             <p className="text-gray-500 leading-relaxed">
-              Sarah will call <span className="font-medium text-gray-700">{fullPhone}</span> in the next few minutes.
+              Sarah will call <span className="font-medium text-gray-700">{fullPhone}</span> in the next few minutes for your short screening.
             </p>
-            <p className="text-gray-500 leading-relaxed mt-1">Please keep your phone nearby.</p>
+            <p className="text-gray-500 leading-relaxed mt-1">Please keep your phone nearby. You can close this page now.</p>
           </div>
         </div>
       </div>
