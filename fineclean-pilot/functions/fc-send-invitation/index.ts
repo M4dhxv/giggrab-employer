@@ -82,7 +82,8 @@ function render(b: Built): string {
   <tr><td style="font-size:15px;line-height:1.6;color:#1f2937">
 ${lines}
   </td></tr>
-  <tr><td style="padding:24px 0 0 0">
+  <tr><td style="padding:28px 0 0 0;border-top:1px solid #eef0f2">
+    <img src="${LOGO_URL}" alt="FineClean" width="120" style="display:block;width:120px;max-width:50%;height:auto;border:0;margin:16px 0 10px" />
     <p style="margin:0;color:#9ca3af;font-size:11px;line-height:1.5"><a href="${UNSUBSCRIBE_URL}" style="color:#9ca3af;text-decoration:underline">Unsubscribe</a></p>
   </td></tr>
 </table>
