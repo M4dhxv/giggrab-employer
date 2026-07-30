@@ -6,13 +6,12 @@ import { fc, type CandidateLookup } from "../../lib/fcApi";
 const GG = "#10b981";
 const GG_LIGHT = "#f0fdf4";
 
-// Single role (Industrial Cleaner, Worcester). Shifts start from the Worcester
-// meeting point, so we ask which nearby area they're based in.
-const WORCS_TOWNS = [
-  "Worcester", "Droitwich", "Malvern", "Kidderminster", "Redditch", "Bromsgrove",
-  "Evesham", "Pershore", "Stourport-on-Severn", "Bewdley", "Upton-upon-Severn",
-  "Tenbury Wells", "Tewkesbury", "Cheltenham", "Gloucester", "Hereford",
-  "Elsewhere",
+const CITIES = [
+  "London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Sheffield",
+  "Bradford", "Liverpool", "Edinburgh", "Bristol", "Cardiff", "Leicester",
+  "Coventry", "Nottingham", "Newcastle", "Southampton", "Brighton", "Oxford",
+  "Reading", "Derby", "Portsmouth", "Wolverhampton", "Worcester", "Belfast",
+  "Aberdeen", "Other",
 ];
 
 export function DualHeader() {
@@ -66,8 +65,7 @@ export default function CandidateFormPage() {
 
   const [lookingForWork, setLookingForWork] = useState<"Yes" | "No" | "">("");
   const [rightToWork, setRightToWork] = useState<"Yes" | "No" | "">("");
-  const [town, setTown] = useState("");
-  const [canReachWorcester, setCanReachWorcester] = useState<"Yes" | "No" | "">("");
+  const [city, setCity] = useState("");
   const [drivingLicence, setDrivingLicence] = useState<"Yes" | "No" | "">("");
   const [availableSoon, setAvailableSoon] = useState<"Yes" | "No" | "">("");
   const [attempted, setAttempted] = useState(false);
@@ -81,14 +79,14 @@ export default function CandidateFormPage() {
     fc.lookupCandidate(token)
       .then((c) => {
         setCandidate(c);
-        if (c.city && WORCS_TOWNS.includes(c.city)) setTown(c.city);
+        if (c.city && CITIES.includes(c.city)) setCity(c.city);
       })
       .catch((e) => setLookupError(e.message || "This invitation link is invalid or expired."));
   }, [token]);
 
   const valid =
-    lookingForWork !== "" && rightToWork !== "" && town !== "" &&
-    canReachWorcester !== "" && drivingLicence !== "" && availableSoon !== "";
+    lookingForWork !== "" && rightToWork !== "" && city !== "" &&
+    drivingLicence !== "" && availableSoon !== "";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,8 +101,7 @@ export default function CandidateFormPage() {
         [
           { question: "still_looking", answer: lookingForWork },
           { question: "right_to_work", answer: rightToWork },
-          { question: "town", answer: town },
-          { question: "can_reach_worcester", answer: canReachWorcester },
+          { question: "city", answer: city },
           { question: "driving_licence", answer: drivingLicence },
           { question: "available_2_weeks", answer: availableSoon },
         ],
@@ -170,7 +167,7 @@ export default function CandidateFormPage() {
       <div className="max-w-lg mx-auto px-6 py-10">
         <div className="mb-8 gg-in">
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: GG }}>
-            Industrial Cleaner · Worcester
+            Industrial Cleaner
           </p>
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 leading-snug">
             Complete this short form before your screening call with Sarah.
@@ -202,42 +199,30 @@ export default function CandidateFormPage() {
             )}
           </div>
 
-          {/* Q3 — area */}
+          {/* Q3 — city */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Which area are you based in?
+              Which city are you based in?
               <span className="text-red-400 ml-0.5">*</span>
             </label>
             <div className="relative">
               <select
-                value={town}
-                onChange={e => setTown(e.target.value)}
+                value={city}
+                onChange={e => setCity(e.target.value)}
                 className="w-full appearance-none border rounded-xl px-4 py-3 text-sm outline-none bg-white cursor-pointer transition-all"
-                style={{ borderColor: err(!town) ? "#ef4444" : town ? GG : "#e5e7eb" }}
+                style={{ borderColor: err(!city) ? "#ef4444" : city ? GG : "#e5e7eb" }}
                 onFocus={e => (e.target.style.borderColor = GG)}
-                onBlur={e => (e.target.style.borderColor = town ? GG : err(!town) ? "#ef4444" : "#e5e7eb")}
+                onBlur={e => (e.target.style.borderColor = city ? GG : err(!city) ? "#ef4444" : "#e5e7eb")}
               >
-                <option value="">Select your area…</option>
-                {WORCS_TOWNS.map(t => <option key={t}>{t}</option>)}
+                <option value="">Select your city…</option>
+                {CITIES.map(c => <option key={c}>{c}</option>)}
               </select>
               <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {err(!town) && <p className="text-xs text-red-500 mt-1.5">Please select your area</p>}
+            {err(!city) && <p className="text-xs text-red-500 mt-1.5">Please select your city</p>}
           </div>
 
-          {/* Q4 — can reach the Worcester meeting point */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Most shifts start from our Worcester meeting point (Unit 4, Lowesmoor Wharf). Could you reliably get there for shift starts?
-              <span className="text-red-400 ml-0.5">*</span>
-            </label>
-            <RadioPair value={canReachWorcester} onChange={setCanReachWorcester} />
-            {err(canReachWorcester !== "") && (
-              <p className="text-xs text-red-500 mt-1.5">Please select an option</p>
-            )}
-          </div>
-
-          {/* Q5 — full UK driving licence */}
+          {/* Q4 — full UK driving licence */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Do you have a full UK driving licence?

@@ -8,13 +8,13 @@ interface PrequalResponse {
 }
 
 // ─── Tier-1 rule-based score (0–100) ─────────────────────────────────────────
-// Deterministic pre-qualification score for the FineClean Worcester Industrial
-// Cleaner pilot. Tier 2 (the Sarah call) is AI-scored separately in
-// fc-sarah-extract. Frontend sends these stable question keys:
-//   still_looking | right_to_work | town | can_reach_worcester |
-//   driving_licence | available_2_weeks
+// Deterministic pre-qualification score for the FineClean Industrial Cleaner
+// pilot. Tier 2 (the Sarah call) is AI-scored separately in fc-sarah-extract.
+// Frontend sends these stable question keys:
+//   still_looking | right_to_work | city | driving_licence | available_2_weeks
 // Nothing here rejects: "still looking = No" is the only close, handled below.
 // Right-to-work is verified on Sarah's call; a licence is a plus, not a gate.
+// `city` is captured for context but not scored (candidates apply nationwide).
 function answerFor(responses: PrequalResponse[], key: string): string {
   const r = responses.find(
     (x) => x.question === key || x.question.toLowerCase().includes(key.replace(/_/g, ' ')),
@@ -27,11 +27,10 @@ function isYes(responses: PrequalResponse[], key: string): boolean {
 }
 
 function scorePrequal(responses: PrequalResponse[]): { score: number; band: string } {
-  const availability = isYes(responses, 'available_2_weeks') ? 30 : 10; //  max 30
-  const rightToWork = isYes(responses, 'right_to_work') ? 30 : 0; //         max 30
-  const canReach = isYes(responses, 'can_reach_worcester') ? 25 : 5; //      max 25
-  const licence = isYes(responses, 'driving_licence') ? 15 : 5; //           max 15 (a plus)
-  const score = Math.min(100, availability + rightToWork + canReach + licence);
+  const availability = isYes(responses, 'available_2_weeks') ? 40 : 10; //  max 40
+  const rightToWork = isYes(responses, 'right_to_work') ? 35 : 0; //         max 35
+  const licence = isYes(responses, 'driving_licence') ? 25 : 8; //           max 25 (a plus)
+  const score = Math.min(100, availability + rightToWork + licence);
   const band = score >= 70 ? 'strong' : score >= 40 ? 'maybe' : 'weak';
   return { score, band };
 }
