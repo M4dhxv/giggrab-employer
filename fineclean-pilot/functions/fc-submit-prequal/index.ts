@@ -102,6 +102,27 @@ Deno.serve(async (req) => {
       prequal_band: band,
     });
 
+    // Passed the pre-qual → immediately email the screening invitation (Email 4)
+    // with the link to start the call. Best-effort: never fail the form on this.
+    try {
+      const base = (Deno.env.get('FUNCTIONS_BASE_URL') ??
+        `${Deno.env.get('SUPABASE_URL')}/functions/v1`).replace(/\/+$/, '');
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const adminKey = Deno.env.get('FC_ADMIN_SECRET') ?? '';
+      await fetch(`${base}/fc-send-invitation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'x-admin-key': adminKey,
+        },
+        body: JSON.stringify({ candidate_id, template: 'screening_invitation' }),
+      });
+    } catch (e) {
+      console.error('screening-invitation send failed:', e);
+    }
+
     return json({ success: true, next_step: 'screening', prequal_score: score, prequal_band: band });
   } catch (e) {
     console.error('fc-submit-prequal:', e);

@@ -26,6 +26,7 @@ const LOGO_URL = Deno.env.get('FC_LOGO_URL') ?? 'https://giggrab.io/fineclean-lo
 interface Vars {
   firstName: string;
   link: string;
+  screeningLink: string;
   role: string;
   location: string;
   pay: string;
@@ -158,27 +159,15 @@ const TEMPLATES: Record<string, (v: Vars) => Built> = {
       `The interview should take around 10 minutes.`,
       `Please start your interview within the next 48 hours to make sure you don't miss out.`,
       `We look forward to hearing from you!`,
-      `Kind regards,\nFINECLEAN Recruitment Team`,
-      { label: 'Start Screening Interview', url: v.link },
+      { label: 'Start Screening Interview', url: v.screeningLink },
       `If you have any questions, please reply to this email.`,
       `I look forward to speaking with you.`,
       `Sarah\nFineClean Recruitment`,
     ],
   }),
 
-  // 5 — Screening interview reminder (24h before scheduled call).
-  screening_reminder: (v) => ({
-    subject: `Your FineClean screening interview is tomorrow at ${v.time ?? '[time]'}`,
-    body: [
-      `Hi ${v.firstName},`,
-      `Just a reminder that your screening interview is tomorrow.`,
-      `Date: ${v.date ?? '[date]'}\nTime: ${v.time ?? '[time]'}\nPhone: ${v.phoneNumber ?? '[phoneNumber]'}`,
-      `I'll call you on this number.`,
-      ...(v.rescheduleUrl ? [{ label: 'Reschedule', url: v.rescheduleUrl }] : []),
-      ...(v.cancelUrl ? [{ label: 'Cancel', url: v.cancelUrl }] : []),
-      `Sarah\nFineClean Recruitment`,
-    ],
-  }),
+  // (No Email 5 — screening is on-demand via the link above, there is no
+  // scheduled time to remind about.)
 
   // 6 — Thank you (immediately after the screening interview).
   thank_you: (v) => ({
@@ -266,7 +255,6 @@ const EVENT_NAME: Record<string, string> = {
   reminder: 'Reminder Sent',
   final_reminder: 'Final Reminder Sent',
   screening_invitation: 'Screening Invitation Sent',
-  screening_reminder: 'Screening Reminder Sent',
   thank_you: 'Thank You Sent',
   hm_interview_invitation: 'HM Interview Invitation Sent',
   interview_confirmation: 'Interview Confirmation Sent',
@@ -324,10 +312,12 @@ Deno.serve(async (req) => {
 
     const appUrl = Deno.env.get('FC_APP_URL') ?? 'https://giggrab.io';
     const link = `${appUrl}/form?token=${candidate.invitation_token}`;
+    const screeningLink = `${appUrl}/screening-call?token=${candidate.invitation_token}`;
 
     const vars: Vars = {
       firstName: candidate.first_name,
       link,
+      screeningLink,
       role: data.role ?? candidate.fc_jobs?.title ?? 'Industrial Cleaner',
       location: data.location ?? candidate.fc_jobs?.location ?? 'Worcester',
       pay: data.pay ?? '£13.65/hour',

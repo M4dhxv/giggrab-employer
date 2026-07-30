@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { fc, type CandidateLookup } from "../../lib/fcApi";
 
@@ -56,7 +55,6 @@ function RadioPair({ value, onChange }: {
 }
 
 export default function CandidateFormPage() {
-  const navigate = useNavigate();
   const token = new URLSearchParams(window.location.search).get("token") ?? "";
 
   const [candidate, setCandidate] = useState<CandidateLookup | null>(null);
@@ -72,6 +70,7 @@ export default function CandidateFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [notLooking, setNotLooking] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // Resolve the invitation token → candidate.
   useEffect(() => {
@@ -108,7 +107,7 @@ export default function CandidateFormPage() {
         Math.round((Date.now() - startedAt) / 1000),
       );
       if (res.next_step === "done") { setNotLooking(true); return; }
-      navigate(`/screening-call?token=${encodeURIComponent(token)}`);
+      setSubmitted(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -153,7 +152,24 @@ export default function CandidateFormPage() {
         <div className="flex-1 flex items-center justify-center px-6 text-center">
           <div className="max-w-sm gg-in">
             <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Thanks for letting us know</h1>
-            <p className="text-gray-500 text-sm">No problem — we've taken you off the list. If anything changes, just reply to our message.</p>
+            <p className="text-gray-500 text-sm">No problem at all. We'll keep your details on file for future opportunities.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Passed the pre-qual → the screening invitation email is on its way.
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: "Inter, sans-serif" }}>
+        <DualHeader />
+        <div className="flex-1 flex items-center justify-center px-6 text-center">
+          <div className="max-w-sm gg-in">
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">You're through to the next stage!</h1>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              Thanks{candidate?.first_name ? `, ${candidate.first_name}` : ""} — we've got your details. We'll email you a link to start your short screening call with Sarah, so keep an eye on your inbox.
+            </p>
           </div>
         </div>
       </div>
