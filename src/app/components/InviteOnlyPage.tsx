@@ -8,9 +8,9 @@ import { DualHeader } from "./CandidateFormPage";
 const GG = "#10b981";
 const GG_LIGHT = "#f0fdf4";
 
-// Candidate support contact shown on this page. Change to whatever FineClean
-// wants candidates to use if they have a problem with their invite link.
-const SUPPORT_EMAIL = "careers@fineclean.com";
+// Candidate support contact shown on this page — the same address Sarah's
+// emails are sent from, so replies land in the right place.
+const SUPPORT_EMAIL = "sarah@giggrab.io";
 
 export default function InviteOnlyPage() {
   return (
