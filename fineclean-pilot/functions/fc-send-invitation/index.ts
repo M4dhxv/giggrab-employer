@@ -76,9 +76,6 @@ function render(b: Built): string {
 <body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1f2937">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="left" style="padding:28px 20px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
-  <tr><td style="padding:0 0 20px 0">
-    <img src="${LOGO_URL}" alt="FineClean" width="150" style="display:block;width:150px;max-width:60%;height:auto;border:0" />
-  </td></tr>
   <tr><td style="font-size:15px;line-height:1.6;color:#1f2937">
 ${lines}
   </td></tr>
