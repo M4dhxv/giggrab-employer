@@ -65,7 +65,7 @@ export default function CandidateFormPage() {
 
   const [lookingForWork, setLookingForWork] = useState<"Yes" | "No" | "">("");
   const [rightToWork, setRightToWork] = useState<"Yes" | "No" | "">("");
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState("Worcester");
   const [drivingLicence, setDrivingLicence] = useState<"Yes" | "No" | "">("");
   const [availableSoon, setAvailableSoon] = useState<"Yes" | "No" | "">("");
   const [attempted, setAttempted] = useState(false);
@@ -210,16 +210,16 @@ export default function CandidateFormPage() {
                 value={city}
                 onChange={e => setCity(e.target.value)}
                 className="w-full appearance-none border rounded-xl px-4 py-3 text-sm outline-none bg-white cursor-pointer transition-all"
-                style={{ borderColor: err(!city) ? "#ef4444" : city ? GG : "#e5e7eb" }}
+                style={{ borderColor: err(city !== "") ? "#ef4444" : city ? GG : "#e5e7eb" }}
                 onFocus={e => (e.target.style.borderColor = GG)}
-                onBlur={e => (e.target.style.borderColor = city ? GG : err(!city) ? "#ef4444" : "#e5e7eb")}
+                onBlur={e => (e.target.style.borderColor = city ? GG : err(city !== "") ? "#ef4444" : "#e5e7eb")}
               >
                 <option value="">Select your city…</option>
                 {CITIES.map(c => <option key={c}>{c}</option>)}
               </select>
               <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {err(!city) && <p className="text-xs text-red-500 mt-1.5">Please select your city</p>}
+            {err(city !== "") && <p className="text-xs text-red-500 mt-1.5">Please select your city</p>}
           </div>
 
           {/* Q4 — full UK driving licence */}
