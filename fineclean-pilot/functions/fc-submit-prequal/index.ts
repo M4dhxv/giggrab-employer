@@ -8,17 +8,13 @@ interface PrequalResponse {
 }
 
 // ─── Tier-1 rule-based score (0–100) ─────────────────────────────────────────
-// Deterministic pre-qualification score from the 4 form answers. Tier 2 (the
-// Sarah call) is AI-scored separately in fc-sarah-extract. Frontend sends these
-// stable question keys: still_looking | city | available_2_weeks | role.
-const LONDON_AREA = new Set([
-  'London', 'Reading', 'Oxford', 'Brighton', 'Southampton', 'Portsmouth',
-  'Slough', 'Watford', 'Croydon', 'Guildford',
-]);
-const ROLE_POINTS: Record<string, number> = {
-  Cleaner: 25, Housekeeper: 25, Supervisor: 20, 'Team Leader': 20, Other: 10,
-};
-
+// Deterministic pre-qualification score for the FineClean Worcester Industrial
+// Cleaner pilot. Tier 2 (the Sarah call) is AI-scored separately in
+// fc-sarah-extract. Frontend sends these stable question keys:
+//   still_looking | right_to_work | town | can_reach_worcester |
+//   driving_licence | available_2_weeks
+// Nothing here rejects: "still looking = No" is the only close, handled below.
+// Right-to-work is verified on Sarah's call; a licence is a plus, not a gate.
 function answerFor(responses: PrequalResponse[], key: string): string {
   const r = responses.find(
     (x) => x.question === key || x.question.toLowerCase().includes(key.replace(/_/g, ' ')),
@@ -26,12 +22,16 @@ function answerFor(responses: PrequalResponse[], key: string): string {
   return (r?.answer ?? '').trim();
 }
 
+function isYes(responses: PrequalResponse[], key: string): boolean {
+  return answerFor(responses, key).toLowerCase() === 'yes';
+}
+
 function scorePrequal(responses: PrequalResponse[]): { score: number; band: string } {
-  const availability = answerFor(responses, 'available_2_weeks').toLowerCase() === 'yes' ? 40 : 15;
-  const city = answerFor(responses, 'city');
-  const location = LONDON_AREA.has(city) ? 35 : city ? 15 : 0;
-  const role = ROLE_POINTS[answerFor(responses, 'role')] ?? 10;
-  const score = Math.min(100, availability + location + role);
+  const availability = isYes(responses, 'available_2_weeks') ? 30 : 10; //  max 30
+  const rightToWork = isYes(responses, 'right_to_work') ? 30 : 0; //         max 30
+  const canReach = isYes(responses, 'can_reach_worcester') ? 25 : 5; //      max 25
+  const licence = isYes(responses, 'driving_licence') ? 15 : 5; //           max 15 (a plus)
+  const score = Math.min(100, availability + rightToWork + canReach + licence);
   const band = score >= 70 ? 'strong' : score >= 40 ? 'maybe' : 'weak';
   return { score, band };
 }

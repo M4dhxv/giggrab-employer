@@ -10,13 +10,14 @@ import { fc, type CandidateLookup, type PrequalResponse } from "../../lib/api";
 const GG = "#10b981";
 const GG_LIGHT = "#f0fdf4";
 
-const CITIES = [
-  "London","Manchester","Birmingham","Leeds","Glasgow","Sheffield",
-  "Bradford","Liverpool","Edinburgh","Bristol","Cardiff","Leicester",
-  "Coventry","Nottingham","Newcastle","Southampton","Brighton","Oxford",
-  "Reading","Derby","Portsmouth","Wolverhampton","Belfast","Aberdeen",
+// Worcester-area towns for the Industrial Cleaner pilot (shifts start from the
+// Worcester meeting point). Ordered by proximity, with a catch-all last.
+const WORCS_TOWNS = [
+  "Worcester","Droitwich","Malvern","Kidderminster","Redditch","Bromsgrove",
+  "Evesham","Pershore","Stourport-on-Severn","Bewdley","Upton-upon-Severn",
+  "Tenbury Wells","Tewkesbury","Cheltenham","Gloucester","Hereford",
+  "Elsewhere",
 ];
-const ROLES = ["Cleaner","Housekeeper","Supervisor","Team Leader","Other"];
 
 export function DualHeader() {
   return (
@@ -72,9 +73,11 @@ export default function CandidateFormPage() {
   const [loadError, setLoadError] = useState("");
 
   const [lookingForWork, setLookingForWork] = useState<"Yes" | "No" | "">("");
-  const [city, setCity] = useState("");
+  const [rightToWork, setRightToWork] = useState<"Yes" | "No" | "">("");
+  const [town, setTown] = useState("");
+  const [canReachWorcester, setCanReachWorcester] = useState<"Yes" | "No" | "">("");
+  const [drivingLicence, setDrivingLicence] = useState<"Yes" | "No" | "">("");
   const [availableSoon, setAvailableSoon] = useState<"Yes" | "No" | "">("");
-  const [role, setRole] = useState("");
   const [attempted, setAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [notLooking, setNotLooking] = useState(false);
@@ -86,7 +89,8 @@ export default function CandidateFormPage() {
       .then((c) => {
         if (!c.is_active) { setLoadState("inactive"); return; }
         setCandidate(c);
-        setCity(c.city ?? "");
+        // Prefill the town if their imported city is one we list.
+        if (c.city && WORCS_TOWNS.includes(c.city)) setTown(c.city);
         setLoadState("ready");
       })
       .catch((e) => {
@@ -95,7 +99,9 @@ export default function CandidateFormPage() {
       });
   }, [token]);
 
-  const valid = lookingForWork !== "" && city !== "" && availableSoon !== "" && role !== "";
+  const valid =
+    lookingForWork !== "" && rightToWork !== "" && town !== "" &&
+    canReachWorcester !== "" && drivingLicence !== "" && availableSoon !== "";
   const err = (field: boolean) => attempted && !field;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -108,9 +114,11 @@ export default function CandidateFormPage() {
 
     const responses: PrequalResponse[] = [
       { question: "still_looking", answer: lookingForWork },
-      { question: "city", answer: city },
-      { question: "available_soon", answer: availableSoon },
-      { question: "desired_role", answer: role },
+      { question: "right_to_work", answer: rightToWork },
+      { question: "town", answer: town },
+      { question: "can_reach_worcester", answer: canReachWorcester },
+      { question: "driving_licence", answer: drivingLicence },
+      { question: "available_2_weeks", answer: availableSoon },
     ];
 
     try {
@@ -199,15 +207,15 @@ export default function CandidateFormPage() {
       <div className="max-w-lg mx-auto px-6 py-10">
         <div className="mb-8 gg-in">
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: GG }}>
-            Quick check-in
+            Industrial Cleaner · Worcester
           </p>
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 leading-snug">
-            Hi {candidate?.first_name} — before your AI screening, just a few quick questions.
+            Hi {candidate?.first_name} — before your screening call with Sarah, just a few quick questions.
           </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8 gg-in gg-d1" noValidate>
-          {/* Q1 */}
+          {/* Q1 — still looking (the one gate: "No" closes the application) */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Are you still looking for work? <span className="text-red-400">*</span>
@@ -216,47 +224,57 @@ export default function CandidateFormPage() {
             {err(lookingForWork !== "") && <p className="text-xs text-red-500 mt-1.5">Please select an option</p>}
           </div>
 
-          {/* Q2 */}
+          {/* Q2 — right to work */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Which city are you based in? <span className="text-red-400">*</span>
+              Do you have the right to work in the UK? <span className="text-red-400">*</span>
+            </label>
+            <RadioPair value={rightToWork} onChange={setRightToWork} />
+            {err(rightToWork !== "") && <p className="text-xs text-red-500 mt-1.5">Please select an option</p>}
+          </div>
+
+          {/* Q3 — Worcestershire town */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Which area are you based in? <span className="text-red-400">*</span>
             </label>
             <div className="relative">
-              <select value={city} onChange={e => setCity(e.target.value)}
+              <select value={town} onChange={e => setTown(e.target.value)}
                 className="w-full appearance-none border rounded-xl px-4 py-3 text-sm outline-none bg-white cursor-pointer transition-all"
-                style={{ borderColor: err(!city) ? "#ef4444" : city ? GG : "#e5e7eb" }}>
-                <option value="">Select your city…</option>
-                {CITIES.map(c => <option key={c}>{c}</option>)}
+                style={{ borderColor: err(!town) ? "#ef4444" : town ? GG : "#e5e7eb" }}>
+                <option value="">Select your area…</option>
+                {WORCS_TOWNS.map(t => <option key={t}>{t}</option>)}
               </select>
               <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
-            {err(!city) && <p className="text-xs text-red-500 mt-1.5">Please select your city</p>}
+            {err(!town) && <p className="text-xs text-red-500 mt-1.5">Please select your area</p>}
           </div>
 
-          {/* Q3 */}
+          {/* Q4 — can reach the Worcester meeting point */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Most shifts start from our Worcester meeting point (Unit 4, Lowesmoor Wharf). Could you reliably get there for shift starts? <span className="text-red-400">*</span>
+            </label>
+            <RadioPair value={canReachWorcester} onChange={setCanReachWorcester} />
+            {err(canReachWorcester !== "") && <p className="text-xs text-red-500 mt-1.5">Please select an option</p>}
+          </div>
+
+          {/* Q5 — full UK driving licence (a plus, not required) */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Do you have a full UK driving licence? <span className="text-red-400">*</span>
+            </label>
+            <RadioPair value={drivingLicence} onChange={setDrivingLicence} />
+            {err(drivingLicence !== "") && <p className="text-xs text-red-500 mt-1.5">Please select an option</p>}
+          </div>
+
+          {/* Q6 — availability */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               Are you available to start within the next 2 weeks? <span className="text-red-400">*</span>
             </label>
             <RadioPair value={availableSoon} onChange={setAvailableSoon} />
             {err(availableSoon !== "") && <p className="text-xs text-red-500 mt-1.5">Please select an option</p>}
-          </div>
-
-          {/* Q4 */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Which role are you looking for? <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <select value={role} onChange={e => setRole(e.target.value)}
-                className="w-full appearance-none border rounded-xl px-4 py-3 text-sm outline-none bg-white cursor-pointer transition-all"
-                style={{ borderColor: err(!role) ? "#ef4444" : role ? GG : "#e5e7eb" }}>
-                <option value="">Select a role…</option>
-                {ROLES.map(r => <option key={r}>{r}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-            {err(!role) && <p className="text-xs text-red-500 mt-1.5">Please select a role</p>}
           </div>
 
           <button type="submit" disabled={submitting}

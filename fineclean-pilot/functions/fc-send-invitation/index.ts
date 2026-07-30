@@ -4,7 +4,7 @@ import { adminClient, logEvent } from '../_shared/db.ts';
 
 const TEMPLATES = {
   invitation: {
-    subject: (name: string) => `${name}, your screening with FineClean is ready`,
+    subject: (name: string) => `${name}, your FineClean Industrial Cleaner screening is ready`,
     html: (firstName: string, link: string) => `
 <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f9fafb;font-family:Inter,Arial,sans-serif">
@@ -15,8 +15,9 @@ const TEMPLATES = {
   </td></tr>
   <tr><td style="padding:40px">
     <h1 style="margin:0 0 16px;font-size:24px;font-weight:700;color:#111827">Hi ${firstName},</h1>
-    <p style="margin:0 0 16px;color:#6b7280;line-height:1.6">FineClean would like to speak with you about a cleaning role. Our AI assistant Sarah will conduct a short phone screening — it takes about 10 minutes and you can do it from anywhere.</p>
-    <p style="margin:0 0 32px;color:#6b7280;line-height:1.6">Click below to confirm you're still interested and start your screening.</p>
+    <p style="margin:0 0 16px;color:#6b7280;line-height:1.6">Thanks for applying for our <strong>Industrial Cleaner</strong> role — varied, hands-on work across sites around Worcestershire, paying <strong>£13.65 per hour</strong>. As the next step, our recruitment assistant Sarah will give you a quick phone screening: about 10 minutes, and you can do it from anywhere.</p>
+    <p style="margin:0 0 24px;color:#6b7280;line-height:1.6">First, tap below to confirm a few quick details — then Sarah will call you to talk through the role and your experience.</p>
+    <p style="margin:0 0 32px;color:#9ca3af;font-size:13px;line-height:1.6">Before you start, it helps to have in mind your right-to-work situation, how you'd get to our Worcester meeting point, and your general availability.</p>
     <a href="${link}" style="display:inline-block;background:#10b981;color:white;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:15px">Start My Screening →</a>
     <p style="margin:32px 0 0;color:#9ca3af;font-size:12px">This link is unique to you and expires in 30 days. If you have questions, reply to this email.</p>
   </td></tr>
@@ -28,26 +29,26 @@ const TEMPLATES = {
 </body></html>`,
   },
   reminder: {
-    subject: (name: string) => `${name}, your FineClean screening link is still open`,
+    subject: (name: string) => `${name}, your FineClean Industrial Cleaner screening is still open`,
     html: (firstName: string, link: string) => `
 <!DOCTYPE html><html><body style="font-family:Inter,Arial,sans-serif;background:#f9fafb;margin:0;padding:40px 20px">
 <table width="560" style="margin:auto;background:white;border-radius:12px;border:1px solid #e5e7eb" cellpadding="0" cellspacing="0">
   <tr><td style="padding:40px">
     <h2 style="margin:0 0 16px;color:#111827">Quick reminder, ${firstName}</h2>
-    <p style="color:#6b7280;line-height:1.6">You haven't completed your FineClean screening yet. It takes about 10 minutes — Sarah will call you right away.</p>
+    <p style="color:#6b7280;line-height:1.6">You haven't finished your screening for our <strong>Industrial Cleaner</strong> role in Worcester yet. It only takes about 10 minutes — a few quick questions, then Sarah calls you straight away.</p>
     <a href="${link}" style="display:inline-block;margin-top:24px;background:#10b981;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">Complete My Screening →</a>
   </td></tr>
 </table>
 </body></html>`,
   },
   final_reminder: {
-    subject: (name: string) => `Last chance: ${name}'s FineClean screening link expires soon`,
+    subject: (name: string) => `Last chance: ${name}'s FineClean Industrial Cleaner screening expires soon`,
     html: (firstName: string, link: string) => `
 <!DOCTYPE html><html><body style="font-family:Inter,Arial,sans-serif;background:#f9fafb;margin:0;padding:40px 20px">
 <table width="560" style="margin:auto;background:white;border-radius:12px;border:1px solid #e5e7eb" cellpadding="0" cellspacing="0">
   <tr><td style="padding:40px">
     <h2 style="margin:0 0 16px;color:#111827">${firstName}, your link expires in 48 hours</h2>
-    <p style="color:#6b7280;line-height:1.6">This is the last reminder about your FineClean cleaning role screening. After 48 hours your link will expire.</p>
+    <p style="color:#6b7280;line-height:1.6">This is the last reminder about your screening for the FineClean <strong>Industrial Cleaner</strong> role in Worcester (£13.65/hour). After 48 hours your link will expire.</p>
     <a href="${link}" style="display:inline-block;margin-top:24px;background:#10b981;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600">Start Now →</a>
   </td></tr>
 </table>
