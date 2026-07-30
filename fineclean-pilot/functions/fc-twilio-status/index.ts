@@ -68,10 +68,16 @@ Deno.serve(async (req) => {
   const sessionId = segments[segments.length - 1] ?? '';
   const isRecording = url.searchParams.get('recording') === '1';
 
-  // Twilio posts application/x-www-form-urlencoded.
-  const form = await req.formData();
+  // Twilio posts application/x-www-form-urlencoded. Guard the parse so a
+  // malformed/empty body (e.g. a health probe) returns a clean 400 instead of
+  // throwing a 500 — real Twilio callbacks always carry a valid form body.
   const params: Record<string, string> = {};
-  for (const [k, v] of form.entries()) params[k] = String(v);
+  try {
+    const form = await req.formData();
+    for (const [k, v] of form.entries()) params[k] = String(v);
+  } catch {
+    return new Response('expected form-encoded Twilio callback body', { status: 400 });
+  }
 
   // Twilio signs the exact PUBLIC url it was configured to POST to — NOT the
   // internal Deno request url (Supabase's gateway rewrites host/path), so we
