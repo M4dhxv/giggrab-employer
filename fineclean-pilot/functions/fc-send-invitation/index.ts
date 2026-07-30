@@ -113,7 +113,7 @@ const TEMPLATES: Record<string, (v: Vars) => Built> = {
     subject: `${v.firstName}, next step for your FINECLEAN application`,
     body: [
       `Hi ${v.firstName},`,
-      `Thank you for applying for our ${v.role}, ${v.location}, ${v.pay} at FINECLEAN via Indeed.`,
+      `Thank you for applying for our Industrial Cleaning role at FINECLEAN via Indeed.`,
       `We would like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience.`,
       `The first step is to complete a short application form. This should take around 2 minutes and will help us confirm your suitability before progressing your application.`,
       `Please complete the form within the next 48 hours to keep your application active.`,
