@@ -97,7 +97,7 @@ const TEMPLATES: Record<string, (v: Vars) => Built> = {
     body: [
       `Hi ${v.firstName},`,
       `Thank you for expressing an interest in working with us at FINECLEAN.`,
-      `We currently have a number of roles available and would like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience.`,
+      `We currently have industrial cleaning roles available and would like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience.`,
       `Before moving to the first stage of the process we will need you to complete a short application form. This should take around 2 minutes and will help us confirm your suitability before progressing your application.`,
       `Please complete the form within the next 48 hours to be considered for a role.`,
       `Kind regards,\nFINECLEAN Recruitment Team`,
