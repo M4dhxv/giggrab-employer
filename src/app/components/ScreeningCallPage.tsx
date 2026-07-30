@@ -140,7 +140,7 @@ export default function ScreeningCallPage() {
                 <input
                   type="tel" value={phone} onChange={e => setPhone(e.target.value)} disabled={locked}
                   placeholder="7700 900123"
-                  className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50"
                   style={{ fontVariantNumeric: "tabular-nums" }}
                   onFocus={e => (e.target.style.borderColor = GG)} onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                 />
@@ -181,8 +181,8 @@ export default function ScreeningCallPage() {
                 <input
                   type="text" inputMode="numeric" value={otp}
                   onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
-                  placeholder="Enter 6-digit code" maxLength={6} disabled={step === "calling"}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-2xl tracking-[0.5em] font-mono text-center outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
+                  placeholder="6-digit code" maxLength={6} disabled={step === "calling"}
+                  className="w-full min-w-0 border border-gray-200 rounded-xl px-4 py-3.5 text-xl tracking-[0.3em] font-mono text-center outline-none focus:ring-2 focus:ring-emerald-100 transition-all"
                   onFocus={e => (e.target.style.borderColor = GG)} onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                 />
                 <button
