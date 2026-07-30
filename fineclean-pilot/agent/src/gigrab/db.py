@@ -179,12 +179,12 @@ async def fetch_profile_for_session(session_id: str) -> Optional[dict]:
 
 
 async def fetch_preferred_name_for_session(session_id: str) -> Optional[str]:
-    """Greet the candidate by the first name we imported for them."""
+    """Greet the candidate by the full name we have for them (first + last)."""
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             """
-            SELECT c.first_name AS n
+            SELECT TRIM(CONCAT(c.first_name, ' ', c.last_name)) AS n
             FROM fc_screening_sessions s
             JOIN fc_candidates c ON c.id = s.candidate_id
             WHERE s.id = $1

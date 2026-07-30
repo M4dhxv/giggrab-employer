@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   try {
-    const { token, candidate_id, phone, first_name } = await req.json();
+    const { token, candidate_id, phone, first_name, last_name } = await req.json();
     if (!phone || !/^\+[1-9]\d{6,14}$/.test(String(phone).trim())) {
       return err('valid phone required (E.164, e.g. +447700900123)');
     }
@@ -77,14 +77,16 @@ Deno.serve(async (req) => {
       cid = candidate_id;
     } else {
       // Tokenless testing flow — create the candidate on the fly.
-      const cleanName = typeof first_name === 'string'
-        ? first_name.replace(/[\r\n\t\0]/g, ' ').trim().slice(0, 60) : '';
+      const clean = (v: unknown) =>
+        typeof v === 'string' ? v.replace(/[\r\n\t\0]/g, ' ').trim().slice(0, 60) : '';
+      const cleanName = clean(first_name);
+      const cleanLast = clean(last_name);
       if (!cleanName) return err('first_name required');
       db = adminClient();
       const { data: emp } = await db.from('fc_employers').select('id').eq('slug', 'fineclean').single();
       if (!emp) return err('FineClean employer not found', 500);
       const { data: newC, error: cErr } = await db.from('fc_candidates').insert({
-        employer_id: emp.id, first_name: cleanName, last_name: '',
+        employer_id: emp.id, first_name: cleanName, last_name: cleanLast,
         email: `test+${Date.now()}@fineclean.local`, phone: String(phone).trim(),
         source: 'self_serve_test', current_status: 'imported',
       }).select('id').single();

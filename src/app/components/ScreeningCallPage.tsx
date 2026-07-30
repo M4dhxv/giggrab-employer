@@ -27,6 +27,7 @@ type Step = "form" | "otp" | "calling" | "done";
 
 export default function ScreeningCallPage() {
   const [firstName, setFirstName]     = useState("");
+  const [lastName, setLastName]       = useState("");
   const [countryCode, setCountryCode] = useState("+44");
   const [phone, setPhone]             = useState("");
   const [consent, setConsent]         = useState(false);
@@ -37,7 +38,7 @@ export default function ScreeningCallPage() {
   const [error, setError]             = useState("");
 
   const rawDigits  = phone.replace(/\D/g, "");
-  const nameValid  = firstName.trim().length >= 2;
+  const nameValid  = firstName.trim().length >= 2 && lastName.trim().length >= 2;
   const phoneValid = rawDigits.length >= 9;
   const fullPhone  = countryCode + rawDigits;
   const canSend    = nameValid && phoneValid && consent && !loading;
@@ -46,7 +47,7 @@ export default function ScreeningCallPage() {
     if (!canSend) return;
     setError(""); setLoading(true);
     try {
-      const res = await fc.requestOtpNew(firstName.trim(), fullPhone);
+      const res = await fc.requestOtpNew(firstName.trim(), lastName.trim(), fullPhone);
       setCandidateId(res.candidate_id);
       setStep("otp");
     } catch (e) {
@@ -113,14 +114,25 @@ export default function ScreeningCallPage() {
 
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4 gg-in gg-d1">
             {/* Name */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">First name</label>
-              <input
-                type="text" value={firstName} onChange={e => setFirstName(e.target.value)} disabled={locked}
-                placeholder="Your first name"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50"
-                onFocus={e => (e.target.style.borderColor = GG)} onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
-              />
+            <div className="flex gap-2">
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">First name</label>
+                <input
+                  type="text" value={firstName} onChange={e => setFirstName(e.target.value)} disabled={locked}
+                  placeholder="First name"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  onFocus={e => (e.target.style.borderColor = GG)} onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">Last name</label>
+                <input
+                  type="text" value={lastName} onChange={e => setLastName(e.target.value)} disabled={locked}
+                  placeholder="Last name"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-100 transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  onFocus={e => (e.target.style.borderColor = GG)} onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
+                />
+              </div>
             </div>
 
             {/* Phone */}
