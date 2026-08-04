@@ -166,9 +166,9 @@ export default function CandidateFormPage() {
         <DualHeader />
         <div className="flex-1 flex items-center justify-center px-6 text-center">
           <div className="max-w-sm gg-in">
-            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">You're through to the next stage!</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Thank you</h1>
             <p className="text-gray-500 text-sm leading-relaxed">
-              Thanks{candidate?.first_name ? `, ${candidate.first_name}` : ""} — we've got your details. We'll email you a link to start your short screening call with Sarah, so keep an eye on your inbox.
+              We'll reach out with the next steps.
             </p>
           </div>
         </div>
@@ -268,7 +268,7 @@ export default function CandidateFormPage() {
             disabled={submitting}
             className="w-full py-4 rounded-xl text-white font-bold text-base transition-all hover:opacity-90 active:scale-[.98] disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ backgroundColor: GG }}>
-            {submitting ? <><Loader2 size={18} className="animate-spin" />Submitting…</> : "Continue to Screening"}
+            {submitting ? <><Loader2 size={18} className="animate-spin" />Submitting…</> : "Submit"}
           </button>
         </form>
       </div>
