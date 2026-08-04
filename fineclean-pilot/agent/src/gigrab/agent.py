@@ -754,7 +754,10 @@ def _build_llm() -> FallbackLLMService:
     )
     return FallbackLLMService(
         api_key=os.environ["CEREBRAS_API_KEY"],
-        model=os.getenv("CEREBRAS_MODEL") or "gpt-oss-120b",
+        # gemma-4-31b is a plain instruct model that returns spoken `content`.
+        # Reasoning models (gpt-oss-120b, zai-glm-4.7) emit only `reasoning`
+        # with empty content — the TTS gets nothing and the call is silent.
+        model=os.getenv("CEREBRAS_MODEL") or "gemma-4-31b",
         name="cerebras-llm",
         fallbacks=fallbacks,
     )
