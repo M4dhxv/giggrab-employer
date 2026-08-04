@@ -1099,6 +1099,19 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                 else "Hello, this is Sarah from the FineClean recruitment team — who am I speaking with?"
             )
             context.add_message({"role": "assistant", "content": greeting})
+            # This bypasses the LLM, so it never passes through db_writer_ai
+            # (which only captures LLMFullResponseStart/EndFrame-bracketed
+            # text) — write the transcript turn directly so the greeting
+            # isn't missing from the call record.
+            asyncio.create_task(
+                db.write_transcript_turn(
+                    session_id=cfg.session_id,
+                    ord_=_next_ord(cfg.session_id),
+                    speaker="ai",
+                    text=greeting,
+                    ms_offset=_ms_offset(cfg.session_id),
+                )
+            )
             # Start the LLM warming up (connection + prompt prefill) in the
             # background while the greeting plays, so the first real turn — after
             # the candidate replies — is quicker.
