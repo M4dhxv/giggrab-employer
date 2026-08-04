@@ -1057,25 +1057,22 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             # the known name and go straight into Q1. (A two-step "greet then
             # confirm the name" instruction makes the small live model garble
             # it into "hi <name>, what's your name" — so we don't do that.)
+            # The opening line is FIXED, so speak it DIRECTLY via TTS instead of
+            # asking the LLM to generate it. Otherwise the greeting is gated
+            # behind the first (slow) LLM turn — processing the full system
+            # prompt for the first time plus gpt-oss's reasoning added several
+            # seconds of dead air before Sarah said a word. We drop the greeting
+            # into the conversation history so the LLM continues naturally from
+            # the candidate's first reply.
             pref_name = _sanitize_profile_field(cfg.preferred_name or "", 60)
-            if pref_name:
-                kickoff = (
-                    f"The call just connected. The candidate's name is {pref_name}. "
-                    f"Say EXACTLY ONE short line now, then STOP and wait for them to reply: "
-                    f'"Hi, am I speaking to {pref_name}?" '
-                    f"Output ONLY that one line — nothing before or after it. Do NOT "
-                    f"continue into your introduction yet, and NEVER write the candidate's "
-                    f"reply or any note in brackets. Wait for their real answer. Stay in "
-                    f"{cfg.language}."
-                )
-            else:
-                kickoff = (
-                    f"The call just connected. Say EXACTLY ONE short line now, then STOP "
-                    f'and wait for them to reply: "Hello, this is Sarah from the FineClean '
-                    f'recruitment team — who am I speaking with?" Output ONLY that one line. '
-                    f"NEVER write the candidate's reply or any note in brackets. Stay in "
-                    f"{cfg.language}."
-                )
+            greeting = (
+                f"Hi, am I speaking to {pref_name}?" if pref_name
+                else "Hello, this is Sarah from the FineClean recruitment team — who am I speaking with?"
+            )
+            context.add_message({"role": "assistant", "content": greeting})
+            await task.queue_frames([TTSSpeakFrame(greeting)])
+            return  # opening spoken directly — don't run the LLM for it
+
         context.add_message({"role": "user", "content": kickoff})
         await task.queue_frames([LLMRunFrame()])
 
