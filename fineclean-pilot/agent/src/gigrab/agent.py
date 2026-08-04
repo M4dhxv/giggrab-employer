@@ -1062,7 +1062,7 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                 kickoff = (
                     f"The call just connected. The candidate's name is {pref_name}. "
                     f"Say EXACTLY ONE short line now, then STOP and wait for them to reply: "
-                    f'"Hi, can you confirm this is {pref_name}?" '
+                    f'"Hi, am I speaking to {pref_name}?" '
                     f"Output ONLY that one line — nothing before or after it. Do NOT "
                     f"continue into your introduction yet, and NEVER write the candidate's "
                     f"reply or any note in brackets. Wait for their real answer. Stay in "
