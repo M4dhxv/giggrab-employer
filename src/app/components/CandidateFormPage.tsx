@@ -186,7 +186,7 @@ export default function CandidateFormPage() {
             Industrial Cleaner
           </p>
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 leading-snug">
-            Complete this short form before your screening call with Sarah.
+            Complete this short form to continue your application.
           </h1>
         </div>
 
