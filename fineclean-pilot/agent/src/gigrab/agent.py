@@ -783,6 +783,35 @@ def _build_llm() -> FallbackLLMService:
     )
 
 
+async def _warm_cerebras(system_prompt: str) -> None:
+    """Prime the Cerebras connection + prompt prefill while the fixed greeting
+    is playing, so the first REAL turn (after the candidate replies) starts
+    faster. Fire-and-forget: fully isolated from the pipeline, all errors
+    swallowed — it can never delay or break the call."""
+    try:
+        from openai import AsyncOpenAI
+
+        model = os.getenv("CEREBRAS_MODEL") or "gpt-oss-120b"
+        client = AsyncOpenAI(
+            api_key=os.environ["CEREBRAS_API_KEY"],
+            base_url="https://api.cerebras.ai/v1",
+        )
+        kwargs: dict = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Hello."},
+            ],
+            "max_tokens": 1,
+        }
+        if "gpt-oss" in model.lower() or "glm" in model.lower():
+            kwargs["reasoning_effort"] = "low"
+        await client.chat.completions.create(**kwargs)
+        logger.info("[warm-up] cerebras primed during greeting")
+    except Exception as e:
+        logger.debug(f"[warm-up] skipped: {e}")
+
+
 # ---------------------------------------------------------------------------
 # Pipeline factory
 # ---------------------------------------------------------------------------
@@ -1070,6 +1099,10 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
                 else "Hello, this is Sarah from the FineClean recruitment team — who am I speaking with?"
             )
             context.add_message({"role": "assistant", "content": greeting})
+            # Start the LLM warming up (connection + prompt prefill) in the
+            # background while the greeting plays, so the first real turn — after
+            # the candidate replies — is quicker.
+            asyncio.create_task(_warm_cerebras(system_prompt))
             await task.queue_frames([TTSSpeakFrame(greeting)])
             return  # opening spoken directly — don't run the LLM for it
 
