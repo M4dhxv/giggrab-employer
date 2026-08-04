@@ -871,7 +871,9 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
     else:
         stt_kwargs["model"] = "nova-3"
         stt_kwargs["language"] = cfg.language or "en"
+    logger.info("[latency] STT (Deepgram): constructing")
     stt = DeepgramSTTService(**stt_kwargs)
+    logger.info("[latency] STT (Deepgram): constructed")
 
     # Cerebras gpt-oss-120b is big enough to hold the screening script's
     # conditional branches and returns a full short reply in ~0.5 s. It emits
@@ -879,7 +881,9 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
     # ignores, so nothing but the spoken answer reaches Cartesia. Groq (the
     # original provider, dropped for 429s + weak instruction-following on
     # llama-3.1-8b-instant) and gpt-4o-mini remain as automatic 429 fallbacks.
+    logger.info("[latency] LLM (Cerebras): constructing")
     llm = _build_llm()
+    logger.info("[latency] LLM (Cerebras): constructed")
 
     # Cartesia sample_rate matches the transport rate to skip a resample
     # hop. Phone = 8 kHz (Twilio mu-law), web = 16 kHz raw PCM.
@@ -889,6 +893,7 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
     # a complete sentence and synthesize in one streaming call — much
     # faster TTFB on a cold WS for short greetings.
     cartesia_sr = 16000 if cfg.surface == "web" else 8000
+    logger.info("[latency] TTS (Cartesia): constructing")
     tts = CartesiaTTSService(
         api_key=os.environ["CARTESIA_API_KEY"],
         voice_id=os.getenv("CARTESIA_VOICE_ID") or pick_cartesia_voice(cfg.language),
@@ -899,6 +904,7 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
         ),
         name="cartesia-tts",
     )
+    logger.info("[latency] TTS (Cartesia): constructed")
 
     # Universal LLMContext + LLMContextAggregatorPair (the non-deprecated
     # path in pipecat 0.0.108). The deprecated OpenAIUserContextAggregator
@@ -954,6 +960,7 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
     # ~1.5 s of patient silence before treating the user as done. Trade-
     # off: snappier-feeling response when caller is brief, but mid-
     # sentence interrupts stop wrecking the pipeline.
+    logger.info("[latency] aggregator VAD: constructing")
     user_aggregator_kwargs: dict = dict(
         vad_analyzer=SileroVADAnalyzer(
             params=VADParams(
@@ -963,6 +970,7 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             ),
         ),
     )
+    logger.info("[latency] aggregator VAD: constructed")
     if UserTurnStrategies is not None and SpeechTimeoutUserTurnStopStrategy is not None:
         # 0.7s (was 1.0s): snappier reply after short answers so Sarah doesn't
         # feel frozen ("having to say hello to wake her up"), while still long
@@ -1116,7 +1124,9 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
             # background while the greeting plays, so the first real turn — after
             # the candidate replies — is quicker.
             asyncio.create_task(_warm_cerebras(system_prompt))
+            logger.info("[latency] greeting: queuing TTSSpeakFrame")
             await task.queue_frames([TTSSpeakFrame(greeting)])
+            logger.info("[latency] greeting: TTSSpeakFrame queued (returns once accepted, not once audible)")
             return  # opening spoken directly — don't run the LLM for it
 
         context.add_message({"role": "user", "content": kickoff})
@@ -1133,6 +1143,12 @@ async def build_pipeline(transport: FastAPIWebsocketTransport, cfg: AgentConfig)
 
 
 async def run_agent(websocket, cfg: AgentConfig, *, stream_sid: str):
+    # LATENCY DIAGNOSTIC (temporary, remove once resolved): every log line
+    # already carries a timestamp (main.py's %(asctime)s formatter), so these
+    # markers let us align them post-hoc and localize where the ~5s opening
+    # delay actually is — Twilio handshake (see main.py), VAD construction,
+    # or the rest of build_pipeline (LLM/TTS/STT client setup).
+    logger.info(f"[latency] run_agent entered session={cfg.session_id}")
     # stream_sid is Twilio's MZ… identifier from the start frame; the serializer
     # echoes it back on every outbound media frame so Twilio routes audio to
     # the right call leg. cfg.session_id is OUR DB session UUID — separate concern.
@@ -1168,6 +1184,7 @@ async def run_agent(websocket, cfg: AgentConfig, *, stream_sid: str):
     # interruption never fires regardless of allow_interruptions. Uses
     # tighter VADParams than the aggregator (start_secs=0.15 so barges
     # register fast; stop_secs=0.4 so brief pauses don't end the turn).
+    logger.info("[latency] transport VAD: constructing")
     transport_vad = SileroVADAnalyzer(
         params=VADParams(
             confidence=0.55,
@@ -1176,6 +1193,7 @@ async def run_agent(websocket, cfg: AgentConfig, *, stream_sid: str):
             min_volume=0.5,
         ),
     )
+    logger.info("[latency] transport VAD: constructed")
     transport = FastAPIWebsocketTransport(
         websocket=websocket,
         params=FastAPIWebsocketParams(
@@ -1187,9 +1205,12 @@ async def run_agent(websocket, cfg: AgentConfig, *, stream_sid: str):
         ),
     )
 
+    logger.info("[latency] build_pipeline: starting")
     task, _context, _user_aggregator = await build_pipeline(transport, cfg)
+    logger.info("[latency] build_pipeline: done")
 
     await db.update_session_status(session_id=cfg.session_id, status="in_progress")
+    logger.info("[latency] runner.run: starting (on_client_connected fires from inside this)")
 
     # Kickoff happens inside on_client_connected (registered in build_pipeline).
     runner = PipelineRunner()

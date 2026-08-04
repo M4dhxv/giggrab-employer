@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import sys
+import time
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import uvicorn
@@ -127,7 +128,13 @@ async def _web_ws_handler(websocket: WebSocket):
 
 
 async def _ws_handler(websocket: WebSocket):
+    # LATENCY DIAGNOSTIC (temporary): bracket every step from the WS handshake
+    # to the pipeline handing off to on_client_connected, so a slow "opening
+    # line" can be localized to Twilio's handshake, DB lookup, pipeline/VAD
+    # construction, or elsewhere — instead of guessing. Remove once resolved.
+    _t0 = time.monotonic()
     await websocket.accept()
+    logger.info(f"[latency] ws accepted: +{time.monotonic() - _t0:.3f}s")
 
     # Twilio Media Streams sequence on every connect:
     #   1. {"event":"connected","protocol":"Call","version":"1.0.0"}
@@ -170,6 +177,8 @@ async def _ws_handler(websocket: WebSocket):
         logger.exception("ws crashed reading start frame")
         await websocket.close(code=1011)
         return
+
+    logger.info(f"[latency] twilio start frame received: +{time.monotonic() - _t0:.3f}s")
 
     if not session_id or not stream_sid:
         logger.warning(
