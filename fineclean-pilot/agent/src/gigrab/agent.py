@@ -698,6 +698,20 @@ class FallbackLLMService(CerebrasLLMService):
         super().__init__(*args, **kwargs)
         self._fallbacks = fallbacks
 
+    def build_chat_completion_params(self, *args, **kwargs):
+        # Cerebras reasoning models (gpt-oss-*, *glm*) reason by default and
+        # return empty `content` — the call goes silent. `reasoning_effort=low`
+        # makes them emit spoken content quickly. Plain instruct models
+        # (gemma, llama) don't need it, so only add it for reasoning models.
+        params = super().build_chat_completion_params(*args, **kwargs)
+        try:
+            model = str(params.get("model", "")).lower()
+            if "gpt-oss" in model or "glm" in model:
+                params["reasoning_effort"] = "low"
+        except Exception:
+            pass
+        return params
+
     async def get_chat_completions(self, params_from_context):
         # (label, bound get_chat_completions) — primary first, then fallbacks.
         chain = [("cerebras", super().get_chat_completions)]
@@ -705,7 +719,11 @@ class FallbackLLMService(CerebrasLLMService):
         last_exc: Optional[RateLimitError] = None
         for i, (name, fn) in enumerate(chain):
             try:
-                stream = await fn(params_from_context)
+                # Groq/OpenAI fallbacks don't accept reasoning_effort — strip it.
+                call_params = params_from_context
+                if i > 0 and isinstance(params_from_context, dict) and "reasoning_effort" in params_from_context:
+                    call_params = {k: v for k, v in params_from_context.items() if k != "reasoning_effort"}
+                stream = await fn(call_params)
                 if i > 0:
                     logger.warning(f"[llm-fallback] served this turn via {name}")
                 return stream
@@ -754,10 +772,12 @@ def _build_llm() -> FallbackLLMService:
     )
     return FallbackLLMService(
         api_key=os.environ["CEREBRAS_API_KEY"],
-        # gemma-4-31b is a plain instruct model that returns spoken `content`.
-        # Reasoning models (gpt-oss-120b, zai-glm-4.7) emit only `reasoning`
-        # with empty content — the TTS gets nothing and the call is silent.
-        model=os.getenv("CEREBRAS_MODEL") or "gemma-4-31b",
+        # gpt-oss-120b (120B) is higher quality than gemma-4-31b. It's a
+        # reasoning model, but build_chat_completion_params above forces
+        # reasoning_effort=low so it emits spoken content fast instead of a
+        # silent, all-reasoning turn. (gemma-4-31b is a fine non-reasoning
+        # alternative if you'd rather not send reasoning_effort.)
+        model=os.getenv("CEREBRAS_MODEL") or "gpt-oss-120b",
         name="cerebras-llm",
         fallbacks=fallbacks,
     )
