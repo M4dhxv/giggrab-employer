@@ -37,9 +37,15 @@ export default function ScreeningCallPage() {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
 
-  const rawDigits  = phone.replace(/\D/g, "");
+  // People naturally type their national number with the leading trunk "0"
+  // (e.g. UK mobiles as "07872 065398"). That 0 must be dropped once a
+  // country code is prepended, or "+44" + "07872065398" becomes the invalid
+  // "+4407872065398" — which Twilio silently rejects (this broke a real
+  // campaign call). Only strip it when the code isn't already +1 (NANP
+  // numbers are dialled without a trunk 0 in the first place).
+  const rawDigits  = phone.replace(/\D/g, "").replace(/^0+/, "");
   const nameValid  = firstName.trim().length >= 2 && lastName.trim().length >= 2;
-  const phoneValid = rawDigits.length >= 9;
+  const phoneValid = rawDigits.length >= 8;
   const fullPhone  = countryCode + rawDigits;
   const canSend    = nameValid && phoneValid && consent && !loading;
 
