@@ -166,6 +166,20 @@ const TEMPLATES: Record<string, (v: Vars) => Built> = {
     ],
   }),
 
+  // 4B — Screening reminder (candidate got the screening_invitation but
+  // hasn't started the call). Softer, personal nudge — not a repeat of 4.
+  screening_reminder: (v) => ({
+    subject: `${v.firstName} — your FineClean interview is ready when you are`,
+    body: [
+      `Hi ${v.firstName},`,
+      `Just checking in — I sent over your screening interview link yesterday and wanted to make sure it reached you okay.`,
+      `It only takes about 10 minutes.`,
+      { label: 'Start Screening Interview', url: v.screeningLink },
+      `If the timing's tricky or anything's not working on your end, just reply and let me know — happy to help however's easiest for you.`,
+      `Sarah\nFineClean Recruitment`,
+    ],
+  }),
+
   // (No Email 5 — screening is on-demand via the link above, there is no
   // scheduled time to remind about.)
 
@@ -255,6 +269,7 @@ const EVENT_NAME: Record<string, string> = {
   reminder: 'Reminder Sent',
   final_reminder: 'Final Reminder Sent',
   screening_invitation: 'Screening Invitation Sent',
+  screening_reminder: 'Screening Reminder Sent',
   thank_you: 'Thank You Sent',
   hm_interview_invitation: 'HM Interview Invitation Sent',
   interview_confirmation: 'Interview Confirmation Sent',
