@@ -35,6 +35,22 @@ async function sendSms(phone: string, body: string): Promise<string | null> {
   return data.sid ?? null;
 }
 
+// Named SMS bodies, same convention as fc-send-invitation's TEMPLATES.
+// (name, link) -> body text.
+const TEMPLATES: Record<string, (name: string, link: string) => string> = {
+  // Short 2-line nudge — default.
+  short: (name, link) =>
+    `Hi ${name}, it's Sarah from FineClean recruitment. ` +
+    `Please complete your short application here: ${link}`,
+
+  // Condensed version of Email 1B (indeed_invitation) — approved wording.
+  indeed_invitation: (name, link) =>
+    `Hi ${name}, thank you for applying for our Industrial Cleaning role at FINECLEAN via Indeed. ` +
+    `We'd like to invite you to the 1st stage of our recruitment process so we can learn more about you and your experience. ` +
+    `Please complete a short application form (about 2 minutes) within 48 hours to keep your application active: ${link} ` +
+    `Any questions, email sarah@giggrab.io. Sarah, FINECLEAN Recruitment`,
+};
+
 Deno.serve(async (req) => {
   const cors = preflight(req);
   if (cors) return cors;
@@ -42,8 +58,13 @@ Deno.serve(async (req) => {
   if (!requireAdminKey(req)) return err('Unauthorized', 401);
 
   try {
-    const { candidate_id } = await req.json() as { candidate_id?: string };
+    const { candidate_id, template = 'short' } = await req.json() as {
+      candidate_id?: string;
+      template?: string;
+    };
     if (!candidate_id) return err('candidate_id required');
+    const build = TEMPLATES[template];
+    if (!build) return err(`Unknown template: ${template}`);
 
     const db = adminClient();
     const { data: candidate } = await db
@@ -59,13 +80,10 @@ Deno.serve(async (req) => {
     const appUrl = Deno.env.get('FC_APP_URL') ?? 'https://giggrab.io';
     const link = `${appUrl}/form?token=${candidate.invitation_token ?? ''}`;
 
-    const body =
-      `Hi ${candidate.first_name}, it's Sarah from FineClean recruitment. ` +
-      `Please complete your short application here: ${link}`;
-
+    const body = build(candidate.first_name, link);
     const sid = await sendSms(candidate.phone, body);
 
-    await logEvent(db, candidate_id, 'SMS Invitation Sent', { phone: candidate.phone, sid });
+    await logEvent(db, candidate_id, 'SMS Invitation Sent', { phone: candidate.phone, template, sid });
 
     return json({ success: true, sid });
   } catch (e) {
