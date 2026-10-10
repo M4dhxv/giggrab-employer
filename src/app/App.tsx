@@ -14,11 +14,8 @@ import WorkerStartPage from './components/WorkerStartPage';
 import WorkerCallPage from './components/WorkerCallPage';
 import WorkerProfilePage from './components/WorkerProfilePage';
 import WorkerDashboardPage from './components/WorkerDashboardPage';
-import CandidateFormPage from './components/CandidateFormPage';
-import ScreeningCallPage from './components/ScreeningCallPage';
 import EnterpriseOnboardingPage from './components/EnterpriseOnboardingPage';
 import PricingPage from './components/PricingPage';
-import AdminDashboardPage from './components/AdminDashboardPage';
 
 export default function App() {
   return (
@@ -45,14 +42,7 @@ export default function App() {
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/pricing" element={<PricingPage />} />
-
-          {/* Candidate flow pages */}
-          <Route path="/form" element={<CandidateFormPage />} />
-          <Route path="/screening-call" element={<ScreeningCallPage />} />
           <Route path="/enterprise" element={<EnterpriseOnboardingPage />} />
-
-          {/* Internal recruiter dashboard (not linked anywhere public) */}
-          <Route path="/admin" element={<AdminDashboardPage />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
