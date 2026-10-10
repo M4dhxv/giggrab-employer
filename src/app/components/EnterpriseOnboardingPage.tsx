@@ -1374,6 +1374,8 @@ function DashboardShell({
   children: React.ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const now = new Date();
+  const today = `${now.toLocaleDateString("en-GB", { weekday: "short" })}, ${now.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
 
   const Sidebar = () => (
     <aside className={`
@@ -1450,7 +1452,7 @@ function DashboardShell({
               <h1 className="text-base sm:text-lg font-bold text-gray-900">
                 {DASH_NAV.find((n) => n.key === activePage)?.label}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Mon, 16 June 2025 · Acme Construction Ltd</p>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">{today} · Acme Construction Ltd</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
