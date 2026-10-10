@@ -40,9 +40,9 @@ function SideNav({ active }: { active: string }) {
       </nav>
       <div className="px-3 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2 px-2">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: GG }}>N</div>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: GG }}>M</div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">NHS Logistics</p>
+            <p className="text-xs font-medium text-gray-700 truncate">M&amp;S Logistics Ltd</p>
             <p className="text-xs text-gray-400">Pro</p>
           </div>
         </div>

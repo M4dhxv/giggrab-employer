@@ -64,7 +64,7 @@ export default function WorkerLandingPage() {
           <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
             {/* Logo */}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/worker')}
               className="flex items-center gap-2 group"
             >
               <div className="w-8 h-8 rounded-lg bg-[#4ade80] flex items-center justify-center">
@@ -190,7 +190,7 @@ export function WorkerHeader() {
   return (
     <header className="bg-white/85 backdrop-blur border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2">
+        <button onClick={() => navigate('/worker')} className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-md bg-[#4ade80] flex items-center justify-center">
             <span className="text-black font-extrabold text-xs">G</span>
           </div>
@@ -198,7 +198,7 @@ export function WorkerHeader() {
         </button>
         <div className="flex items-center gap-1">
           {isLoggedIn ? (
-            <button onClick={() => navigate('/')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log out</button>
+            <button onClick={() => navigate('/worker')} className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">Log out</button>
           ) : (
             <>
               <button onClick={() => navigate('/employer')} className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50">For employers</button>

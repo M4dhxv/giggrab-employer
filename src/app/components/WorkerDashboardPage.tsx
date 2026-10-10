@@ -495,7 +495,7 @@ function ProfileTab({ navigate }: { navigate: ReturnType<typeof useNavigate> }) 
           <button onClick={() => navigate('/worker/start')} className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900">
             🔁 Call again
           </button>
-          <button className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900">
+          <button onClick={() => navigate('/worker/get-started')} className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900">
             ↑ Upload CV
           </button>
         </div>

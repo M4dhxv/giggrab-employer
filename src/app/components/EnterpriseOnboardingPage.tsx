@@ -1365,11 +1365,13 @@ const DASH_NAV = [
 function DashboardShell({
   activePage,
   onNav,
+  onSignOut,
   phoneNumber,
   children,
 }: {
   activePage: DashPage;
   onNav: (p: DashPage) => void;
+  onSignOut: () => void;
   phoneNumber: string;
   children: React.ReactNode;
 }) {
@@ -1423,7 +1425,7 @@ function DashboardShell({
         ))}
       </nav>
 
-      <button className="flex items-center gap-3 px-6 py-4 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors border-t border-gray-100">
+      <button onClick={onSignOut} className="flex items-center gap-3 px-6 py-4 text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors border-t border-gray-100">
         <LogOut size={16} />
         Sign out
       </button>
@@ -2663,7 +2665,7 @@ export default function EnterpriseOnboardingPage() {
         <GoLiveScreen number={phoneNumber} atsName={atsName} onDone={() => setStep("dashboard")} />
       )}
       {step === "dashboard" && (
-        <DashboardShell activePage={dashPage} onNav={setDashPage} phoneNumber={phoneNumber}>
+        <DashboardShell activePage={dashPage} onNav={setDashPage} onSignOut={() => { setDashPage("home"); setStep("login"); }} phoneNumber={phoneNumber}>
           {dashPage === "home" && (
             <DashboardHome selectedJobName={selectedJobName} onSelectJob={selectJob} />
           )}

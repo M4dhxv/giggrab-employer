@@ -36,7 +36,7 @@ interface Candidate {
   location: string;
   languages: string[];
   score: number;
-  status: 'Qualified' | 'Review' | 'Interview' | 'Available' | 'Shortlisted' | 'Rejected';
+  status: 'Qualified' | 'Review' | 'Interview' | 'Available' | 'Shortlisted' | 'Hired' | 'Rejected';
   badge?: string;
   availability: string;
   certifications: string[];
@@ -329,6 +329,17 @@ function synthCandidates(area: string, job: Job, n: number): Candidate[] {
   });
 }
 
+// Every campaign opens with a few matched candidates, so no chip shows an
+// empty list. Only the first two jobs have hand-written candidates.
+function seedCandidatePool(): Candidate[] {
+  const extra = INITIAL_JOBS.flatMap(job => {
+    const have = CANDIDATES.filter(c => c.jobId === job.id).length;
+    const want = Math.min(3, job.qualified);
+    return have < want ? synthCandidates(job.location.split(',')[0], job, want - have) : [];
+  });
+  return [...CANDIDATES, ...extra];
+}
+
 // ─── Status styling ──────────────────────────────────────────────────────────
 
 const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
@@ -337,6 +348,7 @@ const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
   Review:      { bg: '#fffbeb', text: '#b45309' },
   Interview:   { bg: '#faf5ff', text: '#7e22ce' },
   Shortlisted: { bg: '#eff6ff', text: '#1d4ed8' },
+  Hired:       { bg: '#dcfce7', text: '#166534' },
   Rejected:    { bg: '#fef2f2', text: '#b91c1c' },
 };
 
@@ -379,8 +391,14 @@ const GENERIC_RESULTS = [
 ];
 let genericIdx = 0;
 
-function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: (kind: ActionKind) => void): AgentPlan {
+// How many of the first n panel outcomes start with `prefix`, so Sarah's
+// summary matches what the ActionPanel actually showed.
+const tally = (kind: ActionKind, n: number, prefix: string) =>
+  PANEL_OUTCOMES[kind].slice(0, n).filter(o => o.startsWith(prefix)).length;
+
+function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: (kind: ActionKind) => void, panelSize: number): AgentPlan {
   const c = cmd.toLowerCase();
+  const n = panelSize;
   const areaMatch = c.match(/(?:in|from|near|around)\s+([a-z][a-z\s'-]*?)(?:\s+area)?\s*[.!]?$/i);
 
   // "Give me candidates in Salford" — actually changes the list
@@ -403,10 +421,13 @@ function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: 
     return {
       steps: ['Thinking…', 'Picking top 10 by match score…', 'Calling to confirm availability…', 'Running AI interviews…', 'Booking time slots…'],
       start: () => onAction('interview'),
-      finish: () => ({
-        result: 'AI interviews run with your top 10 matched — 7 passed and are booked for this week.',
-        toast: { title: 'Interviews scheduled', body: '7 AI interviews completed and booked with top matched candidates.' },
-      }),
+      finish: () => {
+        const passed = tally('interview', n, 'Passed');
+        return {
+          result: `AI interviews run with your top ${n} matched — ${passed} passed and are booked for this week.`,
+          toast: { title: 'Interviews scheduled', body: `${passed} AI interviews completed and booked with top matched candidates.` },
+        };
+      },
     };
   }
 
@@ -415,10 +436,18 @@ function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: 
     return {
       steps: ['Thinking…', 'Searching past qualified candidates…', 'Sending SMS re-engagement…', 'Tracking replies…', 'Updating your pipeline…'],
       start: () => onAction('sms'),
-      finish: () => ({
-        result: '8 previous candidates reactivated — 3 already responded and want this role.',
-        toast: { title: 'Workers reactivated', body: '8 qualified workers re-engaged via SMS and voice.' },
-      }),
+      finish: () => {
+        const replied = tally('sms', n, 'Replied');
+        return /reactivat|re-engage|previous/.test(c)
+          ? {
+              result: `${n} previous candidates reactivated — ${replied} already responded and want this role.`,
+              toast: { title: 'Workers reactivated', body: `${n} qualified workers re-engaged via SMS.` },
+            }
+          : {
+              result: `Texted ${n} candidates — ${replied} already replied.`,
+              toast: { title: 'Texts sent', body: `${replied} of ${n} candidates replied to Sarah's SMS.` },
+            };
+      },
     };
   }
 
@@ -427,10 +456,13 @@ function buildPlan(cmd: string, onShowArea: (area: string) => number, onAction: 
     return {
       steps: ['Thinking…', 'Selecting top matched candidates…', 'Calling workers…', 'Confirming availability…', 'Generating summary…'],
       start: () => onAction('call'),
-      finish: () => ({
-        result: 'Called your top 10 matched candidates — 8 confirmed availability for this week.',
-        toast: { title: 'Calls completed', body: '8 of 10 candidates confirmed availability. Summaries ready.' },
-      }),
+      finish: () => {
+        const available = tally('call', n, 'Available');
+        return {
+          result: `Called your top ${n} matched candidates — ${available} confirmed availability for this week.`,
+          toast: { title: 'Calls completed', body: `${available} of ${n} candidates confirmed availability. Summaries ready.` },
+        };
+      },
     };
   }
 
@@ -461,6 +493,9 @@ const PANEL_META: Record<ActionKind, { title: string; sub: string; active: strin
   sms:       { title: 'SMS re-engagement',   sub: 'Re-activating qualified workers',    active: 'Sending…',        icon: <MessageSquare className="w-4 h-4" /> },
 };
 
+// Max candidates Sarah works through in one ActionPanel run.
+const PANEL_SIZE = 6;
+
 const PANEL_OUTCOMES: Record<ActionKind, string[]> = {
   call:      ['Available ✓', 'Available ✓', 'Voicemail', 'Available ✓', 'Available ✓', 'Available ✓'],
   interview: ['Passed · Thu 10:00', 'Passed · Fri 14:30', 'Needs review', 'Passed · Thu 11:30', 'Passed · Mon 09:00', 'Passed · Tue 15:00'],
@@ -489,7 +524,7 @@ function ActionPanel({ kind, candidates, onClose }: {
   onClose: () => void;
 }) {
   const meta = PANEL_META[kind];
-  const items = candidates.slice(0, 6);
+  const items = candidates.slice(0, PANEL_SIZE);
   // Each candidate takes two ticks: line 1 of the exchange, then line 2 + outcome.
   const [p, setP] = useState(0);
   const total = items.length * 2;
@@ -818,10 +853,11 @@ function ImportPanel({ onClose, onImport }: {
   );
 }
 
-function AgentDock({ onToast, onShowArea, onAction }: {
+function AgentDock({ onToast, onShowArea, onAction, panelSize }: {
   onToast: (t: Omit<Toast, 'id'>) => void;
   onShowArea: (area: string) => number;
   onAction: (kind: ActionKind) => void;
+  panelSize: number;
 }) {
   const posthog = usePostHog();
   const [command, setCommand] = useState('');
@@ -832,7 +868,7 @@ function AgentDock({ onToast, onShowArea, onAction }: {
     const cmd = text.trim();
     if (!cmd || running) return;
     posthog?.capture('agent_command_submitted', { command: cmd });
-    const plan = buildPlan(cmd, onShowArea, onAction);
+    const plan = buildPlan(cmd, onShowArea, onAction, panelSize);
     setCommand('');
     setRunning({ cmd, step: 0, steps: plan.steps });
     plan.start?.();
@@ -962,7 +998,7 @@ export default function DashboardPage() {
   const posthog = usePostHog();
   const [view, setView]                       = useState<View>('dashboard');
   const [jobs, setJobs]                       = useState<Job[]>(INITIAL_JOBS);
-  const [candidatePool, setCandidatePool]     = useState<Candidate[]>(CANDIDATES);
+  const [candidatePool, setCandidatePool]     = useState<Candidate[]>(seedCandidatePool);
   const [selectedJobId, setSelectedJobId]     = useState('1');
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [statusFilter, setStatusFilter]       = useState('All');
@@ -1128,7 +1164,7 @@ export default function DashboardPage() {
               {/* Upload CSV */}
               <div className="mt-3 px-1">
                 <button
-                  onClick={() => { setDrawerOpen(false); alert('CSV upload — coming in next build'); }}
+                  onClick={() => { setDrawerOpen(false); navigate('/service'); }}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-dashed border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600 transition-colors"
                 >
                   <FileText className="w-4 h-4" />
@@ -1142,10 +1178,10 @@ export default function DashboardPage() {
                 <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center text-xs text-gray-500" style={{ fontWeight: 600 }}>M</div>
                 <span className="text-xs text-gray-500 truncate" style={{ fontWeight: 500 }}>M&S Logistics Ltd</span>
               </div>
-              <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
+              <a href="mailto:sarah@giggrab.io" className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                 <HelpCircle className="w-3.5 h-3.5" />
                 Visit Help Center
-              </button>
+              </a>
             </div>
           </aside>
         </div>
@@ -1191,12 +1227,12 @@ export default function DashboardPage() {
           <ProfileView
             candidate={selectedCandidate}
             onBack={() => setView('candidates')}
-            onStatusChange={(id, status) => {
-              /* in a real app: update candidates state */
-            }}
+            onUpdate={(id, patch) =>
+              setCandidatePool(prev => prev.map(x => x.id === id ? { ...x, ...patch } : x))
+            }
           />
         )}
-        {view === 'settings' && <SettingsView />}
+        {view === 'settings' && <SettingsView onToast={pushToast} />}
       </main>
     </div>
   );
@@ -1296,6 +1332,7 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
           onToast={onToast}
           onShowArea={onShowArea}
           onAction={kind => { setImportOpen(false); setAction({ kind, id: Date.now() }); }}
+          panelSize={Math.min((matched.length ? matched : candidates).length, PANEL_SIZE)}
         />
       </div>
 
@@ -1352,10 +1389,10 @@ function CandidateRow({ candidate: c, onClick, last, index = 0 }: { candidate: C
 
 // ─── Profile view ─────────────────────────────────────────────────────────────
 
-function ProfileView({ candidate: c, onBack, onStatusChange }: {
+function ProfileView({ candidate: c, onBack, onUpdate }: {
   candidate: Candidate;
   onBack: () => void;
-  onStatusChange: (id: string, status: string) => void;
+  onUpdate: (id: string, patch: Partial<Candidate>) => void;
 }) {
   const posthog = usePostHog();
   const [tab, setTab]           = useState<ProfileTab>('summary');
@@ -1363,6 +1400,13 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
   const [interviews, setInterviews] = useState<Interview[]>(c.interviews);
   const [showScheduler, setShowScheduler] = useState(false);
   const [newInterview, setNewInterview]   = useState({ date: '', time: '', type: 'Phone' as const, notes: '' });
+  const [contactRequested, setContactRequested] = useState(false);
+
+  // Keep the candidate list in sync so the change survives "Back to Candidates".
+  const changeStatus = (next: Candidate['status']) => {
+    setStatus(next);
+    onUpdate(c.id, { status: next });
+  };
 
   const s = STATUS_STYLE[status] || STATUS_STYLE.Review;
 
@@ -1377,7 +1421,8 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
       notes: newInterview.notes,
     };
     setInterviews(prev => [...prev, interview]);
-    setStatus('Interview');
+    onUpdate(c.id, { interviews: [...interviews, interview] });
+    changeStatus('Interview');
     setShowScheduler(false);
     setNewInterview({ date: '', time: '', type: 'Phone', notes: '' });
     setTab('interviews');
@@ -1623,19 +1668,19 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
           <div className="bg-white rounded-xl border border-gray-100 px-4 py-4">
             <div className="text-xs text-gray-400 mb-3 uppercase tracking-wide" style={{ fontWeight: 600 }}>Actions</div>
             <div className="space-y-2">
-              <button onClick={() => setTab('interviews')} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
+              <button onClick={() => { setTab('interviews'); setShowScheduler(true); }} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
                 <Calendar className="w-3.5 h-3.5" />
                 Schedule Interview
               </button>
-              <button onClick={() => { posthog?.capture('candidate_shortlisted', { candidate_id: c.id, role: c.role, score: c.score }); setStatus('Shortlisted'); }} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
+              <button onClick={() => { posthog?.capture('candidate_shortlisted', { candidate_id: c.id, role: c.role, score: c.score }); changeStatus('Shortlisted'); }} className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
                 <Star className="w-3.5 h-3.5" />
                 Shortlist
               </button>
-              <button className="w-full flex items-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 600 }}>
+              <button onClick={() => changeStatus('Hired')} className="w-full flex items-center gap-2 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 600 }}>
                 <CheckCircle className="w-3.5 h-3.5" />
                 Mark as Hired
               </button>
-              <button onClick={() => { posthog?.capture('candidate_rejected', { candidate_id: c.id, role: c.role, score: c.score }); setStatus('Rejected'); }} className="w-full flex items-center gap-2 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
+              <button onClick={() => { posthog?.capture('candidate_rejected', { candidate_id: c.id, role: c.role, score: c.score }); changeStatus('Rejected'); }} className="w-full flex items-center gap-2 border border-red-100 hover:bg-red-50 text-red-500 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
                 <XCircle className="w-3.5 h-3.5" />
                 Reject
               </button>
@@ -1643,10 +1688,20 @@ function ProfileView({ candidate: c, onBack, onStatusChange }: {
           </div>
           <div className="bg-white rounded-xl border border-gray-100 px-4 py-4">
             <div className="text-xs text-gray-400 mb-3 uppercase tracking-wide" style={{ fontWeight: 600 }}>Contact</div>
-            <button className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors" style={{ fontWeight: 500 }}>
-              <Phone className="w-3.5 h-3.5" />
-              Request Contact Details
+            <button
+              onClick={() => setContactRequested(true)}
+              disabled={contactRequested}
+              className="w-full flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg px-3 py-2 text-xs transition-colors disabled:hover:bg-white disabled:text-[#15803d] disabled:border-[#a7f3d0]"
+              style={{ fontWeight: 500 }}
+            >
+              {contactRequested ? <CheckCircle className="w-3.5 h-3.5" /> : <Phone className="w-3.5 h-3.5" />}
+              {contactRequested ? 'Contact request sent' : 'Request Contact Details'}
             </button>
+            {contactRequested && (
+              <p className="text-xs text-gray-400 mt-2 leading-relaxed gg-in">
+                Sarah will ask {c.name.split(' ')[0]} to share their details with you.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -1809,8 +1864,44 @@ function CandidatesView({ candidates, allCandidates, jobs, selectedJobId, onSele
 
 // ─── Settings view ────────────────────────────────────────────────────────────
 
-function SettingsView() {
+const TEAM = [
+  { name: 'Michael Thompson', email: 'michael@mslogistics.co.uk', role: 'Admin',           initials: 'MT', color: '#10b981' },
+  { name: 'Laura Davies',     email: 'laura@mslogistics.co.uk',   role: 'Hiring Manager',  initials: 'LD', color: '#6366f1' },
+  { name: 'James Patel',      email: 'james@mslogistics.co.uk',   role: 'Recruiter',       initials: 'JP', color: '#f59e0b' },
+];
+
+// Mock invoice as a small text file so "Download" actually downloads something.
+function downloadInvoice(inv: { date: string; amount: string; status: string }) {
+  const body = [
+    'GigGrab invoice',
+    'M&S Logistics Ltd',
+    `Date: ${inv.date}`,
+    `Amount: ${inv.amount}`,
+    `Status: ${inv.status}`,
+  ].join('\n');
+  const url = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `GigGrab-invoice-${inv.date.replace(/\s+/g, '-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function SettingsView({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) {
   const [activeSection, setActiveSection] = useState('account');
+  const [team, setTeam] = useState(TEAM);
+  const [inviting, setInviting] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+
+  const sendInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = inviteEmail.trim();
+    if (!email) return;
+    setTeam(prev => [...prev, { name: email.split('@')[0], email, role: 'Invited', initials: email.slice(0, 2).toUpperCase(), color: '#9ca3af' }]);
+    onToast({ title: 'Invite sent', body: `${email} can join your GigGrab workspace.` });
+    setInviteEmail('');
+    setInviting(false);
+  };
   const sections = [
     { id: 'account',       icon: <User className="w-4 h-4" />,       label: 'Account' },
     { id: 'billing',       icon: <CreditCard className="w-4 h-4" />, label: 'Billing' },
@@ -1853,7 +1944,7 @@ function SettingsView() {
                   <input type={type} defaultValue={value} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#10b981] transition-colors" style={{ fontFamily: 'inherit' }} />
                 </div>
               ))}
-              <button className="bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-5 py-2 text-sm transition-colors" style={{ fontWeight: 600 }}>Save Changes</button>
+              <button onClick={() => onToast({ title: 'Settings saved', body: 'Your account details are up to date.' })} className="bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-5 py-2 text-sm transition-colors" style={{ fontWeight: 600 }}>Save Changes</button>
             </div>
           )}
 
@@ -1876,7 +1967,7 @@ function SettingsView() {
                     <div className="text-sm text-gray-800" style={{ fontWeight: 500 }}>Visa ending in 4242</div>
                     <div className="text-xs text-gray-400">Expires 04/28</div>
                   </div>
-                  <button className="ml-auto text-xs text-[#10b981] hover:underline" style={{ fontWeight: 600 }}>Update</button>
+                  <button onClick={() => onToast({ title: 'Secure link sent', body: 'Check michael@mslogistics.co.uk to update your card.' })} className="ml-auto text-xs text-[#10b981] hover:underline" style={{ fontWeight: 600 }}>Update</button>
                 </div>
               </div>
               <div>
@@ -1891,7 +1982,7 @@ function SettingsView() {
                       <span className="text-gray-600">{inv.date}</span>
                       <span className="text-gray-900" style={{ fontWeight: 600 }}>{inv.amount}</span>
                       <span className="text-xs text-[#15803d] bg-[#f0fdf4] px-2 py-0.5 rounded-full" style={{ fontWeight: 600 }}>{inv.status}</span>
-                      <button className="text-xs text-gray-400 hover:text-gray-700 hover:underline">Download</button>
+                      <button onClick={() => downloadInvoice(inv)} className="text-xs text-gray-400 hover:text-gray-700 hover:underline">Download</button>
                     </div>
                   ))}
                 </div>
@@ -1903,16 +1994,23 @@ function SettingsView() {
             <div className="space-y-5 max-w-lg">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-gray-900" style={{ fontSize: '1rem', fontWeight: 700 }}>Team Members</span>
-                <button className="inline-flex items-center gap-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-3 py-1.5 text-xs transition-colors" style={{ fontWeight: 600 }}>
+                <button onClick={() => setInviting(true)} className="inline-flex items-center gap-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg px-3 py-1.5 text-xs transition-colors" style={{ fontWeight: 600 }}>
                   <Plus className="w-3.5 h-3.5" />
                   Invite Member
                 </button>
               </div>
-              {[
-                { name: 'Michael Thompson', email: 'michael@mslogistics.co.uk', role: 'Admin',           initials: 'MT', color: '#10b981' },
-                { name: 'Laura Davies',     email: 'laura@mslogistics.co.uk',   role: 'Hiring Manager',  initials: 'LD', color: '#6366f1' },
-                { name: 'James Patel',      email: 'james@mslogistics.co.uk',   role: 'Recruiter',       initials: 'JP', color: '#f59e0b' },
-              ].map(member => (
+              {inviting && (
+                <form onSubmit={sendInvite} className="flex gap-2 p-3 border border-[#a7f3d0] bg-[#f0fdf4] rounded-xl gg-in">
+                  <input
+                    type="email" required autoFocus value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    placeholder="colleague@company.com"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#10b981] bg-white" style={{ fontFamily: 'inherit' }}
+                  />
+                  <button type="button" onClick={() => setInviting(false)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 bg-white" style={{ fontWeight: 500 }}>Cancel</button>
+                  <button type="submit" className="px-3 py-1.5 bg-[#10b981] hover:bg-[#059669] text-white rounded-lg text-xs transition-colors" style={{ fontWeight: 600 }}>Send invite</button>
+                </form>
+              )}
+              {team.map(member => (
                 <div key={member.email} className="flex items-center gap-3 p-4 border border-gray-100 rounded-xl">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs shrink-0" style={{ backgroundColor: member.color, fontWeight: 700 }}>{member.initials}</div>
                   <div className="flex-1">

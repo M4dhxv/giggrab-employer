@@ -62,7 +62,7 @@ export default function WorkerProfilePage() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
         <div className="mb-6 flex items-center justify-between gg-in">
           <div>
-            <button onClick={() => navigate('/')} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
+            <button onClick={() => navigate('/worker')} className="text-sm text-gray-500 hover:text-gray-700">← Back</button>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900">Your profile</h1>
           </div>
           <button
@@ -119,7 +119,7 @@ export default function WorkerProfilePage() {
           <section className="flex flex-col rounded-2xl border border-gray-200 bg-white gg-in gg-d2">
             <header className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <h2 className="text-sm font-semibold text-gray-900">CV preview</h2>
-              <button className="inline-flex items-center gap-1.5 text-xs font-medium text-[#059669] hover:text-[#047857]">
+              <button onClick={() => window.print()} className="inline-flex items-center gap-1.5 text-xs font-medium text-[#059669] hover:text-[#047857]">
                 <Download className="w-3.5 h-3.5" /> PDF
               </button>
             </header>

@@ -61,9 +61,9 @@ function SideNav({ active }: { active: string }) {
       </nav>
       <div className="px-3 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-2 px-2">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: GG }}>N</div>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: GG }}>M</div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">NHS Logistics</p>
+            <p className="text-xs font-medium text-gray-700 truncate">M&amp;S Logistics Ltd</p>
             <p className="text-xs text-gray-400">Pro</p>
           </div>
         </div>
@@ -72,8 +72,54 @@ function SideNav({ active }: { active: string }) {
   );
 }
 
+// Value with an inline Edit → input → Save swap.
+function EditableValue({ value, pill = true }: { value: string; pill?: boolean }) {
+  const [val, setVal] = useState(value);
+  const [draft, setDraft] = useState(value);
+  const [editing, setEditing] = useState(false);
+  const save = () => { if (draft.trim()) setVal(draft.trim()); setEditing(false); };
+
+  if (editing) {
+    return (
+      <form onSubmit={(e) => { e.preventDefault(); save(); }} className="flex items-center gap-2 flex-1 justify-end">
+        <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
+          className="text-sm text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 outline-none min-w-0 flex-1 max-w-sm"
+          style={{ borderColor: GG }} />
+        <button type="submit" className="text-xs font-medium" style={{ color: GG }}>Save</button>
+      </form>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <span className={pill ? "text-sm font-medium text-gray-700 px-3 py-1.5 rounded-lg bg-gray-50" : "text-sm text-gray-700"}>{val}</span>
+      <button onClick={() => { setDraft(val); setEditing(true); }} className="text-xs text-gray-400 hover:text-gray-600">Edit</button>
+    </div>
+  );
+}
+
+function ConnectButton() {
+  const [connected, setConnected] = useState(false);
+  return connected ? (
+    <button onClick={() => setConnected(false)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border"
+      style={{ color: GG, borderColor: GG, backgroundColor: GG_LIGHT }}>
+      <Check size={12} strokeWidth={3} /> Connected
+    </button>
+  ) : (
+    <button onClick={() => setConnected(true)} className="px-3 py-1.5 rounded-lg text-xs font-medium text-white" style={{ backgroundColor: GG }}>Connect</button>
+  );
+}
+
+const DEFAULT_QUESTIONS = [
+  "Are you available to start within 2 weeks?",
+  "Do you have previous warehouse experience?",
+  "Are you comfortable working rotating shifts?",
+  "Do you have the right to work in the UK?",
+];
+
 export default function SettingsPage() {
   const [tab, setTab] = useState("ATS");
+  const [questions, setQuestions] = useState(DEFAULT_QUESTIONS.map((text, i) => ({ id: i, text })));
+  const [cardLinkSent, setCardLinkSent] = useState(false);
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -113,7 +159,7 @@ export default function SettingsPage() {
                         <p className="text-xs text-gray-400">Applicant Tracking System</p>
                       </div>
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg text-xs font-medium text-white" style={{ backgroundColor: GG }}>Connect</button>
+                    <ConnectButton />
                   </div>
                 ))}
               </div>
@@ -134,7 +180,7 @@ export default function SettingsPage() {
                         <p className="text-xs text-gray-400">Job Board</p>
                       </div>
                     </div>
-                    <button className="px-3 py-1.5 rounded-lg text-xs font-medium text-white" style={{ backgroundColor: GG }}>Connect</button>
+                    <ConnectButton />
                   </div>
                 ))}
               </div>
@@ -157,10 +203,7 @@ export default function SettingsPage() {
                       <p className="text-sm font-semibold text-gray-900">{label}</p>
                       <p className="text-xs text-gray-400">{desc}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700 px-3 py-1.5 rounded-lg bg-gray-50">{val}</span>
-                      <button className="text-xs text-gray-400 hover:text-gray-600">Edit</button>
-                    </div>
+                    <EditableValue value={val} />
                   </div>
                 ))}
               </div>
@@ -171,22 +214,17 @@ export default function SettingsPage() {
             <div>
               <p className="text-sm text-gray-500 mb-6">Manage the questions Sarah asks during candidate screening calls.</p>
               <div className="space-y-3 mb-4">
-                {[
-                  "Are you available to start within 2 weeks?",
-                  "Do you have previous warehouse experience?",
-                  "Are you comfortable working rotating shifts?",
-                  "Do you have the right to work in the UK?",
-                ].map((q, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
-                    <p className="text-sm text-gray-700">{q}</p>
-                    <div className="flex items-center gap-2">
-                      <button className="text-xs text-gray-400 hover:text-gray-600">Edit</button>
-                      <button className="text-xs text-red-400 hover:text-red-600">Remove</button>
-                    </div>
+                {questions.map((q) => (
+                  <div key={q.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between gap-3">
+                    <EditableValue value={q.text} pill={false} />
+                    <button onClick={() => setQuestions((prev) => prev.filter((x) => x.id !== q.id))}
+                      className="text-xs text-red-400 hover:text-red-600 shrink-0">Remove</button>
                   </div>
                 ))}
               </div>
-              <button className="flex items-center gap-2 text-sm font-medium" style={{ color: GG }}>
+              <button
+                onClick={() => setQuestions((prev) => [...prev, { id: Date.now(), text: "Do you hold a valid forklift licence?" }])}
+                className="flex items-center gap-2 text-sm font-medium" style={{ color: GG }}>
                 <Plus size={16} /> Add screening question
               </button>
             </div>
@@ -234,8 +272,11 @@ export default function SettingsPage() {
                     <p className="text-sm font-semibold text-gray-900">Visa ending 4242</p>
                     <p className="text-xs text-gray-400">Expires 08/2027</p>
                   </div>
-                  <button className="ml-auto text-sm font-medium" style={{ color: GG }}>Update</button>
+                  <button onClick={() => setCardLinkSent(true)} className="ml-auto text-sm font-medium" style={{ color: GG }}>Update</button>
                 </div>
+                {cardLinkSent && (
+                  <p className="text-xs text-gray-500">We've emailed you a secure link to update your card.</p>
+                )}
               </div>
             </div>
           )}
@@ -253,10 +294,7 @@ export default function SettingsPage() {
                 ].map(({ label, val }) => (
                   <div key={label} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between">
                     <p className="text-sm font-semibold text-gray-900">{label}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-700 px-3 py-1.5 rounded-lg bg-gray-50">{val}</span>
-                      <button className="text-xs text-gray-400 hover:text-gray-600">Edit</button>
-                    </div>
+                    <EditableValue value={val} />
                   </div>
                 ))}
               </div>

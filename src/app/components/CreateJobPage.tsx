@@ -55,6 +55,7 @@ export default function CreateJobPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone number</label>
               <input
                 type="tel"
+                required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none text-gray-900 transition-colors"
