@@ -226,12 +226,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
+      <nav className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-gray-100">
         <button className="text-xl font-bold tracking-tight" style={{ color: GG }}>GigGrab</button>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <button onClick={() => navigate("/worker")} className="hover:text-gray-900">For Workers</button>
+        <div className="flex items-center gap-4 sm:gap-6 text-sm text-gray-600">
+          <button onClick={() => navigate("/worker")} className="hidden sm:inline hover:text-gray-900">For Workers</button>
           <button onClick={() => navigate("/pricing")} className="font-medium hover:text-gray-900">Pricing</button>
-          <button onClick={() => navigate("/dashboard")} className="hover:text-gray-900">Log In</button>
+          <button onClick={() => navigate("/dashboard")} className="hidden sm:inline hover:text-gray-900">Log In</button>
           <button onClick={() => navigate("/post-job")}
             className="px-4 py-2 text-xs text-white rounded-xl font-semibold cursor-pointer transition-opacity"
             style={{ backgroundColor: GG }}>
@@ -241,7 +241,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-8 pt-16 pb-12 grid grid-cols-2 gap-14 items-start">
+      <section className="max-w-6xl mx-auto px-4 sm:px-8 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-start">
         <div>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-5"
             style={{ backgroundColor: GG_LIGHT, color: GG }}>
@@ -288,13 +288,13 @@ export default function LandingPage() {
 
       {/* Full flow */}
       <section className="bg-gray-50 py-14">
-        <div className="max-w-5xl mx-auto px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">How it works</p>
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-10">From call to qualified shortlist in hours.</h2>
           <div className="relative">
             {/* connecting line */}
             <div className="absolute top-9 left-[calc(10%+20px)] right-[calc(10%+20px)] h-px bg-gray-200 hidden lg:block" />
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
               {FLOW_STEPS.map((step, i) => (
                 <div key={i} className="flex flex-col items-center text-center relative">
                   <div className="w-11 h-11 rounded-full flex items-center justify-center mb-3 z-10 border-2 border-white shadow-sm"
@@ -322,10 +322,10 @@ export default function LandingPage() {
       </section>
 
       {/* Two modes */}
-      <section className="py-14 max-w-5xl mx-auto px-8">
+      <section className="py-14 max-w-5xl mx-auto px-4 sm:px-8">
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Two ways to hire</p>
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Pick the workflow that fits your hiring.</h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
             {
               title: "Distribute and Screen",
@@ -375,11 +375,11 @@ export default function LandingPage() {
 
       {/* Integrations */}
       <section className="bg-gray-50 py-14">
-        <div className="max-w-5xl mx-auto px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Integrations</p>
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Works with your existing stack</h2>
           <p className="text-center text-gray-500 text-sm mb-10">Sarah plugs into your ATS and job boards. No manual posting, ever.</p>
-          <div className="grid grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {[
               { label: "ATS", sub: "applicant tracking", items: ATS_DATA, more: "20 more ATS" },
               { label: "Job Boards", sub: "multi-platform", items: BOARD_DATA, more: "15 more boards" },
@@ -418,7 +418,7 @@ export default function LandingPage() {
 
       {/* 32 Languages */}
       <section className="py-12">
-        <div className="max-w-5xl mx-auto px-8 grid grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: GG_LIGHT, color: GG }}>
