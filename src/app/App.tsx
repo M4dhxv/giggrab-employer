@@ -17,6 +17,7 @@ import WorkerDashboardPage from './components/WorkerDashboardPage';
 import CandidateFormPage from './components/CandidateFormPage';
 import ScreeningCallPage from './components/ScreeningCallPage';
 import EnterpriseOnboardingPage from './components/EnterpriseOnboardingPage';
+import PricingPage from './components/PricingPage';
 import AdminDashboardPage from './components/AdminDashboardPage';
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/campaigns" element={<CampaignsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
 
           {/* Candidate flow pages */}
           <Route path="/form" element={<CandidateFormPage />} />

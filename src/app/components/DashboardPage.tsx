@@ -1172,7 +1172,7 @@ export default function DashboardPage() {
             jobs={jobs}
             onToggleStatus={id => updateJob(id, { status: jobs.find(j => j.id === id)?.status === 'Active' ? 'Paused' : 'Active' })}
             onSelectJob={id => { setSelectedJobId(id); setView('dashboard'); }}
-            onStartCampaign={() => navigate('/choose-plan')}
+            onStartCampaign={() => navigate('/service')}
           />
         )}
         {view === 'candidates' && (

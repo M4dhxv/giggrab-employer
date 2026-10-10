@@ -230,7 +230,7 @@ export default function LandingPage() {
         <button className="text-xl font-bold tracking-tight" style={{ color: GG }}>GigGrab</button>
         <div className="flex items-center gap-6 text-sm text-gray-600">
           <button onClick={() => navigate("/worker")} className="hover:text-gray-900">For Workers</button>
-          <span className="cursor-pointer font-medium hover:text-gray-900">Pricing</span>
+          <button onClick={() => navigate("/pricing")} className="font-medium hover:text-gray-900">Pricing</button>
           <button onClick={() => navigate("/dashboard")} className="hover:text-gray-900">Log In</button>
           <button onClick={() => navigate("/post-job")}
             className="px-4 py-2 text-xs text-white rounded-xl font-semibold cursor-pointer transition-opacity"
