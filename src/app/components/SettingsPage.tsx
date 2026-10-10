@@ -73,16 +73,16 @@ function SideNav({ active }: { active: string }) {
 }
 
 // Value with an inline Edit → input → Save swap.
-function EditableValue({ value, pill = true }: { value: string; pill?: boolean }) {
+function EditableValue({ value, pill = true, startEditing = false }: { value: string; pill?: boolean; startEditing?: boolean }) {
   const [val, setVal] = useState(value);
   const [draft, setDraft] = useState(value);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(startEditing);
   const save = () => { if (draft.trim()) setVal(draft.trim()); setEditing(false); };
 
   if (editing) {
     return (
       <form onSubmit={(e) => { e.preventDefault(); save(); }} className="flex items-center gap-2 flex-1 justify-end">
-        <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
+        <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onFocus={(e) => e.target.select()}
           className="text-sm text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 outline-none min-w-0 flex-1 max-w-sm"
           style={{ borderColor: GG }} />
         <button type="submit" className="text-xs font-medium" style={{ color: GG }}>Save</button>
@@ -118,7 +118,7 @@ const DEFAULT_QUESTIONS = [
 
 export default function SettingsPage() {
   const [tab, setTab] = useState("ATS");
-  const [questions, setQuestions] = useState(DEFAULT_QUESTIONS.map((text, i) => ({ id: i, text })));
+  const [questions, setQuestions] = useState(DEFAULT_QUESTIONS.map((text, i) => ({ id: i, text, isNew: false })));
   const [cardLinkSent, setCardLinkSent] = useState(false);
 
   return (
@@ -216,14 +216,14 @@ export default function SettingsPage() {
               <div className="space-y-3 mb-4">
                 {questions.map((q) => (
                   <div key={q.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between gap-3">
-                    <EditableValue value={q.text} pill={false} />
+                    <EditableValue value={q.text} pill={false} startEditing={q.isNew} />
                     <button onClick={() => setQuestions((prev) => prev.filter((x) => x.id !== q.id))}
                       className="text-xs text-red-400 hover:text-red-600 shrink-0">Remove</button>
                   </div>
                 ))}
               </div>
               <button
-                onClick={() => setQuestions((prev) => [...prev, { id: Date.now(), text: "Do you hold a valid forklift licence?" }])}
+                onClick={() => setQuestions((prev) => [...prev, { id: Date.now(), text: "New screening question", isNew: true }])}
                 className="flex items-center gap-2 text-sm font-medium" style={{ color: GG }}>
                 <Plus size={16} /> Add screening question
               </button>

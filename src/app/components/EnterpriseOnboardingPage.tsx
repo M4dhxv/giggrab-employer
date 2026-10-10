@@ -476,7 +476,7 @@ function LoginScreen({ onNext }: { onNext: () => void }) {
             {showEmail ? (
               <div className="space-y-3">
                 <input type="email" placeholder="Work email address" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus className="w-full border-2 border-gray-200 rounded-xl px-5 py-4 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-400 transition-all" />
-                <Btn onClick={onNext} className="w-full" size="lg">Continue <ArrowRight size={18} /></Btn>
+                <Btn onClick={onNext} disabled={!/^\S+@\S+\.\S+$/.test(email)} className="w-full" size="lg">Continue <ArrowRight size={18} /></Btn>
               </div>
             ) : (
               <button onClick={() => setShowEmail(true)} className="w-full bg-gray-900 text-white rounded-xl px-5 py-4 text-base font-semibold hover:bg-green-700 transition-all">Continue with Email</button>
@@ -1079,7 +1079,8 @@ const CALL_LANGUAGES = [
   { code: "ro", label: "Romanian" },
 ];
 
-function ScreeningScreen({ onNext }: { onNext: () => void }) {
+// onNext gets the question count when the employer wrote them by hand.
+function ScreeningScreen({ onNext }: { onNext: (manualCount?: number) => void }) {
   const [mode, setMode] = useState<"manual" | "sarah" | null>(null);
 
   // manual sub-steps: "job" → "questions"
@@ -1284,7 +1285,7 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
           </div>
         )}
 
-        <Btn onClick={onNext} disabled={!canContinue} className="w-full" size="lg">
+        <Btn onClick={() => onNext(mode === "manual" ? questions.length : undefined)} disabled={!canContinue} className="w-full" size="lg">
           {canContinue ? "Save and continue" : "Choose an option to continue"}
           <ArrowRight size={18} />
         </Btn>
@@ -1298,15 +1299,16 @@ function ScreeningScreen({ onNext }: { onNext: () => void }) {
 function GoLiveScreen({
   number,
   atsName,
+  questionCount,
   onDone,
-}: { number: string; atsName: string | null; onDone: () => void }) {
+}: { number: string; atsName: string | null; questionCount: number | null; onDone: () => void }) {
   const data = getImport(atsName);
 
   const summary = [
     { label: "Dedicated Number", value: number || "020 8123 4567", icon: <Phone size={18} /> },
     { label: "Connected ATS", value: atsName ?? "No ATS (manual)", icon: <Zap size={18} /> },
     { label: "Imported Jobs", value: atsName ? `${data.importedJobs} roles` : "Set up manually", icon: <Briefcase size={18} /> },
-    { label: "Screening Configured", value: `${data.screeningQuestions} questions active`, icon: <CheckCircle size={18} /> },
+    { label: "Screening Configured", value: `${questionCount ?? data.screeningQuestions} questions active`, icon: <CheckCircle size={18} /> },
   ];
 
   return (
@@ -2609,6 +2611,7 @@ export default function EnterpriseOnboardingPage() {
   const [areaCity, setAreaCity] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [atsName, setAtsName] = useState<string | null>(null);
+  const [screeningCount, setScreeningCount] = useState<number | null>(null);
   const [dashPage, setDashPage] = useState<DashPage>("home");
   const [selectedJobName, setSelectedJobName] = useState<string>(JOBS_DATA[0].title);
 
@@ -2659,10 +2662,10 @@ export default function EnterpriseOnboardingPage() {
         <ATSImportedScreen atsName={atsName ?? "Greenhouse"} onNext={() => setStep("screening")} />
       )}
       {step === "screening" && (
-        <ScreeningScreen onNext={() => setStep("golive")} />
+        <ScreeningScreen onNext={(n) => { setScreeningCount(n ?? null); setStep("golive"); }} />
       )}
       {step === "golive" && (
-        <GoLiveScreen number={phoneNumber} atsName={atsName} onDone={() => setStep("dashboard")} />
+        <GoLiveScreen number={phoneNumber} atsName={atsName} questionCount={screeningCount} onDone={() => setStep("dashboard")} />
       )}
       {step === "dashboard" && (
         <DashboardShell activePage={dashPage} onNav={setDashPage} onSignOut={() => { setDashPage("home"); setStep("login"); }} phoneNumber={phoneNumber}>

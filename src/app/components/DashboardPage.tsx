@@ -1313,7 +1313,7 @@ function DashboardView({ jobs, selectedJob, onSelectJob, candidates, search, onS
             </div>
             <div className="relative">
               <select value={statusFilter} onChange={e => onStatusFilter(e.target.value)} className="appearance-none pl-3 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg outline-none bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
-                {['All', 'Qualified', 'Available', 'Review', 'Interview', 'Shortlisted'].map(s => <option key={s}>{s}</option>)}
+                {['All', 'Qualified', 'Available', 'Review', 'Interview', 'Shortlisted', 'Hired'].map(s => <option key={s}>{s}</option>)}
               </select>
               <ChevronDown className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -1414,8 +1414,8 @@ function ProfileView({ candidate: c, onBack, onUpdate }: {
     if (!newInterview.date || !newInterview.time) return;
     const interview: Interview = {
       id: `i${Date.now()}`,
-      date: newInterview.date,
-      time: newInterview.time,
+      date: new Date(`${newInterview.date}T00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      time: new Date(`${newInterview.date}T${newInterview.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       type: newInterview.type,
       status: 'Upcoming',
       notes: newInterview.notes,
@@ -1451,7 +1451,7 @@ function ProfileView({ candidate: c, onBack, onUpdate }: {
               <div className="w-14 h-14 rounded-full flex items-center justify-center text-white shrink-0" style={{ backgroundColor: c.color, fontSize: '1.1rem', fontWeight: 700 }}>{c.initials}</div>
               <div className="flex-1">
                 <div className="text-gray-900 mb-0.5" style={{ fontSize: '1.15rem', fontWeight: 700 }}>{c.name}</div>
-                <div className="text-sm text-gray-400 mb-2">{c.role} · {c.job}</div>
+                <div className="text-sm text-gray-400 mb-2">{c.role}{c.job !== c.role && ` · ${c.job}`}</div>
                 <div className="flex items-center gap-2">
                   <span className="inline-block rounded-full px-2.5 py-0.5 text-xs" style={{ backgroundColor: s.bg, color: s.text, fontWeight: 600 }}>{status}</span>
                   <span className="text-xs text-gray-400">Match score: <span style={{ fontWeight: 700, color: '#10b981' }}>{c.score}/100</span></span>
@@ -1848,7 +1848,7 @@ function CandidatesView({ candidates, allCandidates, jobs, selectedJobId, onSele
           </div>
           <div className="relative">
             <select value={statusFilter} onChange={e => onStatusFilter(e.target.value)} className="appearance-none pl-3 pr-7 py-2 text-xs border border-gray-200 rounded-lg outline-none bg-white cursor-pointer" style={{ fontFamily: 'inherit' }}>
-              {['All', 'Qualified', 'Available', 'Review', 'Interview', 'Shortlisted'].map(s => <option key={s}>{s}</option>)}
+              {['All', 'Qualified', 'Available', 'Review', 'Interview', 'Shortlisted', 'Hired'].map(s => <option key={s}>{s}</option>)}
             </select>
             <ChevronDown className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
