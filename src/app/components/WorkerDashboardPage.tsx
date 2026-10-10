@@ -37,7 +37,7 @@ type Job = {
 const JOBS: Job[] = [
   {
     id: 'j1', title: 'Forklift Driver (Counterbalance)', company: 'Kuehne+Nagel',
-    location: 'Trafford Park, Manchester', pay: '£13.50–£15/hr', shift: 'Nights · Full-time',
+    location: 'Trafford Park, Manchester', pay: '$13.50–$15/hr', shift: 'Nights · Full-time',
     source: 'giggrab', matchPct: 96,
     why: 'Exact trade + valid counterbalance licence, 8 min from you, nights you said you prefer.',
     description: 'Operating counterbalance forklifts in a busy distribution centre. Nights team, permanent contract, overtime available.',
@@ -49,7 +49,7 @@ const JOBS: Job[] = [
   },
   {
     id: 'j2', title: 'Warehouse Operative', company: 'DHL Supply Chain',
-    location: 'Salford, Manchester', pay: '£12.80/hr', shift: 'Rotating · Full-time',
+    location: 'Salford, Manchester', pay: '$12.80/hr', shift: 'Rotating · Full-time',
     source: 'external', matchPct: 91,
     why: 'Same role as your last job at DHL — picking & loading experience maps directly.',
     description: 'Picking, packing, and loading in a temperature-controlled warehouse. Rotating shifts, permanent role.',
@@ -61,19 +61,19 @@ const JOBS: Job[] = [
   },
   {
     id: 'j3', title: 'Reach Truck Driver', company: 'XPO Logistics',
-    location: 'Trafford Park, Manchester', pay: '£14/hr', shift: 'Days · Full-time',
+    location: 'Trafford Park, Manchester', pay: '$14/hr', shift: 'Days · Full-time',
     source: 'giggrab', matchPct: 88,
     why: 'You drove reach trucks at XPO before — strong fit and pay above your stated floor.',
     description: 'Day shift reach truck driving in a high-bay warehouse. Permanent contract with pension.',
     mustHaves: ['Reach truck licence', 'MHE experience'],
     mustHavesMet: [false, true],
-    cvStrengths: ['XPO Logistics experience — you\'ve worked at this exact employer', 'Reach truck operation listed in your XPO role (2019–2023)', '£14/hr exceeds your stated £13/hr floor', 'Inbound goods and stock replenishment matches the spec exactly'],
+    cvStrengths: ['XPO Logistics experience — you\'ve worked at this exact employer', 'Reach truck operation listed in your XPO role (2019–2023)', '$14/hr exceeds your stated $13/hr floor', 'Inbound goods and stock replenishment matches the spec exactly'],
     cvGaps: ['Reach truck licence not listed separately on CV — clarify if still valid, as it may have expired since XPO'],
     tags: ['near'], typeTag: ['fulltime'],
   },
   {
     id: 'j4', title: 'Night Shift Picker', company: 'Amazon Fulfilment',
-    location: 'Haydock, St Helens', pay: '£13/hr', shift: 'Nights · Part-time',
+    location: 'Haydock, St Helens', pay: '$13/hr', shift: 'Nights · Part-time',
     source: 'external', matchPct: 82,
     why: 'Night shift preference matched, consistent guaranteed hours, no zero-hours.',
     description: 'Part-time nights in a fulfilment centre. Fixed hours, weekly pay, no zero-hours contract.',
@@ -85,7 +85,7 @@ const JOBS: Job[] = [
   },
   {
     id: 'j5', title: 'Goods-In Operative', company: 'The Hut Group',
-    location: 'Warrington', pay: '£12.50/hr', shift: 'Weekends · Part-time',
+    location: 'Warrington', pay: '$12.50/hr', shift: 'Weekends · Part-time',
     source: 'external', matchPct: 79,
     why: 'Within your travel range and weekend hours match your availability.',
     description: 'Receiving and checking inbound stock at a modern fulfilment centre. Weekend shifts, part-time.',
@@ -97,19 +97,19 @@ const JOBS: Job[] = [
   },
   {
     id: 'j6', title: 'Delivery Driver', company: 'Evri',
-    location: 'Remote / Manchester routes', pay: '£14–£17/hr', shift: 'Flexible · Full-time',
+    location: 'Remote / Manchester routes', pay: '$14–$17/hr', shift: 'Flexible · Full-time',
     source: 'external', matchPct: 74,
     why: 'Flexible hours, pays above your floor, van provided. No forklift needed.',
     description: 'Parcel delivery driver on Manchester routes. Van provided, flexible start times, self-employed basis.',
     mustHaves: ['Full UK driving licence', 'Own phone'],
     mustHavesMet: [false, true],
-    cvStrengths: ['Pay ceiling of £17/hr is well above your £13/hr floor', 'Flexible start times match your stated availability', 'Manchester routes are local to your location'],
+    cvStrengths: ['Pay ceiling of $17/hr is well above your $13/hr floor', 'Flexible start times match your stated availability', 'Manchester routes are local to your location'],
     cvGaps: ['Full UK driving licence not listed on your CV — add it if you have one', 'No delivery or van driving experience in your work history'],
     tags: ['remote'], typeTag: ['fulltime'],
   },
 ];
 
-const HOTLINE = '+44 20 4571 8822';
+const HOTLINE = '+1 (312) 555-0199';
 
 export default function WorkerDashboardPage() {
   const navigate = useNavigate();
@@ -471,7 +471,7 @@ function ProfileTab({ navigate }: { navigate: ReturnType<typeof useNavigate> }) 
           </CvSection>
           <div className="grid grid-cols-2 gap-4">
             <CvSection heading="Availability"><p className="text-sm text-gray-800">Available now · nights & weekends OK</p></CvSection>
-            <CvSection heading="Pay expectation"><p className="text-sm text-gray-800">~£13/hr (more for nights)</p></CvSection>
+            <CvSection heading="Pay expectation"><p className="text-sm text-gray-800">~$13/hr (more for nights)</p></CvSection>
           </div>
           <CvSection heading="Languages">
             <div className="flex gap-2 flex-wrap">

@@ -82,7 +82,7 @@ export default function SetBudgetPage() {
 
                 {plan === 'free' ? (
                   <div className="mb-8">
-                    <div className="text-5xl mb-2">£0</div>
+                    <div className="text-5xl mb-2">$0</div>
                     <div className="text-sm text-gray-500">/day — no budget required</div>
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
                       Your job will appear in organic search results only. Upgrade to Standard or Premium to reach more candidates faster.
@@ -91,7 +91,7 @@ export default function SetBudgetPage() {
                 ) : (
                   <div className="mb-8">
                     <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-5xl">£{dailyBudget}</span>
+                      <span className="text-5xl">${dailyBudget}</span>
                       <span className="text-gray-500">/day</span>
                     </div>
                     <Slider
@@ -106,8 +106,8 @@ export default function SetBudgetPage() {
                       }}
                     />
                     <div className="flex justify-between text-sm text-gray-500 mt-1">
-                      <span>£{config.min} (min)</span>
-                      <span>£{config.max}</span>
+                      <span>${config.min} (min)</span>
+                      <span>${config.max}</span>
                     </div>
                   </div>
                 )}
@@ -222,12 +222,12 @@ export default function SetBudgetPage() {
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 mb-0.5">Recommended daily budget</div>
-                    <div className="text-3xl text-[#10b981]">£45/day</div>
+                    <div className="text-3xl text-[#10b981]">$45/day</div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 mb-5 space-y-2">
-                  <div className="text-xs text-gray-500 mb-2">Expected results at £45/day</div>
+                  <div className="text-xs text-gray-500 mb-2">Expected results at $45/day</div>
                   <RecoStat label="Worker Reach" value="810" />
                   <RecoStat label="Interested Workers" value="54–81" />
                   <RecoStat label="Qualified Candidates" value="16–25" />

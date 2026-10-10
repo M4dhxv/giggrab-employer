@@ -15,7 +15,7 @@ const TRANSCRIPT: { from: "sarah" | "employer"; text: string; phase: 1 | 2 }[] =
   { phase: 1, from: "sarah",    text: "Where is the role based? City and postcode if you have it." },
   { phase: 1, from: "employer", text: "Manchester, M1." },
   { phase: 1, from: "sarah",    text: "What's the pay rate and shift pattern?" },
-  { phase: 1, from: "employer", text: "£13 per hour, day shifts, some weekend flexibility needed." },
+  { phase: 1, from: "employer", text: "$13 per hour, day shifts, some weekend flexibility needed." },
   { phase: 1, from: "sarah",    text: "Any specific requirements — licences, certifications, physical requirements?" },
   { phase: 1, from: "employer", text: "No licence needed, but they need to be physically fit and reliable. Right to work in the UK is essential." },
   { phase: 1, from: "sarah",    text: "I've put together your job description. Before I start reaching candidates, let me set up how I'll screen them. I use a two-tier system — quick Yes/No questions that build a suitability score, then follow-up questions for context. Sound good?" },
@@ -31,7 +31,7 @@ const JD_FIELDS: { key: string; val: string; afterMsg: number }[] = [
   { key: "Job Title",       val: "Warehouse Associate",              afterMsg: 1 },
   { key: "Hiring Volume",   val: "15 workers",                       afterMsg: 3 },
   { key: "Location",        val: "Manchester, M1",                   afterMsg: 5 },
-  { key: "Pay Rate",        val: "£13/hour",                         afterMsg: 7 },
+  { key: "Pay Rate",        val: "$13/hour",                         afterMsg: 7 },
   { key: "Shift Pattern",   val: "Day shifts, weekend flexibility",   afterMsg: 7 },
   { key: "Requirements",    val: "Physically fit, reliable, RTW UK",  afterMsg: 9 },
 ];

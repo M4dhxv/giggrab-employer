@@ -16,14 +16,14 @@ const PLANS: {
   {
     id: 'free',
     title: 'FREE',
-    price: '£0/day',
+    price: '$0/day',
     badge: 'Best for testing',
     features: ['Listed on GigGrab', 'Basic visibility', 'Organic discovery only'],
   },
   {
     id: 'standard',
     title: 'STANDARD',
-    price: '£15–£50/day',
+    price: '$15–$50/day',
     badge: 'Most popular',
     recommended: true,
     features: [
@@ -37,7 +37,7 @@ const PLANS: {
   {
     id: 'premium',
     title: 'PREMIUM',
-    price: '£50+/day',
+    price: '$50+/day',
     badge: 'Fastest fill',
     features: [
       'Everything in Standard',
@@ -99,7 +99,7 @@ export default function ReachBudgetPage() {
                 <div className="bg-white rounded-2xl border border-gray-200 p-7 gg-in">
                   <h3 className="font-bold text-gray-900 mb-5">Daily Budget</h3>
                   <div className="flex items-baseline gap-1 mb-5">
-                    <span className="text-3xl font-extrabold text-gray-900">£{dailyBudget}</span>
+                    <span className="text-3xl font-extrabold text-gray-900">${dailyBudget}</span>
                     <span className="text-gray-400">/day</span>
                   </div>
                   <Slider
@@ -114,7 +114,7 @@ export default function ReachBudgetPage() {
                     }}
                   />
                   <div className="flex justify-between text-xs text-gray-400 mb-6">
-                    <span>£0</span><span>£250</span>
+                    <span>$0</span><span>$250</span>
                   </div>
 
                   <div className="bg-gray-50 rounded-xl p-5">
@@ -149,7 +149,7 @@ export default function ReachBudgetPage() {
 
                 <div className="border-t border-gray-100 pt-4 mb-4">
                   <div className="text-xs text-gray-500 mb-1">Recommended</div>
-                  <div className="text-2xl font-extrabold text-gray-900 mb-3">£35/day</div>
+                  <div className="text-2xl font-extrabold text-gray-900 mb-3">$35/day</div>
                   <div className="text-xs text-gray-500 mb-1">Expected</div>
                   <div className="text-sm font-semibold text-gray-900">10–15 qualified candidates/week</div>
                 </div>

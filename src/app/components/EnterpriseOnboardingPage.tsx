@@ -37,8 +37,8 @@ type ActivityItem = {
 // ─── Mock Data ────────────────────────────────────────────────
 
 const COUNTRIES = [
-  { code: "GB", name: "United Kingdom", dial: "+44", flag: "🇬🇧" },
   { code: "US", name: "United States", dial: "+1", flag: "🇺🇸" },
+  { code: "GB", name: "United Kingdom", dial: "+44", flag: "🇬🇧" },
   { code: "CA", name: "Canada", dial: "+1", flag: "🇨🇦" },
   { code: "IE", name: "Ireland", dial: "+353", flag: "🇮🇪" },
   { code: "AU", name: "Australia", dial: "+61", flag: "🇦🇺" },
@@ -75,7 +75,11 @@ const AREA_CODES: Record<string, { code: string; city: string }[]> = {
   ],
 };
 
-const generateNumbers = (areaCode: string): string[] => [
+// US/Canadian area codes are 3 digits: show (312) 555-01XX, the range
+// reserved for fictional numbers. Other countries keep their local style.
+const generateNumbers = (areaCode: string): string[] => /^\d{3}$/.test(areaCode)
+  ? ["0142", "0158", "0163", "0170", "0181", "0187", "0194"].map((n) => `(${areaCode}) 555-${n}`)
+  : [
   `${areaCode} 8123 4567`,
   `${areaCode} 8123 4588`,
   `${areaCode} 8123 4621`,
@@ -228,16 +232,16 @@ const CANDIDATES_DATA = [
 ];
 
 const CALL_LOGS_DATA = [
-  { id: 1, caller: "+44 7700 900123", name: "Marcus Okafor", time: "09:14", date: "Today", duration: "4:32", type: "screening", outcome: "Qualified", status: "completed" },
-  { id: 2, caller: "+44 7700 900456", name: "Unknown caller", time: "09:28", date: "Today", duration: "1:15", type: "incoming", outcome: "Voicemail", status: "missed" },
-  { id: 3, caller: "+44 7700 900789", name: "Agnieszka Kowal", time: "09:45", date: "Today", duration: "6:18", type: "screening", outcome: "Qualified", status: "completed" },
-  { id: 4, caller: "+44 7700 900111", name: "Unknown caller", time: "10:02", date: "Today", duration: "—", type: "incoming", outcome: "Not answered", status: "missed" },
-  { id: 5, caller: "+44 7700 900222", name: "Deon Petersen", time: "10:30", date: "Today", duration: "5:44", type: "screening", outcome: "Qualified", status: "completed" },
-  { id: 6, caller: "+44 7700 900333", name: "James Thornton", time: "11:05", date: "Today", duration: "3:22", type: "screening", outcome: "In Progress", status: "in-progress" },
-  { id: 7, caller: "+44 7700 900444", name: "Maria Santos", time: "11:20", date: "Today", duration: "4:55", type: "screening", outcome: "Qualified", status: "completed" },
-  { id: 8, caller: "+44 7700 900555", name: "Unknown caller", time: "08:33", date: "Yesterday", duration: "2:11", type: "incoming", outcome: "Voicemail", status: "missed" },
-  { id: 9, caller: "+44 7700 900666", name: "Fatima Al-Hassan", time: "14:10", date: "Yesterday", duration: "5:02", type: "screening", outcome: "Qualified", status: "completed" },
-  { id: 10, caller: "+44 7700 900777", name: "Priya Sharma", time: "15:45", date: "Yesterday", duration: "4:15", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 1, caller: "+1 (312) 555-0123", name: "Marcus Okafor", time: "09:14", date: "Today", duration: "4:32", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 2, caller: "+1 (312) 555-0156", name: "Unknown caller", time: "09:28", date: "Today", duration: "1:15", type: "incoming", outcome: "Voicemail", status: "missed" },
+  { id: 3, caller: "+1 (312) 555-0189", name: "Agnieszka Kowal", time: "09:45", date: "Today", duration: "6:18", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 4, caller: "+1 (312) 555-0111", name: "Unknown caller", time: "10:02", date: "Today", duration: "—", type: "incoming", outcome: "Not answered", status: "missed" },
+  { id: 5, caller: "+1 (312) 555-0122", name: "Deon Petersen", time: "10:30", date: "Today", duration: "5:44", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 6, caller: "+1 (312) 555-0133", name: "James Thornton", time: "11:05", date: "Today", duration: "3:22", type: "screening", outcome: "In Progress", status: "in-progress" },
+  { id: 7, caller: "+1 (312) 555-0144", name: "Maria Santos", time: "11:20", date: "Today", duration: "4:55", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 8, caller: "+1 (312) 555-0155", name: "Unknown caller", time: "08:33", date: "Yesterday", duration: "2:11", type: "incoming", outcome: "Voicemail", status: "missed" },
+  { id: 9, caller: "+1 (312) 555-0166", name: "Fatima Al-Hassan", time: "14:10", date: "Yesterday", duration: "5:02", type: "screening", outcome: "Qualified", status: "completed" },
+  { id: 10, caller: "+1 (312) 555-0177", name: "Priya Sharma", time: "15:45", date: "Yesterday", duration: "4:15", type: "screening", outcome: "Qualified", status: "completed" },
 ];
 
 const INITIAL_ACTIVITY: ActivityItem[] = [
@@ -601,7 +605,7 @@ function ExistingNumberScreen({ onConfirm }: { onConfirm: (number: string) => vo
             type="tel"
             value={number}
             onChange={(e) => setNumber(e.target.value)}
-            placeholder="+44 20 7123 4567"
+            placeholder="+1 (312) 555-0100"
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-green-400 transition-all"
           />
           {mode === "port" && (
@@ -1233,7 +1237,7 @@ function ScreeningScreen({ onNext }: { onNext: (manualCount?: number) => void })
                   type="tel"
                   value={sarahPhone}
                   onChange={(e) => setSarahPhone(e.target.value)}
-                  placeholder="+44 7700 900000"
+                  placeholder="+1 (312) 555-0100"
                   className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-green-400 transition-all"
                 />
               </div>
@@ -1305,7 +1309,7 @@ function GoLiveScreen({
   const data = getImport(atsName);
 
   const summary = [
-    { label: "Dedicated Number", value: number || "020 8123 4567", icon: <Phone size={18} /> },
+    { label: "Dedicated Number", value: number || "(312) 555-0142", icon: <Phone size={18} /> },
     { label: "Connected ATS", value: atsName ?? "No ATS (manual)", icon: <Zap size={18} /> },
     { label: "Imported Jobs", value: atsName ? `${data.importedJobs} roles` : "Set up manually", icon: <Briefcase size={18} /> },
     { label: "Screening Configured", value: `${questionCount ?? data.screeningQuestions} questions active`, icon: <CheckCircle size={18} /> },
@@ -1379,7 +1383,7 @@ function DashboardShell({
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const now = new Date();
-  const today = `${now.toLocaleDateString("en-GB", { weekday: "short" })}, ${now.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+  const today = now.toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" });
 
   const Sidebar = () => (
     <aside className={`
@@ -1407,7 +1411,7 @@ function DashboardShell({
           <GreenDot pulse />
           <span className="text-green-700 text-sm font-bold">Sarah Active</span>
         </div>
-        <div className="text-gray-600 text-sm font-mono">{phoneNumber || "020 8123 4567"}</div>
+        <div className="text-gray-600 text-sm font-mono">{phoneNumber || "(312) 555-0142"}</div>
       </div>
 
       <nav className="flex-1 p-3 space-y-0.5 mt-3">
@@ -1674,7 +1678,7 @@ function JobsPage({ onSelectJob }: { onSelectJob: (job: string) => void }) {
             <div className="p-5 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Your phone number</label>
-                <input type="tel" value={postPhone} onChange={(e) => setPostPhone(e.target.value)} placeholder="+44 7700 900000" className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all" />
+                <input type="tel" value={postPhone} onChange={(e) => setPostPhone(e.target.value)} placeholder="+1 (312) 555-0100" className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-green-400 transition-all" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Call language</label>
@@ -2398,13 +2402,13 @@ function SettingsPage({ phoneNumber, atsName }: { phoneNumber: string; atsName: 
               <div className="space-y-5">
                 <div className="p-5 bg-green-50 border border-green-200 rounded-2xl">
                   <div className="text-sm font-semibold text-green-700 mb-1">Active Number</div>
-                  <div className="text-3xl font-bold text-gray-900 font-mono">{phoneNumber || "020 8123 4567"}</div>
+                  <div className="text-3xl font-bold text-gray-900 font-mono">{phoneNumber || "(312) 555-0142"}</div>
                   <div className="text-sm text-gray-500 mt-1 flex items-center gap-2"><GreenDot /> Live and accepting calls</div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { label: "Country", value: "United Kingdom 🇬🇧" },
-                    { label: "Area Code", value: "020 (London)" },
+                    { label: "Area Code", value: "312 (Chicago)" },
                     { label: "Call forwarding", value: "Sarah (AI)" },
                     { label: "Voicemail", value: "Enabled" },
                     { label: "Call recording", value: "Enabled" },

@@ -17,7 +17,7 @@ const LANGUAGES = [
 export default function CreateJobPage() {
   const navigate = useNavigate();
   const posthog = usePostHog();
-  const [phone, setPhone] = useState("+44 7700 900123");
+  const [phone, setPhone] = useState("+1 (312) 555-0123");
   const [lang, setLang] = useState("English");
 
   function handleCall(e: React.FormEvent) {

@@ -12,7 +12,7 @@ const transcript = [
   { speaker: 'GigGrab', text: 'And where is the location?', delay: 2800 },
   { speaker: 'Employer', text: 'Manchester.', delay: 3500 },
   { speaker: 'GigGrab', text: 'What\'s the salary range?', delay: 4200 },
-  { speaker: 'Employer', text: '£12 to £15 per hour.', delay: 4900 },
+  { speaker: 'Employer', text: '$12 to $15 per hour.', delay: 4900 },
   { speaker: 'GigGrab', text: 'Night shifts available?', delay: 5600 },
   { speaker: 'Employer', text: 'Yes, we need night shift workers.', delay: 6300 },
   { speaker: 'GigGrab', text: 'Any certifications required?', delay: 7000 },
@@ -46,12 +46,12 @@ export default function CallGigGrabPage() {
         if (i === 1) setJobData(prev => ({ ...prev, title: 'Warehouse Associate' }));
         if (i === 3) setJobData(prev => ({ ...prev, hiringVolume: '15 workers' }));
         if (i === 5) setJobData(prev => ({ ...prev, location: 'Manchester, UK' }));
-        if (i === 7) setJobData(prev => ({ ...prev, salary: '£12-15/hour' }));
+        if (i === 7) setJobData(prev => ({ ...prev, salary: '$12-15/hour' }));
         if (i === 9) setJobData(prev => ({ ...prev, shiftType: 'Night shifts available' }));
         if (i === 11) setJobData(prev => ({
           ...prev,
           requirements: 'Forklift license preferred',
-          summary: 'We are looking for 15 reliable Warehouse Associates to join our team in Manchester. Night shifts available. Competitive pay of £12-15/hour.',
+          summary: 'We are looking for 15 reliable Warehouse Associates to join our team in Manchester. Night shifts available. Competitive pay of $12-15/hour.',
           urgency: 'ASAP',
         }));
       }, msg.delay));

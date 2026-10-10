@@ -26,7 +26,7 @@ const transcript = [
   { speaker: 'Sarah', text: "When could you start, and what hours work for you?", delay: 11100 },
   { speaker: 'You', text: "Right away. Happy with nights or weekends.", delay: 12300 },
   { speaker: 'Sarah', text: "And what pay are you looking for?", delay: 13500 },
-  { speaker: 'You', text: "Around £13 an hour, more for nights.", delay: 14700 },
+  { speaker: 'You', text: "Around $13 an hour, more for nights.", delay: 14700 },
   { speaker: 'Sarah', text: "Anything that would be a deal-breaker for you?", delay: 15900 },
   { speaker: 'You', text: "No zero-hours contracts. Need something steady.", delay: 17100 },
   { speaker: 'Sarah', text: "Perfect, Marek — I've built your profile and I'm already finding matches. Have a look!", delay: 18600 },
@@ -56,7 +56,7 @@ export default function WorkerCallPage() {
         if (i === 7) setCv(prev => ({ ...prev, recent: 'DHL, Manchester — picking, loading & forklift (2 years)' }));
         if (i === 9) setCv(prev => ({ ...prev, location: 'Manchester, UK', travel: 'Up to 30 min by public transport' }));
         if (i === 11) setCv(prev => ({ ...prev, availability: 'Available now · nights & weekends OK' }));
-        if (i === 13) setCv(prev => ({ ...prev, pay: '~£13/hr (more for nights)' }));
+        if (i === 13) setCv(prev => ({ ...prev, pay: '~$13/hr (more for nights)' }));
         if (i === 15) setCv(prev => ({
           ...prev,
           dealBreakers: 'No zero-hours contracts',

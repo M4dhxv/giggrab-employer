@@ -29,7 +29,7 @@ const PROFILE = {
   credentials: ['Counterbalance forklift licence', 'CSCS card'],
   rightToWork: 'Settled status — full right to work in the UK',
   availability: 'Available now · nights & weekends OK',
-  pay: '~£13/hr (more for nights)',
+  pay: '~$13/hr (more for nights)',
   projects: [
     { role: 'Warehouse Operative', company: 'DHL', period: '2023 – 2025', desc: 'Picking, loading and counterbalance forklift driving in a high-volume distribution centre.' },
     { role: 'Forklift Driver', company: 'XPO Logistics', period: '2019 – 2023', desc: 'Reach truck and counterbalance, inbound goods and stock replenishment.' },
@@ -192,7 +192,7 @@ export default function WorkerProfilePage() {
               <button onClick={() => navigate('/worker/start')} className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
                 <RefreshCw className="w-4 h-4" /> Call again
               </button>
-              <a href="tel:+442045718822" className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
+              <a href="tel:+13125550199" className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:border-gray-400 transition-all">
                 <Phone className="w-4 h-4" /> Talk to Sarah
               </a>
             </>

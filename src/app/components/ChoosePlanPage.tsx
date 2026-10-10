@@ -7,7 +7,7 @@ const plans = [
   {
     id: 'free',
     name: 'FREE',
-    price: '£0/day',
+    price: '$0/day',
     icon: <Star className="w-5 h-5" />,
     tagline: 'Try Sarah on your first role',
     features: [
@@ -24,7 +24,7 @@ const plans = [
   {
     id: 'standard',
     name: 'STANDARD',
-    price: 'Starting at £20/day',
+    price: 'Starting at $20/day',
     icon: <Zap className="w-5 h-5" />,
     tagline: 'Full autonomous worker acquisition',
     features: [

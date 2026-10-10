@@ -23,9 +23,9 @@ export default function ReviewLaunchPage() {
 
             <div className="grid sm:grid-cols-2 gap-5 mb-7">
               <InfoItem icon={<MapPin className="w-4 h-4" />} label="Location" value="Manchester, UK" />
-              <InfoItem icon={<Briefcase className="w-4 h-4" />} label="Salary" value="£12–15/hour" />
+              <InfoItem icon={<Briefcase className="w-4 h-4" />} label="Salary" value="$12–15/hour" />
               <InfoItem icon={<TrendingUp className="w-4 h-4" />} label="Plan" value="Standard" />
-              <InfoItem icon={<TrendingUp className="w-4 h-4" />} label="Daily Budget" value="£20/day" />
+              <InfoItem icon={<TrendingUp className="w-4 h-4" />} label="Daily Budget" value="$20/day" />
             </div>
 
             <div className="border-t border-gray-100 pt-5">

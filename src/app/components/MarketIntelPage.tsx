@@ -15,14 +15,14 @@ interface RoleIntel {
 }
 
 const SINGLE_ROLE: RoleIntel = {
-  id: 0, title: 'Warehouse Associate', location: 'Manchester, UK', salary: '£12–15/hour',
+  id: 0, title: 'Warehouse Associate', location: 'Manchester, UK', salary: '$12–15/hour',
   available: '1,240', activelyLooking: '387', fillTime: '5–9 days',
 };
 
 const BULK_ROLES: RoleIntel[] = [
-  { id: 0, title: 'Warehouse Associate', location: 'Manchester', salary: '£12–15/hour', available: '1,240', activelyLooking: '387', fillTime: '5–9 days' },
-  { id: 1, title: 'Cleaner', location: 'Manchester', salary: '£11–13/hour', available: '420', activelyLooking: '113', fillTime: '3–6 days' },
-  { id: 2, title: 'Forklift Operator', location: 'Manchester', salary: '£14–16/hour', available: '610', activelyLooking: '184', fillTime: '4–8 days' },
+  { id: 0, title: 'Warehouse Associate', location: 'Manchester', salary: '$12–15/hour', available: '1,240', activelyLooking: '387', fillTime: '5–9 days' },
+  { id: 1, title: 'Cleaner', location: 'Manchester', salary: '$11–13/hour', available: '420', activelyLooking: '113', fillTime: '3–6 days' },
+  { id: 2, title: 'Forklift Operator', location: 'Manchester', salary: '$14–16/hour', available: '610', activelyLooking: '184', fillTime: '4–8 days' },
 ];
 
 const SCAN_STEPS = [

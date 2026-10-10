@@ -14,7 +14,7 @@ const TRANSCRIPT = [
   { speaker: 'Sarah', text: "Excellent. Are you available for night shifts?", delay: 13000 },
   { speaker: 'Worker', text: "Yes, nights work well for me. I prefer them actually.", delay: 14500 },
   { speaker: 'Sarah', text: "And what's your salary expectation for this role?", delay: 16000 },
-  { speaker: 'Worker', text: "£13 to £14 per hour would be good.", delay: 17500 },
+  { speaker: 'Worker', text: "$13 to $14 per hour would be good.", delay: 17500 },
 ];
 
 type Profile = {
@@ -59,7 +59,7 @@ export default function LiveScreeningPage() {
       if (currentIndex === 5) setProfile((p) => ({ ...p, experience: '3 years — Amazon (picking & packing)', qualificationScore: 50 }));
       if (currentIndex === 7) setProfile((p) => ({ ...p, licenses: 'Counterbalance, Reach truck', certifications: 'Forklift certified', qualificationScore: 75 }));
       if (currentIndex === 9) setProfile((p) => ({ ...p, availability: 'Night shifts (preferred)', qualificationScore: 90 }));
-      if (currentIndex === 11) setProfile((p) => ({ ...p, salaryExpectations: '£13–14/hour', qualificationScore: 95, status: 'Qualified' }));
+      if (currentIndex === 11) setProfile((p) => ({ ...p, salaryExpectations: '$13–14/hour', qualificationScore: 95, status: 'Qualified' }));
     }, TRANSCRIPT[currentIndex].delay);
 
     return () => clearTimeout(timer);

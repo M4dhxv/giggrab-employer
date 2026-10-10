@@ -81,11 +81,11 @@ interface Job {
 // ─── Mock data ───────────────────────────────────────────────────────────────
 
 const INITIAL_JOBS: Job[] = [
-  { id: '1', title: 'Warehouse Associate', location: 'Manchester, UK', status: 'Active', promotion: 'PREMIUM', budget: 45, totalSpend: 360, candidates: 47, qualified: 12, awaitingReview: 8, interviews: 4, daysToFill: 8, postedAt: '3 days ago', salary: '£12–15/hr' },
-  { id: '2', title: 'Forklift Operator',   location: 'Manchester, UK', status: 'Active', promotion: 'STANDARD', budget: 25, totalSpend: 150, candidates: 18, qualified: 5,  awaitingReview: 3, interviews: 1, daysToFill: 14, postedAt: '6 days ago', salary: '£14–17/hr' },
-  { id: '3', title: 'Night Shift Packer',  location: 'Salford, UK',    status: 'Paused', promotion: 'STANDARD', budget: 20, totalSpend: 240, candidates: 9,  qualified: 2,  awaitingReview: 1, interviews: 0, daysToFill: 21, postedAt: '12 days ago', salary: '£11–13/hr' },
-  { id: '4', title: 'Care Worker',         location: 'Bolton, UK',     status: 'Active', promotion: 'PREMIUM', budget: 40, totalSpend: 280, candidates: 31, qualified: 9,  awaitingReview: 5, interviews: 2, daysToFill: 10, postedAt: '5 days ago', salary: '£11–14/hr' },
-  { id: '5', title: 'Production Worker',   location: 'Wigan, UK',      status: 'Active', promotion: 'STANDARD', budget: 22, totalSpend: 88,  candidates: 11, qualified: 3,  awaitingReview: 2, interviews: 0, daysToFill: 18, postedAt: '2 days ago', salary: '£12/hr' },
+  { id: '1', title: 'Warehouse Associate', location: 'Manchester, UK', status: 'Active', promotion: 'PREMIUM', budget: 45, totalSpend: 360, candidates: 47, qualified: 12, awaitingReview: 8, interviews: 4, daysToFill: 8, postedAt: '3 days ago', salary: '$12–15/hr' },
+  { id: '2', title: 'Forklift Operator',   location: 'Manchester, UK', status: 'Active', promotion: 'STANDARD', budget: 25, totalSpend: 150, candidates: 18, qualified: 5,  awaitingReview: 3, interviews: 1, daysToFill: 14, postedAt: '6 days ago', salary: '$14–17/hr' },
+  { id: '3', title: 'Night Shift Packer',  location: 'Salford, UK',    status: 'Paused', promotion: 'STANDARD', budget: 20, totalSpend: 240, candidates: 9,  qualified: 2,  awaitingReview: 1, interviews: 0, daysToFill: 21, postedAt: '12 days ago', salary: '$11–13/hr' },
+  { id: '4', title: 'Care Worker',         location: 'Bolton, UK',     status: 'Active', promotion: 'PREMIUM', budget: 40, totalSpend: 280, candidates: 31, qualified: 9,  awaitingReview: 5, interviews: 2, daysToFill: 10, postedAt: '5 days ago', salary: '$11–14/hr' },
+  { id: '5', title: 'Production Worker',   location: 'Wigan, UK',      status: 'Active', promotion: 'STANDARD', budget: 22, totalSpend: 88,  candidates: 11, qualified: 3,  awaitingReview: 2, interviews: 0, daysToFill: 18, postedAt: '2 days ago', salary: '$12/hr' },
 ];
 
 const CANDIDATES: Candidate[] = [
@@ -95,13 +95,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English'], score: 92, status: 'Qualified', badge: 'Forklift Certified',
     availability: 'Available immediately', certifications: ['Forklift Licence', 'Manual Handling'],
     employmentStatus: 'Available', notes: 'Highly motivated. Available nights and weekends.',
-    job: 'Warehouse Associate', jobId: '1', addedAt: '5 mins ago', salaryExpectation: '£13–15/hr',
+    job: 'Warehouse Associate', jobId: '1', addedAt: '5 mins ago', salaryExpectation: '$13–15/hr',
     screeningSummary: {
       experience: '4 years in warehouse and logistics roles, including 2 years operating forklifts at a major distribution centre in Manchester.',
       availability: 'Available to start immediately. Flexible on shifts including nights and weekends.',
       certifications: 'Valid Forklift Licence (FLT counterbalance). Manual Handling certified.',
       languages: 'English (native).',
-      salaryExpectations: 'Expecting £13–15/hr. Flexible for the right opportunity.',
+      salaryExpectations: 'Expecting $13–15/hr. Flexible for the right opportunity.',
       strengths: ['Strong forklift experience', 'Immediate availability', 'Night shift flexibility', 'Proven in high-volume environments'],
       concerns: ['No reach truck experience mentioned', 'Last role ended 3 months ago — worth clarifying reason'],
     },
@@ -115,11 +115,11 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'Are you available to start immediately and are you open to night shifts?', time: '10:04' },
       { speaker: 'Candidate', text: 'Yes to both. Nights are actually better for me.', time: '10:04' },
       { speaker: 'AI', text: 'What salary are you looking for?', time: '10:05' },
-      { speaker: 'Candidate', text: 'Somewhere between £13 and £15 an hour. But I\'m open if the role is a good fit.', time: '10:05' },
+      { speaker: 'Candidate', text: 'Somewhere between $13 and $15 an hour. But I\'m open if the role is a good fit.', time: '10:05' },
       { speaker: 'AI', text: 'Perfect. That\'s everything I need. You\'re a strong match for this role. The employer will be in touch shortly.', time: '10:06' },
     ],
     interviews: [
-      { id: 'i1', date: '12 Jun 2026', time: '10:00 AM', type: 'Phone', status: 'Upcoming', notes: 'Initial screening call with hiring manager.' },
+      { id: 'i1', date: 'Jun 12, 2026', time: '10:00 AM', type: 'Phone', status: 'Upcoming', notes: 'Initial screening call with hiring manager.' },
     ],
   },
   {
@@ -128,13 +128,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English', 'Spanish'], score: 87, status: 'Qualified',
     availability: 'Within 1 week', certifications: ['Forklift Licence'],
     employmentStatus: 'Available', notes: 'Strong logistics background. Bilingual.',
-    job: 'Warehouse Associate', jobId: '1', addedAt: '12 mins ago', salaryExpectation: '£14–16/hr',
+    job: 'Warehouse Associate', jobId: '1', addedAt: '12 mins ago', salaryExpectation: '$14–16/hr',
     screeningSummary: {
       experience: '6 years in logistics and warehouse operations across the UK and Spain. Experienced in stock management and team supervision.',
       availability: 'Can start within 1 week.',
       certifications: 'Valid Forklift Licence.',
       languages: 'Fluent in English and Spanish. Beneficial for diverse teams.',
-      salaryExpectations: 'Looking for £14–16/hr.',
+      salaryExpectations: 'Looking for $14–16/hr.',
       strengths: ['Extensive logistics experience', 'Bilingual capability', 'Team supervision experience', 'Quick availability'],
       concerns: ['Salary expectation slightly above posted range', 'May be overqualified for associate-level role'],
     },
@@ -148,7 +148,7 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'What languages do you speak?', time: '11:18' },
       { speaker: 'Candidate', text: 'English and Spanish, both fluent.', time: '11:18' },
       { speaker: 'AI', text: 'And what salary are you looking for?', time: '11:19' },
-      { speaker: 'Candidate', text: 'Around £14 to £16 an hour.', time: '11:19' },
+      { speaker: 'Candidate', text: 'Around $14 to $16 an hour.', time: '11:19' },
       { speaker: 'AI', text: 'Great. You\'re a strong match. The employer will review your profile and be in touch.', time: '11:20' },
     ],
     interviews: [],
@@ -159,13 +159,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English', 'Urdu'], score: 81, status: 'Available',
     availability: 'Available immediately', certifications: [],
     employmentStatus: 'Available', notes: 'Flexible availability. Night shifts preferred.',
-    job: 'Warehouse Associate', jobId: '1', addedAt: '18 mins ago', salaryExpectation: '£12/hr',
+    job: 'Warehouse Associate', jobId: '1', addedAt: '18 mins ago', salaryExpectation: '$12/hr',
     screeningSummary: {
       experience: '2 years in general labour and warehouse picking roles.',
       availability: 'Available immediately. Prefers night shifts.',
       certifications: 'No formal certifications held.',
       languages: 'English and Urdu.',
-      salaryExpectations: 'Happy with £12/hr.',
+      salaryExpectations: 'Happy with $12/hr.',
       strengths: ['Immediate availability', 'Night shift preference matches role', 'Flexible attitude'],
       concerns: ['Limited experience (2 years)', 'No certifications', 'No forklift licence'],
     },
@@ -179,7 +179,7 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'Are you available to start immediately?', time: '14:33' },
       { speaker: 'Candidate', text: 'Yes, straight away. I prefer nights actually.', time: '14:33' },
       { speaker: 'AI', text: 'What pay are you looking for?', time: '14:34' },
-      { speaker: 'Candidate', text: '£12 an hour would be good.', time: '14:34' },
+      { speaker: 'Candidate', text: '$12 an hour would be good.', time: '14:34' },
       { speaker: 'AI', text: 'Thanks Ahmed. We\'ll pass your profile to the employer now.', time: '14:35' },
     ],
     interviews: [],
@@ -190,13 +190,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English'], score: 74, status: 'Review',
     availability: '2 weeks notice', certifications: [],
     employmentStatus: 'Currently Employed', notes: 'Transitioning from retail. Eager to learn.',
-    job: 'Warehouse Associate', jobId: '1', addedAt: '25 mins ago', salaryExpectation: '£12–13/hr',
+    job: 'Warehouse Associate', jobId: '1', addedAt: '25 mins ago', salaryExpectation: '$12–13/hr',
     screeningSummary: {
       experience: '1 year in a retail stock room environment. Limited direct warehouse experience but transferable skills.',
       availability: 'Currently employed. 2 weeks notice required.',
       certifications: 'None held.',
       languages: 'English only.',
-      salaryExpectations: '£12–13/hr.',
+      salaryExpectations: '$12–13/hr.',
       strengths: ['Eager to transition', 'Organised and reliable per screening responses', 'Quick notice period'],
       concerns: ['Limited warehouse-specific experience', 'No certifications', 'Currently employed — may need managing'],
     },
@@ -210,7 +210,7 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'When would you be available to start?', time: '09:18' },
       { speaker: 'Candidate', text: 'I\'d need to give 2 weeks notice. So maybe 2 to 3 weeks.', time: '09:18' },
       { speaker: 'AI', text: 'What salary are you expecting?', time: '09:19' },
-      { speaker: 'Candidate', text: '£12 or £13 an hour.', time: '09:19' },
+      { speaker: 'Candidate', text: '$12 or $13 an hour.', time: '09:19' },
       { speaker: 'AI', text: 'Thank you Sarah. We\'ll review your profile and be in touch.', time: '09:20' },
     ],
     interviews: [],
@@ -221,13 +221,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English'], score: 70, status: 'Review',
     availability: 'Within 1 week', certifications: ['Manual Handling'],
     employmentStatus: 'Available', notes: 'Solid experience, needs interview.',
-    job: 'Warehouse Associate', jobId: '1', addedAt: '32 mins ago', salaryExpectation: '£12–14/hr',
+    job: 'Warehouse Associate', jobId: '1', addedAt: '32 mins ago', salaryExpectation: '$12–14/hr',
     screeningSummary: {
       experience: '4 years in warehouse operative roles across two employers. Consistent employment history.',
       availability: 'Can start within 1 week.',
       certifications: 'Manual Handling certified. No forklift licence.',
       languages: 'English only.',
-      salaryExpectations: '£12–14/hr.',
+      salaryExpectations: '$12–14/hr.',
       strengths: ['Solid experience level', 'Consistent employment history', 'Quick availability', 'Manual Handling certified'],
       concerns: ['Score slightly lower due to no forklift licence', 'Location (Bolton) may create commute issues'],
     },
@@ -241,7 +241,7 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'When can you start?', time: '15:48' },
       { speaker: 'Candidate', text: 'Within a week, easy.', time: '15:48' },
       { speaker: 'AI', text: 'And salary expectations?', time: '15:49' },
-      { speaker: 'Candidate', text: '£12 to £14.', time: '15:49' },
+      { speaker: 'Candidate', text: '$12 to $14.', time: '15:49' },
       { speaker: 'AI', text: 'Thanks James. We\'ll pass your details on to the employer.', time: '15:50' },
     ],
     interviews: [],
@@ -252,13 +252,13 @@ const CANDIDATES: Candidate[] = [
     languages: ['English', 'Polish'], score: 88, status: 'Shortlisted',
     availability: 'Available immediately', certifications: ['Forklift Licence'],
     employmentStatus: 'Available', notes: 'Excellent attitude. Forklift experience strong.',
-    job: 'Forklift Operator', jobId: '2', addedAt: '1 hr ago', salaryExpectation: '£13–15/hr',
+    job: 'Forklift Operator', jobId: '2', addedAt: '1 hr ago', salaryExpectation: '$13–15/hr',
     screeningSummary: {
       experience: '3 years in warehousing with a focus on forklift operations.',
       availability: 'Available immediately.',
       certifications: 'Valid Forklift Licence.',
       languages: 'English and Polish — useful for diverse team environments.',
-      salaryExpectations: '£13–15/hr.',
+      salaryExpectations: '$13–15/hr.',
       strengths: ['Strong forklift background', 'Immediate availability', 'Bilingual', 'Positive attitude noted in screening'],
       concerns: ['3 years may be on the lower end for a senior forklift role'],
     },
@@ -274,12 +274,12 @@ const CANDIDATES: Candidate[] = [
       { speaker: 'AI', text: 'What languages do you speak?', time: '08:34' },
       { speaker: 'Candidate', text: 'English and Polish.', time: '08:34' },
       { speaker: 'AI', text: 'Great. Salary expectations?', time: '08:35' },
-      { speaker: 'Candidate', text: '£13 to £15 an hour.', time: '08:35' },
+      { speaker: 'Candidate', text: '$13 to $15 an hour.', time: '08:35' },
       { speaker: 'AI', text: 'Excellent match. We\'ll share your profile with the employer today.', time: '08:36' },
     ],
     interviews: [
-      { id: 'i2', date: '14 Jun 2026', time: '2:00 PM', type: 'Video', status: 'Upcoming', notes: 'Video interview with operations manager.' },
-      { id: 'i3', date: '5 Jun 2026', time: '10:00 AM', type: 'Phone', status: 'Completed', notes: 'Initial screen completed. Positive outcome.' },
+      { id: 'i2', date: 'Jun 14, 2026', time: '2:00 PM', type: 'Video', status: 'Upcoming', notes: 'Video interview with operations manager.' },
+      { id: 'i3', date: 'Jun 5, 2026', time: '10:00 AM', type: 'Phone', status: 'Completed', notes: 'Initial screen completed. Positive outcome.' },
     ],
   },
 ];
@@ -310,13 +310,13 @@ function synthCandidates(area: string, job: Job, n: number): Candidate[] {
       languages: t.languages, score, status: 'Qualified' as const,
       availability: 'Available immediately', certifications: [],
       employmentStatus: 'Available', notes: `Sourced by Sarah from the ${place} talent pool.`,
-      job: job.title, jobId: job.id, addedAt: 'just now', salaryExpectation: '£12–14/hr',
+      job: job.title, jobId: job.id, addedAt: 'just now', salaryExpectation: '$12–14/hr',
       screeningSummary: {
         experience: `${years} years in similar frontline roles around ${place}.`,
         availability: 'Available immediately. Flexible on shifts.',
         certifications: 'None held.',
         languages: t.languages.join(' and ') + '.',
-        salaryExpectations: '£12–14/hr.',
+        salaryExpectations: '$12–14/hr.',
         strengths: ['Immediate availability', `Local to ${place}`, 'Screened by Sarah moments ago'],
         concerns: ['Full screening summary pending review'],
       },
@@ -651,11 +651,11 @@ function ActionPanel({ kind, candidates, onClose }: {
 interface PulledJob { title: string; location: string; salary: string; workerReach: number }
 
 const IMPORT_RESULTS: PulledJob[] = [
-  { title: 'Picker / Packer',  location: 'Manchester, UK', salary: '£11–13/hr', workerReach: 580 },
-  { title: 'Delivery Driver',  location: 'Salford, UK',    salary: '£13–15/hr', workerReach: 320 },
-  { title: 'Cleaner',          location: 'Manchester, UK', salary: '£11–12/hr', workerReach: 420 },
-  { title: 'Security Officer', location: 'Trafford, UK',   salary: '£12–14/hr', workerReach: 190 },
-  { title: 'Kitchen Porter',   location: 'Manchester, UK', salary: '£11/hr',    workerReach: 260 },
+  { title: 'Picker / Packer',  location: 'Manchester, UK', salary: '$11–13/hr', workerReach: 580 },
+  { title: 'Delivery Driver',  location: 'Salford, UK',    salary: '$13–15/hr', workerReach: 320 },
+  { title: 'Cleaner',          location: 'Manchester, UK', salary: '$11–12/hr', workerReach: 420 },
+  { title: 'Security Officer', location: 'Trafford, UK',   salary: '$12–14/hr', workerReach: 190 },
+  { title: 'Kitchen Porter',   location: 'Manchester, UK', salary: '$11/hr',    workerReach: 260 },
 ];
 
 let importSeq = 10;
@@ -1414,7 +1414,7 @@ function ProfileView({ candidate: c, onBack, onUpdate }: {
     if (!newInterview.date || !newInterview.time) return;
     const interview: Interview = {
       id: `i${Date.now()}`,
-      date: new Date(`${newInterview.date}T00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      date: new Date(`${newInterview.date}T00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       time: new Date(`${newInterview.date}T${newInterview.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       type: newInterview.type,
       status: 'Upcoming',
@@ -1742,7 +1742,7 @@ function JobsView({ jobs, onToggleStatus, onSelectJob, onStartCampaign }: {
                   <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary}</div>
                   {job.workerReach && (
                     <div className="flex gap-4 text-xs">
-                      <span style={{ color: '#15803d', fontWeight: 700 }}>~{job.workerReach.toLocaleString()} workers available</span>
+                      <span style={{ color: '#15803d', fontWeight: 700 }}>~{job.workerReach.toLocaleString('en-US')} workers available</span>
                       <span className="text-gray-400">Set a budget to launch</span>
                     </div>
                   )}
@@ -1786,7 +1786,7 @@ function JobsView({ jobs, onToggleStatus, onSelectJob, onStartCampaign }: {
                   <span className="inline-block rounded-full px-2 py-0.5 text-xs" style={{ backgroundColor: job.status === 'Active' ? '#f0fdf4' : job.status === 'Paused' ? '#fef9c3' : '#f3f4f6', color: job.status === 'Active' ? '#15803d' : job.status === 'Paused' ? '#92400e' : '#6b7280', fontWeight: 600 }}>{job.status}</span>
                   <span className="inline-block rounded-full px-2 py-0.5 text-xs bg-purple-50 text-purple-700" style={{ fontWeight: 600 }}>{job.promotion}</span>
                 </div>
-                <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary} · £{job.budget}/day</div>
+                <div className="text-xs text-gray-400 mb-1.5">{job.location} · {job.salary} · ${job.budget}/day</div>
                 <div className="flex gap-4 text-xs">
                   <span style={{ color: '#15803d', fontWeight: 700 }}>{job.qualified} qualified</span>
                   <span className="text-gray-400">{job.awaitingReview} awaiting review</span>
@@ -1936,7 +1936,7 @@ function SettingsView({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) 
                 { label: 'Industry',        value: 'Warehousing & Logistics',  type: 'text' },
                 { label: 'Contact Name',    value: 'Michael Thompson',         type: 'text' },
                 { label: 'Email Address',   value: 'michael@mslogistics.co.uk', type: 'email' },
-                { label: 'Phone Number',    value: '+44 7700 900123',          type: 'tel' },
+                { label: 'Phone Number',    value: '+1 (312) 555-0123',          type: 'tel' },
                 { label: 'Company Address', value: 'Manchester, UK',           type: 'text' },
               ].map(({ label, value, type }) => (
                 <div key={label}>
@@ -1957,7 +1957,7 @@ function SettingsView({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) 
                   <span className="text-xs bg-purple-100 text-purple-700 rounded-full px-2 py-0.5" style={{ fontWeight: 600 }}>PREMIUM</span>
                 </div>
                 <div className="text-xs text-gray-500">Pay-as-you-go · No monthly commitment</div>
-                <div className="mt-3 text-xs text-gray-500">Active jobs: <span style={{ fontWeight: 600, color: '#374151' }}>3</span> · Total daily budget: <span style={{ fontWeight: 600, color: '#374151' }}>£107/day</span></div>
+                <div className="mt-3 text-xs text-gray-500">Active jobs: <span style={{ fontWeight: 600, color: '#374151' }}>3</span> · Total daily budget: <span style={{ fontWeight: 600, color: '#374151' }}>$107/day</span></div>
               </div>
               <div>
                 <div className="text-sm text-gray-700 mb-3" style={{ fontWeight: 600 }}>Payment Method</div>
@@ -1974,9 +1974,9 @@ function SettingsView({ onToast }: { onToast: (t: Omit<Toast, 'id'>) => void }) 
                 <div className="text-sm text-gray-700 mb-3" style={{ fontWeight: 600 }}>Recent Invoices</div>
                 <div className="border border-gray-100 rounded-xl divide-y divide-gray-100">
                   {[
-                    { date: '01 Jun 2026', amount: '£1,295', status: 'Paid' },
-                    { date: '01 May 2026', amount: '£980',   status: 'Paid' },
-                    { date: '01 Apr 2026', amount: '£760',   status: 'Paid' },
+                    { date: 'Jun 1, 2026', amount: '$1,295', status: 'Paid' },
+                    { date: 'May 1, 2026', amount: '$980',   status: 'Paid' },
+                    { date: 'Apr 1, 2026', amount: '$760',   status: 'Paid' },
                   ].map(inv => (
                     <div key={inv.date} className="flex items-center justify-between px-4 py-3 text-sm">
                       <span className="text-gray-600">{inv.date}</span>

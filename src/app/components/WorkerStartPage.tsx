@@ -140,7 +140,7 @@ export default function WorkerStartPage() {
               autoFocus
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              placeholder="+44 7700 900123"
+              placeholder="+1 (312) 555-0123"
               className="w-full text-lg border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#10b981] focus:ring-2 focus:ring-emerald-100 transition-all mb-4"
               style={{ fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums' }}
             />

@@ -91,7 +91,7 @@ export default function PricingPage() {
             <div className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-2">Starter</div>
             <div className="mb-1">
               <span className="text-sm font-medium text-gray-400">Starts from </span>
-              <span className="text-4xl font-extrabold text-gray-900">£20</span>
+              <span className="text-4xl font-extrabold text-gray-900">$20</span>
               <span className="text-xl text-gray-400 font-medium"> /day</span>
             </div>
             <p className="text-sm text-gray-500 mb-7">Self-serve. Full AI hiring from day one.</p>

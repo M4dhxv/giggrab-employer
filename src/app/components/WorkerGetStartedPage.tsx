@@ -141,7 +141,7 @@ export default function WorkerGetStartedPage() {
                   type="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  placeholder="+44 7700 900123"
+                  placeholder="+1 (312) 555-0123"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-[#10b981] focus:ring-2 focus:ring-emerald-100 transition-all"
                   style={{ fontVariantNumeric: 'tabular-nums' }}
                 />
